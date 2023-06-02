@@ -196,8 +196,11 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
             if(not sheet_from_array.empty):
                 for index, row in sheet_from_array.iterrows():
                     for i in row.index:
+                        
                         if (row[i] != 0 and not isNaN(row[i]) and row[i] ):
                             key = i.strip()
+                            
+                            
                             cell=row[i]
                             if isinstance(cell,str):
                                 cell=cell.strip()
@@ -261,6 +264,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
                        # print("come on:",flag_dup)
                         if (flag_dup == 0 ):
                            # print ("chegou aqui")
+                            
                             dict_terms_file['sample'][index]=temp_dict
                     elif index_sheet == 1:
                         for index2 in dict_terms_file['host']:
@@ -366,6 +370,12 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
                     for i in row.index:
                         if (row[i] != 0 and not isNaN(row[i]) and row[i] ):
                             key = i.strip()
+                            if ("geo_loc (country)" in key):
+                                key = "geo_loc_name (country)"
+                            if ("geo_loc (state/province/region)" in key):
+                                key = "geo_loc_name (state/province/region)"  
+                            if ("sample_processing" in key):
+                                key = "specimen_processing"
                             cell=row[i]
                             if isinstance(cell,str):
                                 cell=cell.strip()
@@ -564,7 +574,7 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     
     
     cursor.execute("DROP TABLE IF EXISTS AMR_ANTIBIOTICS_PROFILE")
-    
+    cursor.execute("DROP TABLE IF EXISTS CATHY")
     cursor.execute("DROP TABLE IF EXISTS AMR_INFO")
     cursor.execute("DROP TABLE IF EXISTS HOSTS")
     cursor.execute("DROP TABLE IF EXISTS SEQUENCE")

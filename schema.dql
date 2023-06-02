@@ -1,0 +1,662 @@
+AMR_laboratory_typing_method: string @index(exact, fulltext) .
+AMR_laboratory_typing_platform: string @index(exact, fulltext) .
+AMR_laboratory_typing_platform_version: string @index(exact, fulltext) .
+AMR_measurement_units: string @index(exact, fulltext) .
+GenBank_accession: string @index(exact, fulltext) .
+IRIDA_isolate_ID: string @index(exact, fulltext) .
+IRIDA_project_ID: string @index(exact, fulltext) .
+SRA_accession: string @index(exact, fulltext) .
+AMR_testing_resistance_breakpoint: string @index(exact, fulltext) .
+SequencedAt: [uid] .
+SequencedBy: [uid] .
+SequenceSubmittedBy: [uid] .
+Task.completed: bool @index(bool) .
+Task.title: string @index(fulltext) .
+Task.user: uid .
+User.name: string @index(exact) .
+User.tasks: [uid] .
+User.username: string @index(hash) @upsert .
+alternative_isolate_ID: string @index(exact, fulltext) .
+alternative_sample_ID: string @index(exact, fulltext) .
+anatomical_material: string @index(exact, fulltext) .
+anatomical_part: string @index(exact, fulltext) .
+animal_or_plant_population: string @index(exact, fulltext) .
+animal_source_of_food: string @index(exact, fulltext) .
+antibiotic_measurement: int .
+antibiotic_measurement_sign: string @index(exact, fulltext) .
+antibiotic_name: string @index(exact, fulltext) .
+antibiotic_resistance_phenotype: string @index(exact, fulltext) .
+assembly_filename: string @index(exact, fulltext) .
+attribute_package: string @index(exact, fulltext) .
+belongsTo: [uid] .
+belongsToHost: [uid] @reverse .
+belongstoIRIDA: [uid] @reverse .
+breed: string @index(exact, fulltext) .
+AMR_phenotype: string @index(exact, fulltext) .
+biosample_accession: string @index(exact, fulltext) .
+bioproject_accession: string @index(exact, fulltext) .
+hasBioproject: [uid] .
+body_product: string @index(exact, fulltext) .
+collected: [uid] @reverse .
+collectedBy: [uid] .
+collectedFrom: [uid] .
+collection_device: string @index(exact, fulltext) .
+collection_method: string @index(exact, fulltext) .
+common_name: string @index(exact, fulltext) .
+contact_email: string @index(exact, fulltext) .
+contact_name: string @index(exact, fulltext) .
+country: string @index(exact, fulltext) .
+details: string .
+dgraph.drop.op: string .
+dgraph.graphql.p_query: string @index(sha256) .
+dgraph.graphql.schema: string .
+dgraph.graphql.xid: string @index(exact) @upsert .
+disease: string @index(exact, fulltext) .
+ecotype: string @index(exact, fulltext) .
+environmental_material: string @index(exact, fulltext) .
+environmental_site: string @index(exact, fulltext) .
+experiment_intervention_details: string .
+experimental_activity: string @index(exact, fulltext) .
+experimental_intervention: string @index(exact, fulltext) .
+fast5_filename: string @index(exact, fulltext) .
+food_packaging: string @index(exact, fulltext) .
+food_product: string @index(exact, fulltext) .
+food_product_properties: string @index(exact, fulltext) .
+food_production_name: string @index(exact, fulltext) .
+water_depth: string @index(exact, fulltext) .
+air_temperature: string @index(exact, fulltext) .
+term_id: string @index(exact, fulltext) .
+weather_type: string @index(exact, fulltext) .
+forSequencing: [uid] @reverse .
+hasWeatherType: [uid] .
+hasEcotype: [uid] .
+hasBreed: [uid] .
+hasFoodProductionName: [uid] .
+hasAMRTesting: [uid] .
+hasAnimalSource: [uid] .
+hasAntibiotic: [uid] .
+hasAttributePackage: [uid] .
+hasBiosample: [uid] .
+hasBodyProduct: [uid] .
+hasCollectionDevice: [uid] .
+hasCollectionInfo: [uid] .
+hasCollectionMethod: [uid] .
+hasAnatomicalMaterial: [uid] .
+hasAnatomicalPart: [uid] .
+hasExperimentalIntervation: [uid] .
+hasAMRPhenotype: [uid] .
+hasCollectionSource: [uid] @reverse .
+hasCountry: [uid] .
+hasDisease: [uid] .
+hasExperimentalActivity: [uid] .
+hasFoodProduct: [uid] .
+hasGenBank: [uid] .
+hasIRIDA: [uid] .
+hasInstitution: [uid] .
+hasIsolate: [uid] .
+hasMaterial: [uid] @reverse .
+hasMeasurement: [uid] .
+hasMeasurement_sign: [uid] .
+hasOrganism: [uid] .
+hasOrigin: [uid] .
+hasPackaging: [uid] .
+hasPhagetype: [uid] .
+hasPlanId: [uid] .
+hasPopulation: [uid] .
+hasProperties: [uid] .
+hasProvince: [uid] .
+hasProvinces: [uid] @reverse .
+hasPublication: [uid] .
+hasPurpose: [uid] .
+hasPreSampling: [uid] .
+hasRepID: [uid] @reverse .
+hasResistance_phenotype: [uid] .
+hasRiskAssessment: [uid] .
+hasSRA: [uid] .
+hasSample: [uid] @reverse .
+hasSampleStorage: [uid] .
+hasSequencingPlatform: [uid] .
+hasSequencingInstrument: [uid] .
+hasSpecimenProcessing: [uid] .
+hasSequencing: [uid] .
+hasSerovar: [uid] .
+hasSite: [uid] .
+hasCoordinate: [uid] .
+inFoodProduct: [uid] @reverse .
+inRepID: [uid] .
+institution_name: string @index(exact, fulltext) .
+isolate_ID: string @index(exact, fulltext) .
+isolated: [uid] @reverse .
+isolatedBy: [uid] .
+isolatedFrom: [uid] @reverse .
+isolation_date: datetime .
+laboratory_name: string @index(exact, fulltext) .
+latitude_of_sample_collection: int @index(int) .
+library_ID: string @index(exact, fulltext) .
+library_preparation_kit: string @index(exact, fulltext) .
+hasLibraryPrepKit: [uid] .
+livesIn: [uid] @reverse .
+longitude_of_sample_collection: int @index(int) .
+microbiological_method: string @index(exact, fulltext) .
+organism: string @index(exact, fulltext) .
+original_sample_description: string .
+phagetype: string @index(exact, fulltext) .
+prevalence_metrics: string @index(exact, fulltext) .
+prevalence_metrics_details: string .
+progeny_isolate_ID: string @index(exact, fulltext) .
+publication_ID: string @index(exact, fulltext) .
+purpose_of_sampling: string @index(exact, fulltext) .
+purpose_of_sequencing: string .
+presampling_activity: string @index(exact, fulltext) .
+r1_fastq_filename: string @index(exact, fulltext) .
+r2_fastq_filename: string @index(exact, fulltext) .
+received_date: datetime .
+sample_collection_date: string @index(exact, fulltext) .
+sample_collection_project_name: string @index(exact, fulltext) .
+sample_collector_sample_ID: string @index(exact, fulltext) .
+sample_plan_ID: string @index(exact, fulltext) .
+sample_plan_name: string @index(exact, fulltext) .
+sample_storage_method: string @index(exact, fulltext) .
+sample_storage_medium: string @index(exact, fulltext) .
+specimen_processing: string @index(exact, fulltext) .
+scientific_name: string @index(exact, fulltext) .
+sequenced: [uid] @reverse .
+sequencing_instrument: string @index(exact, fulltext) .
+sequencing_protocol: string @index(exact, fulltext) .
+sequencing_platform: string @index(exact, fulltext) .
+sequencing_project_name: string @index(exact, fulltext) .
+serotyped: [uid] @reverse .
+serotyping_method: string @index(exact, fulltext) .
+serovar: string @index(exact, fulltext) .
+stage_of_production: string @index(exact, fulltext) .
+state_Region_Province: string @index(exact, fulltext) .
+strain: string @index(exact, fulltext) .
+usedAMRData: [uid] @reverse .
+usedAMRTesting: [uid] .
+usedInSample: [uid] @reverse .
+usedSerotypingMethod: [uid] .
+worksAt: [uid] .
+worksHere: [uid] @reverse .
+hasLaboratoryTypingPlatform: [uid] .
+hasVendor: [uid] .
+hasVersion: [uid] .
+vendor_name: string @index(exact, fulltext) .
+AMR_testing_date: datetime .
+AMRtestingBy:[uid] .
+hasTestingStandard: [uid] .
+hasTestingBreakPoint: [uid] .
+AMR_testing_standard: string @index(exact, fulltext) .
+AMR_testing_standard_version: string @index(exact, fulltext) .
+AMR_testing_standard_details: string @index(exact, fulltext) .
+AMR_testing_susceptible_breakpoint: string @index(exact, fulltext) .
+AMR_testing_intermediate_breakpoint: string @index(exact, fulltext) .
+AMR_testing_resistant_breakpoint: string @index(exact, fulltext) .
+antibiotic_testing_standard: string @index(exact, fulltext) .
+antibiotic_testing_standard_version: string @index(exact, fulltext) .
+antibiotic_testing_standard_details: string @index(exact, fulltext) .
+antibiotic_testing_susceptible_breakpoint: string @index(exact, fulltext) .
+antibiotic_testing_intermediate_breakpoint: string @index(exact, fulltext) .
+antibiotic_testing_resistance_breakpoint: string @index(exact, fulltext) .
+hasSusceptibleBreakpoint: [uid] .
+hasIntermediateBreakpoint: [uid] .
+hasResistanceBreakpoint: [uid] .
+
+type AMRTesting {
+	AMR_laboratory_typing_method
+	term_id
+	AMR_measurement_units
+	AMR_testing_date
+	hasTestingStandard
+	hasAMRPhenotype
+	hasTestingBreakPoint
+	AMRtestingBy
+	hasLaboratoryTypingPlatform
+	hasAntibiotic
+    hasSample
+}
+type AMRPhenotype{
+	AMR_phenotype
+	term_id
+	hasSample
+
+}
+type LaboratoryTypingPlatform{
+	AMR_laboratory_typing_platform
+	hasVersion
+	hasVendor
+	hasSample
+
+}
+type LaboratoryTypingPlatformVersion{
+	AMR_laboratory_typing_platform_version
+	hasSample
+
+}
+type VendorName{
+	vendor_name
+	hasSample
+
+}
+type Agency {
+	institution_name
+	collected
+	worksHere
+	isolated
+    hasSample
+}
+type AnatomicalMaterial {
+	anatomical_material
+	term_id
+	hasAnatomicalPart
+	hasBodyProduct
+	hasSample
+	
+}
+type AnatomicalPart {
+	anatomical_part
+	term_id
+	hasSample
+	hasIsolate
+	belongsToHost
+}
+type AnimalPlantPopulation {
+	animal_or_plant_population
+	term_id
+	livesIn
+    hasSample
+}
+type AnimalSource {
+	animal_source_of_food
+	term_id
+	inFoodProduct
+    hasSample
+}
+type Antibiotic {
+	antibiotic_name
+	term_id
+	hasResistance_phenotype
+	hasMeasurement_sign
+	hasTestingStandard
+	hasTestingBreakPoint
+	hasSample
+}
+type TestingStandard{
+	AMR_testing_standard
+	term_id
+	AMR_testing_standard_version
+	AMR_testing_standard_details
+	hasSample
+}
+type TestingStandardA{
+	antibiotic_testing_standard
+	antibiotic_testing_standard_version
+	antibiotic_testing_standard_details
+	hasSample
+
+}
+type TestingBreakPoint{
+	hasSusceptibleBreakpoint
+	hasIntermediateBreakpoint
+	hasResistanceBreakpoint
+	hasSample
+}
+type SuscepitbleBreakpoint{
+	AMR_testing_susceptible_breakpoint
+	hasSample
+
+}
+type IntermediateBreakpoint{
+	AMR_testing_intermediate_breakpoint
+	hasSample
+
+}
+type ResistanceBreakpoint{
+	AMR_testing_resistance_breakpoint
+	hasSample
+
+}
+type SuscepitbleBreakpointA{
+	antibiotic_testing_susceptible_breakpoint
+	hasSample
+
+}
+type IntermediateBreakpointA{
+	antibiotic_testing_intermediate_breakpoint
+	hasSample
+
+}
+type ResistanceBreakpointA{
+	antibiotic_testing_resistance_breakpoint
+	hasSample
+
+}
+type AttributePackage {
+	attribute_package
+	term_id
+    hasSample
+}
+type Biosample {
+	biosample_accession
+    hasSample
+}
+type Bioproject{
+	bioproject_accession
+	hasSample
+}
+type BodyProduct {
+	body_product
+	term_id
+	hasSample
+	hasOrigin
+	hasIsolate
+	belongsToHost
+}
+type CollectionDevice {
+	collection_device
+	term_id
+	usedInSample
+    hasSample
+}
+type CollectionMethod {
+	collection_method
+	term_id
+	usedInSample
+    hasSample
+}
+type Country {
+	country
+	term_id
+	hasSample
+	hasProvinces
+}
+type DataContributor {
+	contact_name
+	contact_email
+	laboratory_name
+	worksAt
+    hasSample
+}
+type Disease {
+	disease
+    hasSample
+}
+type EnvironmentalMaterial {
+	environmental_material
+	term_id
+	water_depth
+	air_temperature
+	hasSample
+	hasFoodProduct
+}
+type EnvironmentalSite {
+	environmental_site
+	term_id
+	hasWeatherType
+	hasPopulation
+	hasMaterial
+    hasSample
+}
+type WeatherType{
+	weather_type
+	term_id
+	hasSample
+}
+type FoodPackaging {
+	food_packaging
+	term_id
+	inFoodProduct
+    hasSample
+}
+type FoodProduct {
+	food_product
+	term_id
+	hasPackaging
+	hasAnimalSource
+	hasProperties
+	hasSample
+	hasOrigin
+	
+}
+type FoodProductProperties {
+	food_product_properties
+	inFoodProduct
+    hasSample
+}
+type GenBank {
+	GenBank_accession
+    hasSample
+}
+type Host {
+	common_name
+	term_id
+	scientific_name
+	hasEcotype
+	hasBreed
+	hasFoodProductionName
+	hasSample
+	hasIsolate
+	hasDisease
+	hasOrigin
+	inRepID
+	hasCollectionSource
+}
+type FoodProductionName{
+	food_production_name
+	term_id
+	hasSample
+
+}
+type Breed {
+	breed
+	hasSample
+}
+type Ecotype {
+	ecotype
+	hasSample
+}
+
+type IRIDA {
+	IRIDA_isolate_ID
+	IRIDA_project_ID
+	hasSample
+}
+type Institution {
+	institution_name
+	term_id
+	collected
+	worksHere
+    hasSample
+}
+type Isolate {
+	isolate_ID
+	alternative_isolate_ID
+   	strain
+	progeny_isolate_ID
+	isolation_date
+	received_date
+	microbiological_method
+	isolatedBy
+	hasInstitution
+	hasSample
+	hasAnatomicalMaterial
+	hasIRIDA
+	isolatedFrom
+	hasOrganism
+	inRepID
+	hasSequencing
+	hasRiskAssessment
+	hasAMRTesting
+	hasAntibiotic
+}
+type Measurement {
+	antibiotic_measurement
+    hasSample
+}
+type MeasurementSign {
+	antibiotic_measurement_sign
+	hasMeasurement
+    hasSample
+}
+type Organism {
+	organism
+	term_id
+	hasSerovar
+	hasPhagetype
+	hasSample
+	usedSerotypingMethod
+	hasIsolate
+	inRepID
+}
+type Phagetype {
+	phagetype
+}
+type PreSampling {
+	presampling_activity
+	term_id
+	details
+	hasSample
+}
+type Province {
+	state_Region_Province
+	term_id
+	hasSample
+	hasCountry
+}
+type Publication {
+	publication_ID
+}
+type Purpose {
+	purpose_of_sampling
+	term_id
+	hasSample
+}
+type RepID {
+	SequenceSubmittedBy
+	hasGenBank
+	hasSRA
+	hasBiosample
+	hasBioproject
+	hasAttributePackage
+	hasPublication
+	hasSample
+	hasIsolate
+}
+
+type Resistance_phenotype {
+	antibiotic_resistance_phenotype
+}
+type RiskAssessment {
+	prevalence_metrics
+	prevalence_metrics_details
+	stage_of_production
+	hasExperimentalIntervation
+	hasSample
+	hasIsolate
+}
+type ExperimentalIntervation{
+	experimental_intervention
+	term_id
+	experiment_intervention_details
+	hasSample
+
+}
+type SRA {
+	SRA_accession
+    hasSample
+}
+type Sample {
+	sample_collector_sample_ID
+	alternative_sample_ID
+	sample_collection_project_name
+	sample_collection_date
+	received_date
+	original_sample_description
+	hasCoordinate
+	hasPurpose
+	hasPreSampling
+	hasSpecimenProcessing
+	hasSampleStorage
+	hasSite
+	collectedBy
+	hasInstitution
+	hasPlanId
+	hasCountry
+	collectedFrom
+	belongsTo
+	hasIsolate
+	hasCollectionDevice
+	hasCollectionMethod
+    inRepID
+	hasRiskAssessment
+}
+type SampleStorage{
+	sample_storage_method
+	sample_storage_medium
+	hasSample
+
+}
+type SpecimenProcessing {
+    specimen_processing
+    term_id
+    hasSample
+	
+}
+type Coordinate {
+	latitude_of_sample_collection
+	longitude_of_sample_collection
+	hasProvince
+    hasSample
+	
+}
+type SamplePlanId {
+	sample_plan_name
+	sample_plan_ID
+	hasSample
+}
+type Sequencing {
+	library_ID
+	sequencing_project_name
+	hasSequencingPlatform
+	sequencing_protocol
+	r1_fastq_filename
+	r2_fastq_filename
+	fast5_filename
+	assembly_filename
+	SequencedBy
+	SequencedAt
+	hasPurpose
+	hasLibraryPrepKit
+    hasSample
+}
+type SequencingPlatform{
+	sequencing_platform
+	term_id
+	hasSequencingInstrument
+	hasSample
+
+}
+type SequencingInstrument{
+	sequencing_instrument
+	term_id
+	hasSample
+
+}
+type LibraryKit{
+	library_preparation_kit
+	hasSample
+}
+type SequencingPurpose {
+	purpose_of_sequencing
+	term_id
+	forSequencing
+    hasSample
+}
+type SerotypingMethod {
+	serotyping_method
+	serotyped
+    hasSample
+}
+type Serovar {
+	serovar
+    hasSample
+}
