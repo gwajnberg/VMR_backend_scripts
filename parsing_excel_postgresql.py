@@ -13,7 +13,7 @@ import datetime
 import re
 import copy
 import argparse
-
+from parsing_owl import owl_parsing
 
 #function to check Nan strings
 def isNaN(string):
@@ -63,6 +63,7 @@ def create_ontology_as_dict(xls):
     antiT_terms=amrTotal_terms[22:]
     amrT_terms=amrTotal_terms[:22]
     
+    
             
     
     vocab_sheet = pd.read_excel(xls,keep_default_na=False,converters={column: lambda x: x.strip() for column in list(range(20))}, sheet_name="Vocabulary", header=1)
@@ -87,22 +88,26 @@ def create_ontology_as_dict(xls):
     #print(dict_fields)
     #sys.exit()
     new_merged_ontology_dict = {}
+    dict_foodon = owl_parsing()
+                
+    #print (dict_fields)
+    #sys.exit()
     for key in dict_fields:
-       # print ("general",key)
+        print ("general",key)
         if key in ontology_dict.keys():
             str_list = list(filter(None, ontology_dict[key]))
-          #  print("in hash", key)
+            print("in hash", key)
             temp_list=[];
             for i in str_list:
                 newstr = i.strip()
                 if re.match(".+\[\w",newstr):
-                    #print(newstr)
+            #        print(newstr)
                     substrL= re.match("(.+)\s+\[(\S+)\]",newstr)
                     
                     temp_list.append({newstr:{"term":substrL.groups()[0],"term_id":substrL.groups()[1]}})
                     #print("append",newstr)
                 else:
-                    #print("append",newstr)
+                 #   print("append",newstr)
                     temp_list.append(newstr)
                     #print (newstr)
             #print(temp_list)
@@ -115,11 +120,15 @@ def create_ontology_as_dict(xls):
                 #print (ontology_dict.keys())
                 #sys.exit()
             new_merged_ontology_dict [key] = {"field_id":dict_fields[key]}
+#    print(new_merged_ontology_dict)
+  #  sys.exit()
+    new_merged_ontology_dict['foodon_terms'] = []
+    for food_ids in dict_foodon:
+        master_str = dict_foodon[food_ids] +" ["+food_ids+"]"
+        new_merged_ontology_dict['foodon_terms'].append({master_str:{"terms":dict_foodon[food_ids],"term_id":food_ids}})
+
     #print(new_merged_ontology_dict)
     #sys.exit()
-    
-    
-    
     # We need to curate some of the lists for now
     # This curation is below
     #ontology_dict['purpose_of_sampling'] = [i.replace('Cluster/Outbreak','Cluster') for i in ontology_dict['purpose_of_sampling']]
@@ -133,6 +142,7 @@ def create_ontology_as_dict(xls):
     # For example, check a specific country
    # print('Canada' in ontology_dict['food_product_origin geo_loc (country)'])
     #sys.exit()
+    
     antimicrobian_agent_names_ids = {}
     for elements in new_merged_ontology_dict["antimicrobial_agent_name"]["terms"]:
         for keys in elements:
@@ -379,6 +389,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
                             cell=row[i]
                             if isinstance(cell,str):
                                 cell=cell.strip()
+                            flag_to_discard = 0
                             if key in ontology_terms_and_values.keys():
                                 if "terms" in ontology_terms_and_values[key].keys():
                            
@@ -401,22 +412,34 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
                                                 if cell in keyI:
                                                    # print(cell,keyI)
                                                     flag+=1;
+                                                #    print(item[keyI])
                                                     cell= item[keyI]["term"]+"//"+item[keyI]["term_id"]
                                                     #print("added //",cell)
                                                     #sys.exit()
+                                    
+                                    
                                     if flag == 0:
+                                        flag2 = 0
+                                        for item in ontology_terms_and_values['foodon_terms']:
+                                            for keyF in item.keys():
+                                                if cell in keyF:
+                                                    flag2+=1;
+                                                    #print('here',item[keyF])
+                                                    cell = item[keyF]["terms"]+"//"+item[keyF]["term_id"]
                                         #print("diferent term: ",cell," with id: ",pseudoid," in field:",key)
-                                        if ( cell in terms_to_fix.keys()):
-                                            if (key in terms_to_fix[cell].keys()):
-                                                terms_to_fix[cell][key] += 1
-                                        else:
-                                            terms_to_fix[cell] = {}
-                                            terms_to_fix[cell] [key] = 1
-                                            ##Provisory adding terms to the ontology_terms
-                                            new_ont_terms[key]['terms'].append({cell+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
-                                            #print(cell,ontology_terms_and_values[key])
-                                            
-                                            cell= cell+"//"+pseudoid
+                                        if flag2 == 0:
+                                            flag_to_discard += 1
+                                            if ( cell in terms_to_fix.keys()):
+                                                if (key in terms_to_fix[cell].keys()):
+                                                    terms_to_fix[cell][key] += 1
+                                            else:
+                                                terms_to_fix[cell] = {}
+                                                terms_to_fix[cell] [key] = 1
+                                                ##Provisory adding terms to the ontology_terms
+                                                new_ont_terms[key]['terms'].append({cell+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
+                                                #print(cell,ontology_terms_and_values[key])
+                                                
+                                                cell= cell+"//"+pseudoid
                             if 'date' in key:
                                 
                                 #print (type(cell))
@@ -425,7 +448,9 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
                                 cell = currentDateWithoutTime
                                 #print('after',cell)
                             
-                            temp_dict[key]=cell    
+                            if flag_to_discard == 0:
+                      #          print(cell)
+                                temp_dict[key]=cell    
                     #checking duplications
                     flag_dup =0
                     if index_sheet == 0:
@@ -540,7 +565,7 @@ def fix(fields):
     fields = fields.replace(")", "")
     return(fields)
 def sql_add(sql,fields):
-    if ('date' in fields):
+    if ('date' in fields and 'precision' not in fields):
         sql += fields.upper() + " DATE"
     elif(re.search('measurement$',fields)):
         sql += fields.upper() + " FLOAT(4)"
@@ -906,7 +931,99 @@ def connect_database():
     )
     return(container)
 """
-def json_maker(dict_of_samples,types_dict,antimicrobian_agent_names_ids,isolates,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,valid_ontology_terms_and_values):
+def create_term_list_table (valid_ontology_terms_and_values,antimicrobian_agent_names_ids,conn,cursor):
+    unique_dict_for_table_term_list={}
+    termsids_unique={}
+
+   # print(valid_ontology_terms_and_values)
+    #sys.exit()
+    #print("STARTING HERE")
+    for fields in valid_ontology_terms_and_values:
+      #  print(fields,"TOP")
+        if ('foodon_terms' not in fields):
+            if ('terms' in valid_ontology_terms_and_values[fields].keys() and 'antimicrobial_agent_name' not in fields ):
+               # print(fields)
+                #print(fields,valid_ontology_terms_and_values[fields]['terms'])
+                for index_term in valid_ontology_terms_and_values[fields]['terms']:
+                # print('indexterm',index_term)
+                                
+                    if (type(index_term) == str):
+                        
+                        index_term = index_term.replace("\'", "\'\'")
+                        if index_term not in unique_dict_for_table_term_list.keys():
+                            
+                            
+                            
+                            insert = "INSERT INTO TERM_LIST(TERM,TERM_ID) VALUES ('" + index_term+"',NULL)" 
+                        # terms_for_excel.append(index_term)
+                            #terms_ids_excel.append('NULL')
+                           # print(insert)
+                            cursor.execute(insert)
+                            
+                            unique_dict_for_table_term_list[index_term]=0
+                    else:
+                        for full_term in index_term:
+                            
+                            pterm = index_term[full_term]['term']
+                            pterm = pterm.replace("\'", "\'\'")
+                            if pterm not in unique_dict_for_table_term_list.keys():
+                                
+                                ptermid = index_term[full_term]['term_id']
+                                termsids_unique[ptermid]=0
+                                
+                                
+                                insert = "INSERT INTO TERM_LIST(TERM,TERM_ID) VALUES ('" + pterm+"','"+ptermid+"')" 
+                            #   terms_for_excel.append(pterm)
+                            #   terms_ids_excel.append(ptermid)
+                               # print(insert)
+                                cursor.execute(insert)
+                            
+                                unique_dict_for_table_term_list[pterm]=0
+                
+                                #sys.exit()
+                    
+
+                    
+                    
+                        #print(valid_ontology_terms_and_values[fields]['terms'][full_term]['term'],valid_ontology_terms_and_values[fields]['terms'][full_term]['term_id'])
+                    #sys.exit()
+                # insert = "INSERT INTO TERM_LIST("+valid_ontology_terms_and_values[fields]['terms'] + " VALUES " + values
+        else:
+            #print(fields,"HERE")
+            #print (valid_ontology_terms_and_values['foodon_terms'])
+            for index_term in valid_ontology_terms_and_values[fields]:
+                for full_term in index_term.keys():
+                    pterm = index_term[full_term]['terms']
+                    pterm = pterm.replace("\'", "\'\'")
+                    ptermid = index_term[full_term]['term_id']
+                    if ptermid not in termsids_unique.keys() and pterm not in unique_dict_for_table_term_list.keys() :
+                    
+                                
+                        
+                        termsids_unique[ptermid]=0
+                        unique_dict_for_table_term_list[pterm]=0
+                                
+                                
+                        insert = "INSERT INTO TERM_LIST(TERM,TERM_ID) VALUES ('" + pterm+"','"+ptermid+"')" 
+                            #   terms_for_excel.append(pterm)
+                            #   terms_ids_excel.append(ptermid)
+                        print(insert)
+                        cursor.execute(insert)
+                            
+                        
+                    
+                   # sys.exit()
+
+        #print (antimicrobian_agent_names_ids)
+        
+    for antibiotics in antimicrobian_agent_names_ids:
+        insert = "INSERT INTO TERM_LIST(TERM,TERM_ID) VALUES ('" + antibiotics+"','"+antimicrobian_agent_names_ids[antibiotics]+"')" 
+       # terms_for_excel.append(antibiotics)
+       # terms_ids_excel.append(antimicrobian_agent_names_ids[antibiotics])
+        #print(insert)
+        cursor.execute(insert)
+    conn.commit()
+def json_maker(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,valid_ontology_terms_and_values):
     def getTermAndId (variable):
         term_id=""
         term=""
@@ -942,61 +1059,7 @@ def json_maker(dict_of_samples,types_dict,antimicrobian_agent_names_ids,isolates
         return(values)
     #build json tree using schema
  
-    #sql ="CREATE TABLE TERM_LIST(id serial PRIMARY KEY,TERM VARCHAR(50) UNIQUE,TERM_ID VARCHAR(50))"
-    unique_dict_for_table_term_list={}
-
-   # print(valid_ontology_terms_and_values)
-    #sys.exit()
-    for fields in valid_ontology_terms_and_values:
-        if ('terms' in valid_ontology_terms_and_values[fields].keys() and 'antimicrobial_agent_name' not in fields):
-            #print(fields,valid_ontology_terms_and_values[fields]['terms'])
-            for index_term in valid_ontology_terms_and_values[fields]['terms']:
-               # print('indexterm',index_term)
-                              
-                if (type(index_term) == str):
-                    
-                    index_term = index_term.replace("\'", "\'\'")
-                    if index_term not in unique_dict_for_table_term_list.keys():
-                        
-                        
-                        
-                        insert = "INSERT INTO TERM_LIST(TERM,TERM_ID) VALUES ('" + index_term+"',NULL)" 
-                       # terms_for_excel.append(index_term)
-                        #terms_ids_excel.append('NULL')
-                        print(insert)
-                        cursor.execute(insert)
-                        
-                        unique_dict_for_table_term_list[index_term]=0
-                else:
-                    for full_term in index_term:
-                        
-                        pterm = index_term[full_term]['term']
-                        pterm = pterm.replace("\'", "\'\'")
-                        if pterm not in unique_dict_for_table_term_list.keys():
-                            
-                            ptermid = index_term[full_term]['term_id']
-                            
-                            
-                            insert = "INSERT INTO TERM_LIST(TERM,TERM_ID) VALUES ('" + pterm+"','"+ptermid+"')" 
-                         #   terms_for_excel.append(pterm)
-                         #   terms_ids_excel.append(ptermid)
-                            print(insert)
-                            cursor.execute(insert)
-                           
-                            unique_dict_for_table_term_list[pterm]=0
-            
-                            #sys.exit()
-                    #print(valid_ontology_terms_and_values[fields]['terms'][full_term]['term'],valid_ontology_terms_and_values[fields]['terms'][full_term]['term_id'])
-                #sys.exit()
-               # insert = "INSERT INTO TERM_LIST("+valid_ontology_terms_and_values[fields]['terms'] + " VALUES " + values
-        #print (antimicrobian_agent_names_ids)
-        
-    for antibiotics in antimicrobian_agent_names_ids:
-        insert = "INSERT INTO TERM_LIST(TERM,TERM_ID) VALUES ('" + antibiotics+"','"+antimicrobian_agent_names_ids[antibiotics]+"')" 
-       # terms_for_excel.append(antibiotics)
-       # terms_ids_excel.append(antimicrobian_agent_names_ids[antibiotics])
-        #print(insert)
-        cursor.execute(insert)
+    
     #flag_table_terms+=1
         
     #print (antimicrobian_agent_names_ids)
@@ -1029,6 +1092,7 @@ def json_maker(dict_of_samples,types_dict,antimicrobian_agent_names_ids,isolates
                 
                     
                 terms,terms_id= getTermAndId(dict_of_samples['sample'][index][fields])
+               # print(terms)
                 #if fields == 'sample_collector_sample_ID':
                    # print(terms)
                # print('before',fields)
@@ -1368,8 +1432,11 @@ def main():
     #sys.exit()
     
     #template file
-    xls_file = "GRDI_Harmonization-Template_v6.3.2.xlsm"
+    xls_file = "GRDI_Harmonization-Template_v7.6.4.xlsm"
     valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_as_dict(xls_file)
+   #print ( valid_ontology_terms_and_values)
+   # sys.exit()
+    
     #print(antimicrobian_agent_names_ids)
     #sys.exit()
       #provisory new_ont_terms with more terms
@@ -1381,6 +1448,7 @@ def main():
         print ("creating schema")
         
         schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_ontology_terms_and_values)
+        create_term_list_table(valid_ontology_terms_and_values,antimicrobian_agent_names_ids,conn,cursor)
         print ("Done schema")
         sys.exit()
     else:
@@ -1390,14 +1458,14 @@ def main():
     #print(dict_of_samples)
    # sys.exit()
    # print(dict_of_samples)
-    schema_file = schema_opener()
+    #schema_file = schema_opener()
     #print('here after schema_file')
-    types_dict = types_to_dict(schema_file)
+    #types_dict = types_to_dict(schema_file)
     #print(dict_of_samples)
    ## container = connect_database()
-    isolates=[]
+    #isolates=[]
     
-    json_maker(dict_of_samples,types_dict,antimicrobian_agent_names_ids,isolates,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms)
+    json_maker(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms)
         #isolates.append(isolate)
         #original_stdout = sys.stdout # Save a reference to the original standard output
     """
