@@ -60,8 +60,9 @@ def create_ontology_as_dict(xls):
     repositoryT_terms = reading_file("Public Repository Information")
     riskT_terms = reading_file("Risk Assessment")
     amrTotal_terms= reading_file("AMR Phenotypic Test Information")
-    antiT_terms=amrTotal_terms[22:]
-    amrT_terms=amrTotal_terms[:22]
+    antiT_terms=amrTotal_terms[9:]
+
+    amrT_terms=amrTotal_terms[:9]
     
     
             
@@ -82,6 +83,9 @@ def create_ontology_as_dict(xls):
     #sys.exit()
     fields_sheet = pd.read_excel(xls,keep_default_na=False, sheet_name="Reference Guide", header=4)
     fields_sheet_filtered = fields_sheet[fields_sheet["Ontology ID"].str.contains("GENEPIO")==True]
+    fields_sheet_filtered2 = fields_sheet[fields_sheet['Sample collection and processing'].str.contains("antibiotic")==True]
+   # print(fields_sheet_filtered2['Sample collection and processing'] )
+   # sys.exit()
     #print(fields_sheet_filtered['Sample collection and processing'])
     #sys.exit()
     dict_fields = dict (zip(fields_sheet_filtered['Sample collection and processing'], fields_sheet_filtered['Ontology ID']))
@@ -90,26 +94,43 @@ def create_ontology_as_dict(xls):
     new_merged_ontology_dict = {}
     dict_foodon = owl_parsing()
                 
-    #print (dict_fields)
+   # print (dict_fields)
     #sys.exit()
+    for element in fields_sheet_filtered2['Sample collection and processing']:
+        dict_fields[element.replace("antibiotic","AMR")] = "none"
     for key in dict_fields:
         print ("general",key)
-        if key in ontology_dict.keys():
-            str_list = list(filter(None, ontology_dict[key]))
+        keypr = ""
+        if (key == "AMR_resistance_phenotype"):
+            keypr = "AMR_phenotype"
+        else:
+            keypr = key
+        if keypr in ontology_dict.keys():
+            str_list = list(filter(None, ontology_dict[keypr]))
             print("in hash", key)
+            #if("measurement_units" in key):
+            #    print (str_list)
+            #    sys.exit()
             temp_list=[];
             for i in str_list:
                 newstr = i.strip()
                 if re.match(".+\[\w",newstr):
-            #        print(newstr)
+                    
                     substrL= re.match("(.+)\s+\[(\S+)\]",newstr)
                     
+                    
                     temp_list.append({newstr:{"term":substrL.groups()[0],"term_id":substrL.groups()[1]}})
+                   
+
+                        #sys.exit()
                     #print("append",newstr)
                 else:
                  #   print("append",newstr)
                     temp_list.append(newstr)
                     #print (newstr)
+            #if("measurement_units" in key):
+                #print (str_list)
+              #  sys.exit()
             #print(temp_list)
             new_merged_ontology_dict [key] = {"field_id":dict_fields[key],"terms":temp_list}
                     
@@ -154,12 +175,12 @@ def create_ontology_as_dict(xls):
     #adding extra antibiotics that aren't in the vocabulary
     antimicrobian_agent_names_ids ['amikacin']= 'CHEBI:2637'
     antimicrobian_agent_names_ids ['kanamycin']= 'CHEBI:6104'
-    #print(new_merged_ontology_dict)
-    #sys.exit()
+    
    
     #sys.exit()
     return (new_merged_ontology_dict,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms)
-def create_dict_of_samples(xls, ontology_terms_and_values):
+
+def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_names_ids):
     """
     Create a dictionary of samples from the Harmonized Data "Merged Sheet".
     Each key for output dict is a new row from the sheet.
@@ -372,10 +393,13 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
         temp_dict={}
         
         array_sheet = [sample_sheet,isolate_sheet,sequence_sheet,amr_sheet,risk_sheet]
+        #print (ontology_terms_and_values)
+       # sys.exit()
         #={'sample':{},'host':{},'isolate':{},'sequence':{},'publicRep':{},'AMR':{},'risk':{}}
         #dict_terms_file={'sample':{},'isolate':{},'sequence':{},'AMR':{},'risk':{}}
         for index_sheet,sheet_from_array in enumerate(array_sheet):
             if(not sheet_from_array.empty):
+                
                 for index, row in sheet_from_array.iterrows():
                     for i in row.index:
                         if (row[i] != 0 and not isNaN(row[i]) and row[i] ):
@@ -386,12 +410,20 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
                                 key = "geo_loc_name (state/province/region)"  
                             if ("sample_processing" in key):
                                 key = "specimen_processing"
+                            key2 = key
+                            for abs in antimicrobian_agent_names_ids.keys():
+                                if abs in key:
+                                    substrL= re.match(abs+"_(.+)",key)
+                                    #print (key)
+                                    key2 = "AMR_"+substrL.groups()[0]
+                                    #sys.exit()
+                            
                             cell=row[i]
                             if isinstance(cell,str):
                                 cell=cell.strip()
                             flag_to_discard = 0
-                            if key in ontology_terms_and_values.keys():
-                                if "terms" in ontology_terms_and_values[key].keys():
+                            if key2 in ontology_terms_and_values.keys():
+                                if "terms" in ontology_terms_and_values[key2].keys():
                            
                                     flag = 0;
                                     pseudoid=""
@@ -401,7 +433,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
                                         pseudoid = wanted[1]
                                    # print(ontology_terms_and_values[key]["terms"])
                                     
-                                    for item in ontology_terms_and_values[key]["terms"]:
+                                    for item in ontology_terms_and_values[key2]["terms"]:
                                 #print(item.keys())
                                         if type(item) != dict:
                                             if cell == item:
@@ -436,7 +468,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
                                                 terms_to_fix[cell] = {}
                                                 terms_to_fix[cell] [key] = 1
                                                 ##Provisory adding terms to the ontology_terms
-                                                new_ont_terms[key]['terms'].append({cell+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
+                                                new_ont_terms[key2]['terms'].append({cell+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
                                                 #print(cell,ontology_terms_and_values[key])
                                                 
                                                 cell= cell+"//"+pseudoid
@@ -543,7 +575,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values):
                 countEvents+=1
     print("A total of terms different from the vocabulary:",countEvents)
     print('done dict of terms')
-    
+    #print(dict_terms_file)
     #sys.exit()
     return(dict_terms_file,new_ont_terms)
     
@@ -821,12 +853,13 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     sql ="CREATE TABLE AMR_INFO(id serial PRIMARY KEY,"
     count=1
     
-    columns_amr_red = columns_amr[:22]
-    
+    columns_amr_red = columns_amr[:9]
+    #print(columns_amr_red)
+
     #sys.exit()
     amrT_terms=[]
     constraint_list=[]
-    antiT_terms=columns_amr[22:]
+    antiT_terms=columns_amr[9:]
     #print(columns_amr_red)
     #sys.exit()
     for fields in columns_amr_red:
@@ -861,8 +894,13 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     sql ="CREATE TABLE AMR_ANTIBIOTICS_PROFILE(id serial PRIMARY KEY,ISOLATE_ID INTEGER,"
     sql += "ANTIMICROBIAL_AGENT VARCHAR(50),"
     sql += "RESISTANCE_PHENOTYPE VARCHAR(150),"
-    sql += "MEASUREMENT_SIGN VARCHAR(5),"
     sql += "MEASUREMENT FLOAT(4),"
+    sql += "MEASUREMENT_UNITS VARCHAR(150),"
+    sql += "MEASUREMENT_SIGN VARCHAR(150),"
+    sql += "LABORATORY_TYPING_METHOD VARCHAR(150),"
+    sql += "LABORATORY_TYPING_PLATFORM VARCHAR(150),"
+    sql += "LABORATORY_TYPING_PLATFORM_VERSION VARCHAR(150),"
+    sql += "VENDOR_NAME VARCHAR(150),"
     sql += "TESTING_STANDARD VARCHAR(150),"
     sql += "TESTING_STANDARD_VERSION VARCHAR(150),"
     sql += "TESTING_STANDARD_DETAILS VARCHAR(150),"
@@ -877,9 +915,18 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     conn.commit()
     cursor.execute("ALTER TABLE AMR_ANTIBIOTICS_PROFILE ADD CONSTRAINT AMR_ANTIBIOTICS_ANTIBIOTICS_LIST FOREIGN KEY (ANTIMICROBIAL_AGENT) REFERENCES TERM_LIST(TERM)")
     conn.commit()
-    
-
-    
+    cursor.execute("ALTER TABLE AMR_ANTIBIOTICS_PROFILE ADD CONSTRAINT RESISTANCE_PHENOTYPE_METHOD_TERM FOREIGN KEY (RESISTANCE_PHENOTYPE) REFERENCES TERM_LIST(TERM)")
+    conn.commit()
+    cursor.execute("ALTER TABLE AMR_ANTIBIOTICS_PROFILE ADD CONSTRAINT MEASUREMENT_UNITS_TERM FOREIGN KEY (MEASUREMENT_UNITS) REFERENCES TERM_LIST(TERM)")
+    conn.commit()
+    cursor.execute("ALTER TABLE AMR_ANTIBIOTICS_PROFILE ADD CONSTRAINT MEASUREMENT_SIGN_TERM FOREIGN KEY (MEASUREMENT_SIGN) REFERENCES TERM_LIST(TERM)")
+    conn.commit()
+    cursor.execute("ALTER TABLE AMR_ANTIBIOTICS_PROFILE ADD CONSTRAINT LABORATORY_TYPING_METHOD_TERM FOREIGN KEY (LABORATORY_TYPING_METHOD) REFERENCES TERM_LIST(TERM)")
+    conn.commit()
+    cursor.execute("ALTER TABLE AMR_ANTIBIOTICS_PROFILE ADD CONSTRAINT LABORATORY_TYPING_PLATFORM_TERM FOREIGN KEY (LABORATORY_TYPING_PLATFORM) REFERENCES TERM_LIST(TERM)")
+    conn.commit()
+    cursor.execute("ALTER TABLE AMR_ANTIBIOTICS_PROFILE ADD CONSTRAINT TESTING_STANDARD_TERM FOREIGN KEY (TESTING_STANDARD) REFERENCES TERM_LIST(TERM)")
+    conn.commit()
    # sys.exit()
     #return(sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms)
     
@@ -1321,6 +1368,8 @@ def json_maker(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isola
         column_ins = "("
         count=0
         values ="("
+        #print(amrT_terms)
+        #sys.exit()
         for fields in amrT_terms:
             if (fields == "isolate_ID"):
                 column_ins += fields.upper()+","
@@ -1360,7 +1409,8 @@ def json_maker(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isola
         insert = "INSERT INTO AMR_INFO"+column_ins+" VALUES "+values
         cursor.execute(insert)
        # print ("done AMR")
-        amr_antibiotics_terms=['resistance_phenotype','measurement_sign','measurement','testing_standard','testing_standard_version','testing_standard_details','testing_susceptible_breakpoint','testing_intermediate_breakpoint','testing_resistance_breakpoint']
+       #amikacin_resistance_phenotype	amikacin_measurement	amikacin_measurement_units	amikacin_measurement_sign	amikacin_laboratory_typing_method	amikacin_laboratory_typing_platform	amikacin_laboratory_typing_platform_version	amikacin_vendor_name	amikacin_testing_standard	amikacin_testing_standard_version	amikacin_testing_standard_details	amikacin_susceptible_breakpoint	amikacin_intermediate_breakpoint	amikacin_resistant_breakpoint
+        amr_antibiotics_terms=['resistance_phenotype','measurement','measurement_units','measurement_sign','laboratory_typing_method','laboratory_typing_platform','laboratory_typing_platform_version','vendor_name','testing_standard','testing_standard_version','testing_standard_details','testing_susceptible_breakpoint','testing_intermediate_breakpoint','testing_resistance_breakpoint']
         for antibiotics in antimicrobian_agent_names_ids:
             print(antibiotics)
             
@@ -1377,21 +1427,35 @@ def json_maker(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isola
                 column_ins += "ANTIMICROBIAL_AGENT,"
                 values += "'"+antibiotics+"',"
                # print ("here")
+                #print(dict_of_samples['AMR'][index])
+                #sys.exit()
+                #print(dict_of_samples['AMR'][index])
+                #sys.exit()
                 for in_abterms,abterms in enumerate(amr_antibiotics_terms):
                     #print (in_abterms,abterms)
                     #sys.exit()
                     subfield = antibiotics+"_"+abterms 
                     if subfield in dict_of_samples['AMR'][index]:
+                                             
                         value_to_add = dict_of_samples['AMR'][index][subfield]
+                        terms,terms_id= getTermAndId(str(value_to_add))
+                        
                         
                             
                         
                         column_ins += abterms.upper()
-                        values += "'"+str(value_to_add)+"'"
+                        values += "'"+str(terms)+"'"
                     else:
-                        column_ins += abterms.upper()
-                        values += "NULL"
-                    if in_abterms < 8:
+                        if "AMR_"+abterms in dict_of_samples['AMR'][index]:
+                            #print (here)
+                            value_to_add = dict_of_samples['AMR'][index]["AMR_"+abterms]
+                            terms,terms_id= getTermAndId(str(value_to_add))
+                            column_ins += abterms.upper()
+                            values += "'"+str(terms)+"'"
+                        else:
+                            column_ins += abterms.upper()
+                            values += "NULL"
+                    if in_abterms < 13:
                         column_ins += ","
                         values += ","
                 
@@ -1454,7 +1518,7 @@ def main():
     else:
         xls_file2 = args.input_file
         print("uploading file ", xls_file2)
-        dict_of_samples,new_ont_terms = create_dict_of_samples(xls_file2, valid_ontology_terms_and_values)
+        dict_of_samples,new_ont_terms = create_dict_of_samples(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids)
     #print(dict_of_samples)
    # sys.exit()
    # print(dict_of_samples)
