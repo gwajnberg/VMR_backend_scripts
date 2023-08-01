@@ -60,9 +60,11 @@ def create_ontology_as_dict(xls):
     repositoryT_terms = reading_file("Public Repository Information")
     riskT_terms = reading_file("Risk Assessment")
     amrTotal_terms= reading_file("AMR Phenotypic Test Information")
+   
     antiT_terms=amrTotal_terms[9:]
 
     amrT_terms=amrTotal_terms[:9]
+    
     
     
             
@@ -82,7 +84,8 @@ def create_ontology_as_dict(xls):
        # print (keys)
     #sys.exit()
     fields_sheet = pd.read_excel(xls,keep_default_na=False, sheet_name="Reference Guide", header=4)
-    fields_sheet_filtered = fields_sheet[fields_sheet["Ontology ID"].str.contains("GENEPIO")==True]
+    #fields_sheet_filtered = fields_sheet[fields_sheet["Ontology ID"].str.contains("GENEPIO")==True]
+    fields_sheet_filtered = fields_sheet[(fields_sheet["Ontology ID"].str.contains("GENEPIO")) | (fields_sheet.iloc[:, 0].str.startswith("antimicrobial"))]
     fields_sheet_filtered2 = fields_sheet[fields_sheet['Sample collection and processing'].str.contains("antibiotic")==True]
    # print(fields_sheet_filtered2['Sample collection and processing'] )
    # sys.exit()
@@ -96,21 +99,21 @@ def create_ontology_as_dict(xls):
                 
    # print (dict_fields)
     #sys.exit()
-    for element in fields_sheet_filtered2['Sample collection and processing']:
-        dict_fields[element.replace("antibiotic","AMR")] = "none"
+    #for element in fields_sheet_filtered2['Sample collection and processing']:
+    #    dict_fields[element.replace("antimicrobial","AMR")] = "none"
     for key in dict_fields:
         print ("general",key)
         keypr = ""
-        if (key == "AMR_resistance_phenotype"):
-            keypr = "AMR_phenotype"
+        if (key == "antimicrobial_resistance_phenotype"):
+            keypr = "antimicrobial_phenotype"
         else:
             keypr = key
         if keypr in ontology_dict.keys():
             str_list = list(filter(None, ontology_dict[keypr]))
             print("in hash", key)
-            #if("measurement_units" in key):
+            #if("urement_units" in key):
             #    print (str_list)
-            #    sys.exit()
+             #   sys.exit()
             temp_list=[];
             for i in str_list:
                 newstr = i.strip()
@@ -141,8 +144,8 @@ def create_ontology_as_dict(xls):
                 #print (ontology_dict.keys())
                 #sys.exit()
             new_merged_ontology_dict [key] = {"field_id":dict_fields[key]}
-#    print(new_merged_ontology_dict)
-  #  sys.exit()
+    #print(new_merged_ontology_dict)
+    #sys.exit()
     new_merged_ontology_dict['foodon_terms'] = []
     for food_ids in dict_foodon:
         master_str = dict_foodon[food_ids] +" ["+food_ids+"]"
@@ -391,7 +394,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                     temp_dict ={}
     else:
         temp_dict={}
-        
+        #print("here")
+        #sys.exit()
         array_sheet = [sample_sheet,isolate_sheet,sequence_sheet,amr_sheet,risk_sheet]
         #print (ontology_terms_and_values)
        # sys.exit()
@@ -415,14 +419,23 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 if abs in key:
                                     substrL= re.match(abs+"_(.+)",key)
                                     #print (key)
-                                    key2 = "AMR_"+substrL.groups()[0]
+                                    key2 = "antimicrobial_"+substrL.groups()[0]
+                                    #print(key2)
                                     #sys.exit()
+                            if (key == 'AMR_laboratory_typing_method'):
+                                key2 = "antimicrobial_laboratory_typing_method"
+
                             
                             cell=row[i]
+                            
                             if isinstance(cell,str):
                                 cell=cell.strip()
                             flag_to_discard = 0
+                            #print (ontology_terms_and_values)
+                            #sys.exit()
+                           
                             if key2 in ontology_terms_and_values.keys():
+                                
                                 if "terms" in ontology_terms_and_values[key2].keys():
                            
                                     flag = 0;
@@ -435,6 +448,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                     
                                     for item in ontology_terms_and_values[key2]["terms"]:
                                 #print(item.keys())
+                                        
                                         if type(item) != dict:
                                             if cell == item:
                                                 flag+=1;
@@ -982,8 +996,8 @@ def create_term_list_table (valid_ontology_terms_and_values,antimicrobian_agent_
     unique_dict_for_table_term_list={}
     termsids_unique={}
 
-   # print(valid_ontology_terms_and_values)
-    #sys.exit()
+    #print(valid_ontology_terms_and_values)
+   # sys.exit()
     #print("STARTING HERE")
     for fields in valid_ontology_terms_and_values:
       #  print(fields,"TOP")
@@ -992,11 +1006,12 @@ def create_term_list_table (valid_ontology_terms_and_values,antimicrobian_agent_
                # print(fields)
                 #print(fields,valid_ontology_terms_and_values[fields]['terms'])
                 for index_term in valid_ontology_terms_and_values[fields]['terms']:
-                # print('indexterm',index_term)
+                    #print('indexterm',index_term)
                                 
                     if (type(index_term) == str):
                         
                         index_term = index_term.replace("\'", "\'\'")
+                        #print (index_term)
                         if index_term not in unique_dict_for_table_term_list.keys():
                             
                             
@@ -1010,9 +1025,11 @@ def create_term_list_table (valid_ontology_terms_and_values,antimicrobian_agent_
                             unique_dict_for_table_term_list[index_term]=0
                     else:
                         for full_term in index_term:
+                            #print(full_term)
                             
                             pterm = index_term[full_term]['term']
                             pterm = pterm.replace("\'", "\'\'")
+                            #print(pterm)
                             if pterm not in unique_dict_for_table_term_list.keys():
                                 
                                 ptermid = index_term[full_term]['term_id']
@@ -1022,7 +1039,7 @@ def create_term_list_table (valid_ontology_terms_and_values,antimicrobian_agent_
                                 insert = "INSERT INTO TERM_LIST(TERM,TERM_ID) VALUES ('" + pterm+"','"+ptermid+"')" 
                             #   terms_for_excel.append(pterm)
                             #   terms_ids_excel.append(ptermid)
-                               # print(insert)
+                                #print(insert)
                                 cursor.execute(insert)
                             
                                 unique_dict_for_table_term_list[pterm]=0
@@ -1496,10 +1513,10 @@ def main():
     #sys.exit()
     
     #template file
-    xls_file = "GRDI_Harmonization-Template_v7.6.4.xlsm"
+    xls_file = "GRDI_Harmonization-Template_v7.7.5.xlsm"
     valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_as_dict(xls_file)
-   #print ( valid_ontology_terms_and_values)
-   # sys.exit()
+   # print ( valid_ontology_terms_and_values)
+    #sys.exit()
     
     #print(antimicrobian_agent_names_ids)
     #sys.exit()
