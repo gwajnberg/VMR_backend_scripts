@@ -236,6 +236,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                             
                             
                             cell=row[i]
+                          #  print(cell)
                             if isinstance(cell,str):
                                 cell=cell.strip()
                             if key in ontology_terms_and_values.keys():
@@ -277,12 +278,19 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                             
                                             cell= cell+"//"+pseudoid
                             if 'date' in key:
+                                last_part_of_key = key.split("_")[-1] 
+                                if "date" in last_part_of_key:
                                 
-                                #print (type(cell))
-                                #print(cell)
-                                currentDateWithoutTime = cell.strftime('%Y-%m-%d')
-                                cell = currentDateWithoutTime
-                                #print('after',cell)
+                                    #print (type(cell))
+                                    #print(cell)
+                                    currentDateWithoutTime = ""
+                                    if ("/" in cell):
+                                        date_obj = datetime.datetime.strptime(cell, "%d/%m/%Y")
+                                        currentDateWithoutTime = date_obj.strftime("%Y-%m-%d")
+                                    else:
+                                        currentDateWithoutTime = cell.strftime('%Y-%m-%d')
+                                    cell = currentDateWithoutTime
+                                    #print('after',cell)
                             
                             temp_dict[key]=cell    
                     #checking duplications
@@ -392,6 +400,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                         if flag_dup ==0:
                             dict_terms_file['risk'][index]=temp_dict
                     temp_dict ={}
+       # print(dict_terms_file)
+      #  sys.exit()
     else:
         temp_dict={}
         #print("here")
