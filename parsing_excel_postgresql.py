@@ -14,6 +14,7 @@ import re
 import copy
 import argparse
 from parsing_owl import owl_parsing
+from parsing_card_json import card_parsing
 
 #function to check Nan strings
 def isNaN(string):
@@ -96,6 +97,7 @@ def create_ontology_as_dict(xls):
     #sys.exit()
     new_merged_ontology_dict = {}
     dict_foodon = owl_parsing()
+    card_terms = card_parsing()
                 
    # print (dict_fields)
     #sys.exit()
@@ -150,7 +152,16 @@ def create_ontology_as_dict(xls):
     for food_ids in dict_foodon:
         master_str = dict_foodon[food_ids] +" ["+food_ids+"]"
         new_merged_ontology_dict['foodon_terms'].append({master_str:{"terms":dict_foodon[food_ids],"term_id":food_ids}})
-
+    new_merged_ontology_dict['card_terms'] = []
+    for cardterms in card_terms.keys():
+        flag=0
+        for elements in new_merged_ontology_dict["antimicrobial_agent_name"]["terms"]:
+            for keys in elements:
+                antibiotics = elements[keys]['term'].lower()
+                if cardterms in antibiotics:
+                    flag=1
+        if flag ==0:
+            new_merged_ontology_dict['card_terms'].append({cardterms:{"terms":cardterms}})
     #print(new_merged_ontology_dict)
     #sys.exit()
     # We need to curate some of the lists for now
@@ -222,6 +233,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
     if len(xl.sheet_names) > 8:
         temp_dict={}
         
+        #print (ontology_terms_and_values)
+        #
         host_sheet = reading_file("Host Information")
         publicRep_sheet = reading_file("Public Repository Information")
         array_sheet = [sample_sheet,host_sheet,isolate_sheet,sequence_sheet,publicRep_sheet,amr_sheet,risk_sheet]
@@ -234,13 +247,22 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                         if (row[i] != 0 and not isNaN(row[i]) and row[i] ):
                             key = i.strip()
                             
-                            
+                            key2 = key
+                            for abs in antimicrobian_agent_names_ids.keys():
+                                if abs in key:
+                                    substrL= re.match(abs+"_(.+)",key)
+                                    #print (key)
+                                    key2 = "antimicrobial_"+substrL.groups()[0]
+                                    #print(key2)
+                                    #sys.exit()
+                            if (key == 'AMR_laboratory_typing_method'):
+                                key2 = "antimicrobial_laboratory_typing_method"
                             cell=row[i]
-                          #  print(cell)
+                            print(cell)
                             if isinstance(cell,str):
                                 cell=cell.strip()
-                            if key in ontology_terms_and_values.keys():
-                                if "terms" in ontology_terms_and_values[key].keys():
+                            if key2 in ontology_terms_and_values.keys():
+                                if "terms" in ontology_terms_and_values[key2].keys():
                            
                                     flag = 0;
                                     pseudoid=""
@@ -250,7 +272,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                         pseudoid = wanted[1]
                                    # print(ontology_terms_and_values[key]["terms"])
                                     
-                                    for item in ontology_terms_and_values[key]["terms"]:
+                                    for item in ontology_terms_and_values[key2]["terms"]:
                                 #print(item.keys())
                                         if type(item) != dict:
                                             if cell == item:
@@ -284,7 +306,9 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                     #print (type(cell))
                                     #print(cell)
                                     currentDateWithoutTime = ""
-                                    if ("/" in cell):
+                                    if (int(cell)):
+                                        currentDateWithoutTime = datetime.date(cell, 1, 1)
+                                    elif ("/" in cell):
                                         date_obj = datetime.datetime.strptime(cell, "%d/%m/%Y")
                                         currentDateWithoutTime = date_obj.strftime("%Y-%m-%d")
                                     else:
@@ -400,8 +424,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                         if flag_dup ==0:
                             dict_terms_file['risk'][index]=temp_dict
                     temp_dict ={}
-       # print(dict_terms_file)
-      #  sys.exit()
+        #print(dict_terms_file)
+        #sys.exit()
     else:
         temp_dict={}
         #print("here")
@@ -586,6 +610,9 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 print ("Risk table duplication:","in row:",index_save,"term:",dict_terms_file['risk'][index_save]['isolate_ID']," and ","in row:",index,"term:",temp_dict['isolate_ID'])
                         if flag_dup ==0:
                             dict_terms_file['risk'][index]=temp_dict
+                    #if(dict_terms_file['AMR']):
+  #                      print (dict_terms_file)
+  #                      sys.exit()
                     temp_dict ={}
                             
                 
@@ -655,6 +682,10 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     
     
     cursor.execute("DROP TABLE IF EXISTS AMR_ANTIBIOTICS_PROFILE")
+    cursor.execute("DROP TABLE IF EXISTS AMR_GENES_DRUGS")
+    cursor.execute("DROP TABLE IF EXISTS AMR_GENES_RESISTANCE_MECHANISM")
+    cursor.execute("DROP TABLE IF EXISTS AMR_GENES_FAMILY")
+    cursor.execute("DROP TABLE IF EXISTS AMR_GENES_PROFILE")
     cursor.execute("DROP TABLE IF EXISTS CATHY")
     cursor.execute("DROP TABLE IF EXISTS AMR_INFO")
     cursor.execute("DROP TABLE IF EXISTS HOSTS")
@@ -951,6 +982,47 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     conn.commit()
     cursor.execute("ALTER TABLE AMR_ANTIBIOTICS_PROFILE ADD CONSTRAINT TESTING_STANDARD_TERM FOREIGN KEY (TESTING_STANDARD) REFERENCES TERM_LIST(TERM)")
     conn.commit()
+
+    #creating AMR_gene
+    sql ="CREATE TABLE AMR_GENES_PROFILE(id serial PRIMARY KEY,ISOLATE_ID INTEGER,"
+    sql += "CUT_OFF VARCHAR(50),"
+    sql += "BEST_HIT_ARO VARCHAR(150),"
+    sql += "MODEL_TYPE VARCHAR(150),"
+    sql += "MOLECULE_TYPE VARCHAR(150))"
+    
+    cursor.execute(sql)
+    conn.commit()
+    cursor.execute("ALTER TABLE AMR_GENES_PROFILE ADD CONSTRAINT AMR_GENES_ISOLATE FOREIGN KEY (ISOLATE_ID) REFERENCES ISOLATES(id)")
+    conn.commit()
+    cursor.execute("ALTER TABLE AMR_GENES_PROFILE ADD CONSTRAINT BEST_HIT_ARO_TERM FOREIGN KEY (BEST_HIT_ARO) REFERENCES TERM_LIST(TERM)")
+    conn.commit()
+
+    #creating amr_gene_DRUG
+
+    sql = "CREATE TABLE AMR_GENES_DRUGS("
+    sql += "AMR_GENES_ID integer REFERENCES AMR_GENES_PROFILE(id),"
+    sql += "DRUG_ID integer REFERENCES TERM_LIST(id),"
+    sql += "PRIMARY KEY (AMR_GENES_ID, DRUG_ID))"
+    cursor.execute(sql)
+    conn.commit()
+
+    #creating amr_gene_Resistance_mechanism
+    sql = "CREATE TABLE AMR_GENES_RESISTANCE_MECHANISM("
+    sql += "AMR_GENES_ID integer REFERENCES AMR_GENES_PROFILE(id),"
+    sql += "RESISTANCE_MECHANISM_ID integer REFERENCES TERM_LIST(id),"
+    sql += "PRIMARY KEY (AMR_GENES_ID, RESISTANCE_MECHANISM_ID))"
+    cursor.execute(sql)
+    conn.commit()
+
+    #creating amr_gene_Family
+    sql = "CREATE TABLE AMR_GENES_FAMILY("
+    sql += "AMR_GENES_ID integer REFERENCES AMR_GENES_PROFILE(id),"
+    sql += "AMR_GENE_FAMILY_ID integer REFERENCES TERM_LIST(id),"
+    sql += "PRIMARY KEY (AMR_GENES_ID, AMR_GENE_FAMILY_ID))"
+    cursor.execute(sql)
+    conn.commit()
+
+
    # sys.exit()
     #return(sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms)
     
@@ -1011,7 +1083,7 @@ def create_term_list_table (valid_ontology_terms_and_values,antimicrobian_agent_
     #print("STARTING HERE")
     for fields in valid_ontology_terms_and_values:
       #  print(fields,"TOP")
-        if ('foodon_terms' not in fields):
+        if ('foodon_terms' not in fields and 'card_terms' not in fields):
             if ('terms' in valid_ontology_terms_and_values[fields].keys() and 'antimicrobial_agent_name' not in fields ):
                # print(fields)
                 #print(fields,valid_ontology_terms_and_values[fields]['terms'])
@@ -1062,7 +1134,7 @@ def create_term_list_table (valid_ontology_terms_and_values,antimicrobian_agent_
                         #print(valid_ontology_terms_and_values[fields]['terms'][full_term]['term'],valid_ontology_terms_and_values[fields]['terms'][full_term]['term_id'])
                     #sys.exit()
                 # insert = "INSERT INTO TERM_LIST("+valid_ontology_terms_and_values[fields]['terms'] + " VALUES " + values
-        else:
+        elif ('foodon_terms' in fields):
             #print(fields,"HERE")
             #print (valid_ontology_terms_and_values['foodon_terms'])
             for index_term in valid_ontology_terms_and_values[fields]:
@@ -1083,8 +1155,16 @@ def create_term_list_table (valid_ontology_terms_and_values,antimicrobian_agent_
                             #   terms_ids_excel.append(ptermid)
                         print(insert)
                         cursor.execute(insert)
-                            
-                        
+        elif ('card_terms' in fields):
+             for index_term in valid_ontology_terms_and_values[fields]:
+                for full_term in index_term.keys():
+                    pterm = index_term[full_term]['terms']
+                    pterm = pterm.replace("\'", "\'\'")                    
+                    insert = "INSERT INTO TERM_LIST(TERM,TERM_ID) VALUES ('" + pterm+"',NULL)" 
+                            #   terms_for_excel.append(pterm)
+                            #   terms_ids_excel.append(ptermid)
+                    print(insert)
+                    cursor.execute(insert)    
                     
                    # sys.exit()
 
