@@ -15,6 +15,8 @@ import copy
 import argparse
 from parsing_owl import owl_parsing
 from parsing_card_json import card_parsing
+from parsing_rgimob_output import parse,insert_data
+
 
 #function to check Nan strings
 def isNaN(string):
@@ -154,7 +156,7 @@ def create_ontology_as_dict(xls):
         new_merged_ontology_dict['foodon_terms'].append({master_str:{"terms":dict_foodon[food_ids],"term_id":food_ids}})
     new_merged_ontology_dict['card_terms'] = []
     for cardterms in card_terms.keys():
-        flag=0
+        flag = 0
         for elements in new_merged_ontology_dict["antimicrobial_agent_name"]["terms"]:
             for keys in elements:
                 antibiotics = elements[keys]['term'].lower()
@@ -1595,14 +1597,21 @@ def main():
     parser = argparse.ArgumentParser(description='Parsing program for AMR database.')
     parser.add_argument("-s", "--schema_creator", help="Create the schema mode, exit after creating it.", default="F")
     parser.add_argument("-i", "--input_file", help="Input File to upload.", type=str)
+    parser.add_argument("-g", "--gene_mode",help= "Add rgi/mob_suite output file to the VMR", default="F")
 
     args = parser.parse_args()
 
     
     
+    conn,cursor = connect_db()    
+    if args.gene_mode == "T":
+        xls_file2 = args.input_file
+        print("uploading file ", xls_file2)
+        parsed_dict = parse(xls_file2)
+        insert_data(parsed_dict,conn,cursor)
+
+        sys.exit()
     #sys.exit()
-    
-    #template file
     xls_file = "GRDI_Harmonization-Template_v7.7.5.xlsm"
     valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_as_dict(xls_file)
    # print ( valid_ontology_terms_and_values)
@@ -1614,7 +1623,7 @@ def main():
     dict_of_samples={}
     new_ont_terms={}
     
-    conn,cursor = connect_db()
+    
     if args.schema_creator == "T":
         print ("creating schema")
         
@@ -1625,6 +1634,7 @@ def main():
     else:
         xls_file2 = args.input_file
         print("uploading file ", xls_file2)
+        
         dict_of_samples,new_ont_terms = create_dict_of_samples(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids)
     #print(dict_of_samples)
    # sys.exit()
