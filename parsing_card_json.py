@@ -1,4 +1,5 @@
 import json
+import sys
 
 json_file_path = "card.json"
 
@@ -22,8 +23,9 @@ def card_parsing():
                     #print (sub_entries['category_aro_name'])
                 elif sub_entries['category_aro_class_name'] == 'Drug Class':
                     terms_card[sub_entries['category_aro_name']] =0
-                # print (sub_entries['category_aro_name'])
                 elif sub_entries['category_aro_class_name'] == 'Resistance Mechanism':
                     terms_card[sub_entries['category_aro_name']] =0
                 # print (sub_entries['category_aro_name'])
+    #print(terms_card)
+    #sys.exit()
     return(terms_card)                

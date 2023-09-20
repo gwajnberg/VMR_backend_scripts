@@ -160,10 +160,12 @@ def create_ontology_as_dict(xls):
         for elements in new_merged_ontology_dict["antimicrobial_agent_name"]["terms"]:
             for keys in elements:
                 antibiotics = elements[keys]['term'].lower()
-                if cardterms in antibiotics:
+                if cardterms == antibiotics:
+                    
                     flag=1
         if flag ==0:
             new_merged_ontology_dict['card_terms'].append({cardterms:{"terms":cardterms}})
+    #sys.exit()
     #print(new_merged_ontology_dict)
     #sys.exit()
     # We need to curate some of the lists for now
@@ -687,6 +689,12 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     cursor.execute("DROP TABLE IF EXISTS AMR_GENES_DRUGS")
     cursor.execute("DROP TABLE IF EXISTS AMR_GENES_RESISTANCE_MECHANISM")
     cursor.execute("DROP TABLE IF EXISTS AMR_GENES_FAMILY")
+    cursor.execute("DROP TABLE IF EXISTS AMR_PREDICTED_MOBILITY")
+    cursor.execute("DROP TABLE IF EXISTS AMR_ORIT_TYPE")
+    cursor.execute("DROP TABLE IF EXISTS AMR_MPF_TYPE")
+    cursor.execute("DROP TABLE IF EXISTS AMR_RELAXASE_TYPE")
+    cursor.execute("DROP TABLE IF EXISTS AMR_REF_TYPE")
+    cursor.execute("DROP TABLE IF EXISTS AMR_MOB_SUITE")
     cursor.execute("DROP TABLE IF EXISTS AMR_GENES_PROFILE")
     cursor.execute("DROP TABLE IF EXISTS CATHY")
     cursor.execute("DROP TABLE IF EXISTS AMR_INFO")
@@ -989,8 +997,9 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     sql ="CREATE TABLE AMR_GENES_PROFILE(id serial PRIMARY KEY,ISOLATE_ID INTEGER,"
     sql += "CUT_OFF VARCHAR(50),"
     sql += "BEST_HIT_ARO VARCHAR(150),"
-    sql += "MODEL_TYPE VARCHAR(150),"
-    sql += "MOLECULE_TYPE VARCHAR(150))"
+    sql += "MODEL_TYPE VARCHAR(150))"
+    
+    
     
     cursor.execute(sql)
     conn.commit()
@@ -999,6 +1008,49 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     cursor.execute("ALTER TABLE AMR_GENES_PROFILE ADD CONSTRAINT BEST_HIT_ARO_TERM FOREIGN KEY (BEST_HIT_ARO) REFERENCES TERM_LIST(TERM)")
     conn.commit()
 
+    #creating amr_mod_suite
+    sql = "CREATE TABLE AMR_MOB_SUITE(id serial PRIMARY KEY,"
+    sql += "AMR_GENES_ID integer REFERENCES AMR_GENES_PROFILE(id),"
+    sql += "MOLECULE_TYPE VARCHAR(150),"
+    sql += "PRIMARY_CLUSTER_ID VARCHAR(150),"
+    sql += "SECONDARY_CLUSTER_ID VARCHAR(150))"
+    cursor.execute(sql)
+    conn.commit()
+    sql = "CREATE TABLE AMR_REF_TYPE("
+    sql += "AMR_GENES_ID integer REFERENCES AMR_GENES_PROFILE(id),"
+    sql += "REP_TYPE VARCHAR(150),"
+    sql += "PRIMARY KEY (AMR_GENES_ID, REP_TYPE))"
+    cursor.execute(sql)
+    conn.commit()
+    sql = "CREATE TABLE AMR_RELAXASE_TYPE("
+    sql += "AMR_GENES_ID integer REFERENCES AMR_GENES_PROFILE(id),"
+    sql += "RELAXASE_TYPE VARCHAR(150),"
+    sql += "PRIMARY KEY (AMR_GENES_ID, RELAXASE_TYPE))"
+    cursor.execute(sql)
+    conn.commit()
+    sql = "CREATE TABLE AMR_MPF_TYPE("
+    sql += "AMR_GENES_ID integer REFERENCES AMR_GENES_PROFILE(id),"
+    sql += "MPF_TYPE VARCHAR(150),"
+    sql += "PRIMARY KEY (AMR_GENES_ID, MPF_TYPE))"
+    cursor.execute(sql)
+    conn.commit()
+    sql = "CREATE TABLE AMR_ORIT_TYPE("
+    sql += "AMR_GENES_ID integer REFERENCES AMR_GENES_PROFILE(id),"
+    sql += "ORIT_TYPE VARCHAR(150),"
+    sql += "PRIMARY KEY (AMR_GENES_ID, ORIT_TYPE))"
+    cursor.execute(sql)
+    conn.commit()
+    sql = "CREATE TABLE AMR_PREDICTED_MOBILITY("
+    sql += "AMR_GENES_ID integer REFERENCES AMR_GENES_PROFILE(id),"
+    sql += "PREDICTED_MOBILITY VARCHAR(150),"
+    sql += "PRIMARY KEY (AMR_GENES_ID, PREDICTED_MOBILITY))"
+    
+
+    
+    
+    cursor.execute(sql)
+    conn.commit()
+    
     #creating amr_gene_DRUG
 
     sql = "CREATE TABLE AMR_GENES_DRUGS("
