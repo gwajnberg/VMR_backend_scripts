@@ -261,6 +261,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                     #sys.exit()
                             if (key == 'AMR_laboratory_typing_method'):
                                 key2 = "antimicrobial_laboratory_typing_method"
+                            if (key == 'production_stream'):
+                                key2 ="food_product_production_stream"
                             cell=row[i]
                             print(cell)
                             if isinstance(cell,str):
