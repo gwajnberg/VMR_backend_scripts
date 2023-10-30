@@ -464,6 +464,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                     #sys.exit()
                             if (key == 'AMR_laboratory_typing_method'):
                                 key2 = "antimicrobial_laboratory_typing_method"
+                            if (key == 'production_stream'):
+                                key2 ="food_product_production_stream"
 
                             
                             cell=row[i]
@@ -1666,7 +1668,7 @@ def main():
 
         sys.exit()
     #sys.exit()
-    xls_file = "GRDI_Harmonization-Template_v7.7.5.xlsm"
+    xls_file = "GRDI_Harmonization-Template_v8.8.7.xlsm"
     valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_as_dict(xls_file)
    # print ( valid_ontology_terms_and_values)
     #sys.exit()
