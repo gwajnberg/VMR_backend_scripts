@@ -253,6 +253,10 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                             
                             key2 = key
                             for abs in antimicrobian_agent_names_ids.keys():
+                                if abs == "nalidixic acid":
+                                    abs = "nalidixic_acid"
+                                if abs == "oxolinic acid":
+                                    abs = "oxolinic-acid"
                                 if abs in key:
                                     substrL= re.match(abs+"_(.+)",key)
                                     #print (key)
@@ -456,6 +460,10 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 key = "specimen_processing"
                             key2 = key
                             for abs in antimicrobian_agent_names_ids.keys():
+                                if abs == "nalidixic acid":
+                                    abs = "nalidixic_acid"
+                                if abs == "oxolinic acid":
+                                    abs = "oxolinic-acid"
                                 if abs in key:
                                     substrL= re.match(abs+"_(.+)",key)
                                     #print (key)
