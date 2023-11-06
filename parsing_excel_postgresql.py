@@ -16,6 +16,7 @@ import argparse
 from parsing_owl import owl_parsing
 from parsing_card_json import card_parsing
 from parsing_rgimob_output import parse,insert_data
+from sensititre import sensititre
 
 
 #function to check Nan strings
@@ -1662,7 +1663,7 @@ def main():
     parser.add_argument("-s", "--schema_creator", help="Create the schema mode, exit after creating it.", default="F")
     parser.add_argument("-i", "--input_file", help="Input File to upload.", type=str)
     parser.add_argument("-g", "--gene_mode",help= "Add rgi/mob_suite output file to the VMR", default="F")
-
+    parser.add_argument("-sensititre", "--sensititre_mode",help= "Add sensititre_output", default="F")
     args = parser.parse_args()
 
     
@@ -1674,6 +1675,11 @@ def main():
         parsed_dict = parse(xls_file2)
         insert_data(parsed_dict,conn,cursor)
 
+        sys.exit()
+    if args.sensititre_mode == "T":
+        xls_file2 = args.input_file
+        print("uploading file ", xls_file2)
+        sensititre(xls_file2,conn,cursor)
         sys.exit()
     #sys.exit()
     xls_file = "GRDI_Harmonization-Template_v8.8.7.xlsm"
