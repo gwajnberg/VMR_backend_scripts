@@ -8,23 +8,23 @@ import re
 def sensititre(xls_file,conn,cursor):
 
 
-    sensititre_tab = pd.read_excel("SNC_2000_Metadata171023_ANDREWSCOTT.xlsx",keep_default_na=False, sheet_name="Sensititre_Raw_Data", header=0)
+    sensititre_tab = pd.read_excel(xls_file,keep_default_na=False, sheet_name="Sensititre_Raw_Data", header=0)
 
 
     antibiotics = {
-        "AUG":	"amoxicillin-clavulanic",
+        "AUG":	"amoxicillin-clavulanic_acid",
         "AMP":	"ampicillin",
         "AZT":	"azithromycin",
         "FOX":	"cefoxitin",
-        "CEF":	"Ceftiofur",
+        "CEF":	"ceftiofur",
         "AXO":	"ceftriaxone",
         "CHL":	"chloramphenicol",
         "CIP":	"ciprofloxacin",
         "GEN":	"gentamicin",
         "KAN": 	"kanamycin",
-        "NAL":	"naladixic acid",
+        "NAL":	"nalidixic acid",
         "STR":	"streptomycin",
-        "SSX":	"Sulfisoxazole",
+        "SSX":	"sulfisoxazole",
         "TET":	"tetracycline",
         "SXT": 	"trimethoprim-sulfamethoxazole"
     }
@@ -49,7 +49,7 @@ def sensititre(xls_file,conn,cursor):
         check_isolate=  "SELECT id  from ISOLATES where ISOLATE_ID = '"
         insert_sample = "INSERT INTO SAMPLES(sample_collector_sample_id,sample_collection_date,sample_collection_date_precision) VALUES ("
         insert_isolate = "INSERT INTO ISOLATES(sample_collector_sample_id, isolate_id,organism) VALUES("
-        insert_amr_col = "INSERT INTO AMR_INFO(isolate_id,"
+        insert_amr_col = "INSERT INTO AMR_ANTIBIOTICS_PROFILE(isolate_id,"
         insert_amr_val = " VALUES("
         sampleT=[]
         dict_results={}
@@ -57,7 +57,7 @@ def sensititre(xls_file,conn,cursor):
             if column_name == "Isolate_Tracker":
                 check_isolate += cell_value + "'"
                 insert_sample += "'"+cell_value+"',"
-                insert_isolate += "(SELECT id from SAMPLES where SAMPLE_COLLECTOR_ID= '"+cell_value+"'),'"+cell_value+"','Escherichia coli'"
+                insert_isolate += "(SELECT id from SAMPLES where SAMPLE_COLLECTOR_SAMPLE_ID= '"+cell_value+"'),'"+cell_value+"','Escherichia coli'"
                 insert_amr_val += "(SELECT id from ISOLATES where ISOLATE_ID= '"+cell_value+"'),"
             if column_name == "Date_Sampled":
                 currentDateWithoutTime = ""
@@ -93,7 +93,7 @@ def sensititre(xls_file,conn,cursor):
         if (single_row):
             print ('not empty')
         else:
-            cursor.execute(insert)
+           # cursor.execute(insert)
             
             print (insert_sample) 
             cursor.execute(insert_sample)       
@@ -106,7 +106,7 @@ def sensititre(xls_file,conn,cursor):
                 insert_total = insert_amr_col + insert_amr_val_prov
                 print (insert_total)
                 cursor.execute(insert_total)  
-                insert_amr_col = "INSERT INTO AMR_INFO(isolate_id,"
+                insert_amr_col = "INSERT INTO AMR_ANTIBIOTICS_PROFILE(isolate_id,"
                 insert_amr_val_prov = insert_amr_val
             conn.commit()
         #if row["ColumnName"] == value_to_check:
