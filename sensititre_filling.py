@@ -55,6 +55,7 @@ pheno = {
 for index, row in sensititre_tab.iterrows():
     new_data = {
     }
+    
     for column_name, cell_value in row.items():
         if column_name == "Isolate_Tracker":
             new_data['isolate_ID'] = cell_value
@@ -79,9 +80,13 @@ for index, row in sensititre_tab.iterrows():
                # print (cell_value)
             if cell_value != 'NT' and cell_value != "NOMIC":
                 new_data[antibiotics[column_name.upper()]+"_resistance_phenotype"] =pheno[cell_value]
-   
     new_row_df = pd.DataFrame([new_data])
-    template = pd.concat([template, new_row_df], ignore_index=True)            
+    template = pd.concat([template, new_row_df], ignore_index=True) 
+ #   print(new_data)
+  #  sys.exit()
+   
+   # new_row_df = pd.DataFrame([new_data])
+   # template = pd.concat([template, new_row_df], ignore_index=True)            
    # print (template['amoxicillin-clavulanic_acid_measurement'])
     #sys.exit()                 
         
@@ -91,14 +96,9 @@ for index, row in sensititre_tab.iterrows():
 
 #new_row_df = pd.DataFrame([new_data])
 #template = pd.concat([template, new_row_df], ignore_index=True)
-book = load_workbook(excel_file)
+print (template)
 
-# Get the active sheet
-sheet = book['AMR Phenotypic Test Information']
+excel_file_path = 'amr_sheet_output.xls'
 
-# Append the new data to the sheet
-for index, row in new_row_df.iterrows():
-    sheet.append(row.tolist())
-
-# Save the changes
-book.save(excel_file)
+# Write the DataFrame to an Excel file
+template.to_excel(excel_file_path, index=False, engine='openpyxl')
