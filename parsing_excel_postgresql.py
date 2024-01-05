@@ -90,13 +90,24 @@ def create_ontology_as_dict(xls):
     fields_sheet = pd.read_excel(xls,keep_default_na=False, sheet_name="Reference Guide", header=4)
     #fields_sheet_filtered = fields_sheet[fields_sheet["Ontology ID"].str.contains("GENEPIO")==True]
     fields_sheet_filtered = fields_sheet[(fields_sheet["Ontology ID"].str.contains("GENEPIO")) | (fields_sheet.iloc[:, 0].str.startswith("antimicrobial"))]
-    fields_sheet_filtered2 = fields_sheet[fields_sheet['Sample collection and processing'].str.contains("antibiotic")==True]
+    #fields_sheet_filtered2 = fields_sheet[fields_sheet['Sample collection and processing'].str.contains("antibiotic")==True]
    # print(fields_sheet_filtered2['Sample collection and processing'] )
    # sys.exit()
     #print(fields_sheet_filtered['Sample collection and processing'])
     #sys.exit()
-    dict_fields = dict (zip(fields_sheet_filtered['Sample collection and processing'], fields_sheet_filtered['Ontology ID']))
-    #print(dict_fields)
+    dict_fields={}
+    print(type(fields_sheet_filtered))
+    for index, row in fields_sheet_filtered.iterrows():
+        sample_key = row["Sample collection and processing"]
+        dict_fields[sample_key] = {
+        "Ontology ID": row["Ontology ID"],
+        "Definition": row["Definition"],
+        "Guidance": row["Guidance"],
+        "Examples": row["Examples"]
+        }
+
+    #dict_fields = dict (zip(fields_sheet_filtered['Sample collection and processing'], fields_sheet_filtered['Ontology ID']))
+   # print(dict_fields)
     #sys.exit()
     new_merged_ontology_dict = {}
     dict_foodon = owl_parsing()
@@ -140,7 +151,7 @@ def create_ontology_as_dict(xls):
                 #print (str_list)
               #  sys.exit()
             #print(temp_list)
-            new_merged_ontology_dict [key] = {"field_id":dict_fields[key],"terms":temp_list}
+            new_merged_ontology_dict [key] = {"field_id":dict_fields[key]['Ontology ID'],"Definition": dict_fields[key]['Definition'],"Guidance": dict_fields[key]['Guidance'],"Examples": dict_fields[key]['Examples'],"terms":temp_list}
                     
         else:
             #if (key == "food_product_origin geo_loc_name (country)"):
@@ -148,7 +159,7 @@ def create_ontology_as_dict(xls):
                 #food_product_origin geo_loc (country)
                 #print (ontology_dict.keys())
                 #sys.exit()
-            new_merged_ontology_dict [key] = {"field_id":dict_fields[key]}
+            new_merged_ontology_dict [key] = {"field_id":dict_fields[key]['Ontology ID'],"Definition": dict_fields[key]['Definition'],"Guidance": dict_fields[key]['Guidance'],"Examples": dict_fields[key]['Examples']}
     #print(new_merged_ontology_dict)
     #sys.exit()
     new_merged_ontology_dict['foodon_terms'] = []
@@ -167,7 +178,7 @@ def create_ontology_as_dict(xls):
         if flag ==0:
             new_merged_ontology_dict['card_terms'].append({cardterms:{"terms":cardterms}})
     #sys.exit()
-    #print(new_merged_ontology_dict)
+   # print(new_merged_ontology_dict)
     #sys.exit()
     # We need to curate some of the lists for now
     # This curation is below
@@ -665,6 +676,16 @@ def fix(fields):
     fields = fields.replace(")", "")
     return(fields)
 def sql_add(sql,fields):
+    if "by" in fields:
+        sql += fields.upper() + " integer REFERENCES AGENCY_TERMS(id)"
+    elif "country" in fields:
+        sql += fields.upper() + " integer REFERENCES COUNTRY_PURPOSE(id)"
+    elif "purpose" in fields:
+        sql += fields.upper() + " integer REFERENCES PURPOSE_TERMS(id)"
+    else:
+        sql += fields.upper() + " integer REFERENCES "+fields.upper()+"_TERMS(id)"
+    return(sql)
+def sql_add2(sql,fields):
     if ('date' in fields and 'precision' not in fields):
         sql += fields.upper() + " DATE"
     elif(re.search('measurement$',fields)):
@@ -688,6 +709,17 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
         fields_sheet =fields_noNA
         columns = list(fields_sheet.columns.values)
         return(columns)
+    def fields_terms_not_repeated():
+        list_no_red = []
+        list_red= []
+        for keys in valid_ontology_terms_and_values:
+        #print (valid_ontology_terms_and_values[keys])
+        #print (keys)
+            if "_terms" not in keys and  'terms' in valid_ontology_terms_and_values[keys].keys():
+                if "by" not in keys and "country" not in keys and "purpose" not in keys:
+                    list_no_red.append(keys)
+                list_red.append(keys)
+        return(list_no_red,list_red)
         
     
     
@@ -696,7 +728,9 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     #print(antimicrobian_agent_names_ids)
     #sys.exit()
            
-    
+    list_fields_no_redundancy,list_fields_redundant=fields_terms_not_repeated()
+   # print(list_fields_redundant)
+    #sys.exit()
     
     cursor.execute("DROP TABLE IF EXISTS AMR_ANTIBIOTICS_PROFILE")
     cursor.execute("DROP TABLE IF EXISTS AMR_GENES_DRUGS")
@@ -717,21 +751,57 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
     cursor.execute("DROP TABLE IF EXISTS REPOSITORY")
     cursor.execute("DROP TABLE IF EXISTS ISOLATES")
     cursor.execute("DROP TABLE IF EXISTS SAMPLES")
+    cursor.execute("DROP TABLE IF EXISTS ONTOLOGY_FIELDS_ITEM")
+    for fields in list_fields_no_redundancy:
+        fields = fix(fields)
+        cursor.execute("DROP TABLE IF EXISTS "+fields.upper()+"_TERMS")
+    cursor.execute("DROP TABLE IF EXISTS COUNTRY_TERMS")
+    cursor.execute("DROP TABLE IF EXISTS PURPOSE_TERMS")
+    cursor.execute("DROP TABLE IF EXISTS AGENCY_TERMS")
     cursor.execute("DROP TABLE IF EXISTS TERM_LIST")
 
-    sql ="CREATE TABLE TERM_LIST(id serial PRIMARY KEY,TERM VARCHAR(150) UNIQUE,TERM_ID VARCHAR(50))"
+    sql ="CREATE TABLE TERM_LIST(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,TERM VARCHAR(150) UNIQUE,TERM_ID VARCHAR(50), STATUS VARCHAR(300))"
+    cursor.execute(sql)
+    conn.commit()
+    #print (valid_ontology_terms_and_values)
+    #Creating look up tables
+
+    for fields in list_fields_no_redundancy:
+        fields = fix(fields)
+        sql = "CREATE TABLE "+fields.upper()+"_TERMS(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,TERM integer REFERENCES TERM_LIST(id))"
+        cursor.execute(sql)
+        conn.commit()
+    sql = "CREATE TABLE COUNTRY_TERMS(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,TERM integer REFERENCES TERM_LIST(id))"
+    cursor.execute(sql)
+    conn.commit()
+    sql = "CREATE TABLE AGENCY_TERMS(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,TERM integer REFERENCES TERM_LIST(id))"
+    cursor.execute(sql)
+    conn.commit()
+    sql = "CREATE TABLE PURPOSE_TERMS(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,TERM integer REFERENCES TERM_LIST(id))"
     cursor.execute(sql)
     conn.commit()
     
-   # sys.exit()
-    sql ="CREATE TABLE SAMPLES(id serial PRIMARY KEY,"
+    #creating fields ontology id table
+    sql = "CREATE TABLE ONTOLOGY_FIELDS_ITEM(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,ONTOLOGY_ID VARCHAR(50), DEFINITION TEXT, GUIDANCE TEXT,  EXAMPLES TEXT)"
+    cursor.execute(sql)
+    conn.commit()
+
+        #if 'terms' in valid_ontology_terms_and_values[keys].keys() and  keys != "foodon_terms":
+            #print(keys)
+            #sys.exit()
+    #sys.exit()
+    
+   # sys.exit()INT GENERATED ALWAYS AS IDENTITY
+    sql ="CREATE TABLE SAMPLES(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,"
     count=1
     sampleT_terms = []
     constraint_list=[]
     for fields in columns_samples:
         sampleT_terms.append(fields)
         fields2 = fix(fields)
+        print (fields2)
         sql = sql_add(sql,fields2)
+        print ("here")
         if (fields in valid_ontology_terms_and_values.keys()):
             
             if ('terms' in valid_ontology_terms_and_values[fields].keys() ):
@@ -743,8 +813,8 @@ def schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_onto
             sql += ","
         count +=1
     sql += ")"
-    #print(sql)
-    #sys.exit()
+    print(sql)
+    sys.exit()
     cursor.execute(sql)
     conn.commit()
    #print(constraint_list)
@@ -1698,7 +1768,7 @@ def main():
         print ("creating schema")
         
         schema_creator(xls_file,cursor,conn,antimicrobian_agent_names_ids,valid_ontology_terms_and_values)
-        create_term_list_table(valid_ontology_terms_and_values,antimicrobian_agent_names_ids,conn,cursor)
+        #create_term_list_table(valid_ontology_terms_and_values,antimicrobian_agent_names_ids,conn,cursor)
         print ("Done schema")
         sys.exit()
     else:
