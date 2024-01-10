@@ -10,6 +10,7 @@ import argparse
 from fill_ontology_fields import fill_ontology_fields
 from create_ontology_dict import create_ontology_dict
 from create_dict_of_samples import create_dict_of_samples
+from feed_vmr_table import feed_vmr_table
 
 #function to check Nan strings
 
@@ -62,7 +63,10 @@ def main():
         valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_dict(xls_file)
         xls_file2 = args.input_file
         print("uploading file ", xls_file2)
-        create_dict_of_samples(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids)
+        dict_of_samples,new_ont_terms = create_dict_of_samples(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids)
+        print ("starting to feed vmr")
+        feed_vmr_table(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms)
+
    
 
     

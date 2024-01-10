@@ -438,6 +438,10 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
             for fieldE in terms_to_fix[termE]:
                 print ("The term:",termE," in the field:",fieldE," is different from the vocabulary and appears ",terms_to_fix[termE][fieldE]," times")
                 countEvents+=1
-    sys.exit()
+    print("A total of terms different from the vocabulary:",countEvents)
+    print('done dict of terms')
+    #print(dict_terms_file)
+    
+    return(dict_terms_file,new_ont_terms)
 
 
