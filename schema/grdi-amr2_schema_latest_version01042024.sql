@@ -85,15 +85,22 @@ CREATE TABLE SAMPLE(
     SAMPLE_COLLECTION_PROJECT_NAME TEXT,
     SAMPLE_COLLECTION_DATE DATE,
     SAMPLE_COLLECTION_DATE_PRECISION INTEGER REFERENCES SAMPLE_COLLECTION_DATE_PRECISION(id),
-    PRESAMPLING_ACTIVITY INTEGER REFERENCES ACTIVITY(id),
     PRESAMPLING_ACTIVITY_DETAILS TEXT,
     SAMPLE_RECEIVED_DATE DATE,
-    PURPOSE_OF_SAMPLING INTEGER REFERENCES PURPOSE(id),
     ORIGINAL_SAMPLE_DESCRIPTION TEXT,
     SPECIMEN_PROCESSING INTEGER REFERENCES SPECIMEN_PROCESSING(id)
 );
 
-
+CREATE TABLE SAMPLE_PURPOSE(
+    SAMPLE_ID integer REFERENCES SAMPLE(id),
+    PURPOSE_OF_SAMPLING integer REFERENCES PURPOSE(id),
+    CONSTRAINT Sample_purposeSampling_pk PRIMARY KEY (SAMPLE_ID, PURPOSE_OF_SAMPLING)
+);
+CREATE TABLE SAMPLE_ACTIVITY(
+    SAMPLE_ID integer REFERENCES SAMPLE(id),
+    PRESAMPLING_ACTIVITY integer REFERENCES ACTIVITY(id),
+    CONSTRAINT Sample_preSamplingActivity_pk PRIMARY KEY (SAMPLE_ID, PRESAMPLING_ACTIVITY)
+);
 
 CREATE TABLE WATER_DATA(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
@@ -107,6 +114,12 @@ CREATE TABLE WATER_DATA(
 CREATE TABLE WEATHER_TYPE(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     WEATHER_TYPE TEXT NOT NULL,
+    ONTOLOGY_ID TEXT,
+    DESCRIPTION TEXT
+);
+CREATE TABLE ENVIRONMENTAL_MATERIAL(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    ENVIRONMENTAL_MATERIAL TEXT NOT NULL,
     ONTOLOGY_ID TEXT,
     DESCRIPTION TEXT
 );
@@ -139,13 +152,6 @@ CREATE TABLE ENVIRONMENTAL_SITE(
     DESCRIPTION TEXT
 );
 
-
-CREATE TABLE ANATOMICAL_MATERIAL(
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    ANATOMICAL_MATERIAL TEXT NOT NULL,
-    ONTOLOGY_ID TEXT,
-    DESCRIPTION TEXT
-);
 
 CREATE TABLE BODY_PRODUCT(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
@@ -231,7 +237,8 @@ CREATE TABLE SAMPLE_COLLECTION_AND_PROCESSING(
     FOOD_PRODUCT_PRODUCTION_STREAM INTEGER REFERENCES FOOD_PRODUCT_PRODUCTION_STREAM(id),
     FOOD_PACKAGING_DATE DATE,
     FOOD_QUALITY_DATE DATE,
-    COLLECTION INTEGER REFERENCES COLLECTION(id)
+    COLLECTION INTEGER REFERENCES COLLECTION(id),
+    VALIDATION_STATUS TEXT
 );
 
 CREATE TABLE ENVIRONMENT_DATA_MATERIAL(
@@ -267,7 +274,7 @@ CREATE TABLE ANATOMICAL_DATA_BODY(
 CREATE TABLE ANATOMICAL_DATA_PART(
     SAMPLE_COLLECTION_AND_PROCESSING integer REFERENCES SAMPLE_COLLECTION_AND_PROCESSING(id),
     ANATOMICAL_PART integer REFERENCES ANATOMICAL_PART(id),
-    CONSTRAINT AnatomicalData_Body_pk PRIMARY KEY (SAMPLE_COLLECTION_AND_PROCESSING, ANATOMICAL_PART)
+    CONSTRAINT AnatomicalData_Part_pk PRIMARY KEY (SAMPLE_COLLECTION_AND_PROCESSING, ANATOMICAL_PART)
 );
 CREATE TABLE ANATOMICAL_DATA_MATERIAL(
     SAMPLE_COLLECTION_AND_PROCESSING integer REFERENCES SAMPLE_COLLECTION_AND_PROCESSING(id),
@@ -302,12 +309,16 @@ CREATE TABLE FOOD_DATA_PACKAGING(
 --create view of total sample
 CREATE VIEW combined_sample_table AS
 SELECT
-  "public"."sample_collection_and_processing"."id" AS "id",
+
+"public"."sample_collection_and_processing"."id" AS "id",
   "public"."sample_collection_and_processing"."sample" AS "sample",
   "public"."sample_collection_and_processing"."geo_loc" AS "geo_loc",
-  "public"."sample_collection_and_processing"."environmental_data" AS "environmental_data",
-  "public"."sample_collection_and_processing"."anatomical_data" AS "anatomical_data",
-  "public"."sample_collection_and_processing"."food_data" AS "food_data",
+  "public"."sample_collection_and_processing"."water_data" AS "water_data",
+  "public"."sample_collection_and_processing"."air_temperature" AS "air_temperature",
+  "public"."sample_collection_and_processing"."anatomical_region" AS "anatomical_region",
+  "public"."sample_collection_and_processing"."food_product_production_stream" AS "food_product_production_stream",
+  "public"."sample_collection_and_processing"."food_packaging_date" AS "food_packaging_date",
+  "public"."sample_collection_and_processing"."food_quality_date" AS "food_quality_date",
   "public"."sample_collection_and_processing"."collection" AS "collection",
   "Sample"."id" AS "Sample__id",
   "Sample"."sample_collector_sample_id" AS "Sample__sample_collector_sample_id",
@@ -316,138 +327,151 @@ SELECT
   "Sample"."sample_collection_project_name" AS "Sample__sample_collection_project_name",
   "Sample"."sample_collection_date" AS "Sample__sample_collection_date",
   "Sample"."sample_collection_date_precision" AS "Sample__sample_collection_date_precision",
-  "Sample"."presampling_activity" AS "Sample__presampling_activity",
   "Sample"."presampling_activity_details" AS "Sample__presampling_activity_details",
   "Sample"."sample_received_date" AS "Sample__sample_received_date",
-  "Sample"."purpose_of_sampling" AS "Sample__purpose_of_sampling",
   "Sample"."original_sample_description" AS "Sample__original_sample_description",
   "Sample"."specimen_processing" AS "Sample__specimen_processing",
+  "Contact Information - Sample Collected By"."id" AS "Contact Information - Sample Collected By__id",
+  "Contact Information - Sample Collected By"."agency" AS "Contact Information - Sample Collected By__agency",
+  "Contact Information - Sample Collected By"."laboratory_name" AS "Contact Information - Sample Collected By__laboratory_name",
+  "Contact Information - Sample Collected By"."contact_name" AS "Contact Information - Sample Collected By__contact_name",
+  "Contact Information - Sample Collected By"."contact_email" AS "Contact Information - Sample Collected By__contact_email",
+  "Agency"."id" AS "Agency__id",
+  "Agency"."agency" AS "Agency__agency",
+  "Sample Collection Date Precision"."id" AS "Sample Collection Date Precision__id",
+  "Sample Collection Date Precision"."sample_collection_date_precision" AS "Sample Collection Date Precision__sample_collection_fedbc862",
+  "Sample Purpose"."sample_id" AS "Sample Purpose__sample_id",
+  "Sample Purpose"."purpose_of_sampling" AS "Sample Purpose__purpose_of_sampling",
+  "Purpose - Purpose Of Sampling"."id" AS "Purpose - Purpose Of Sampling__id",
+  "Purpose - Purpose Of Sampling"."purpose" AS "Purpose - Purpose Of Sampling__purpose",
+  "Sample Activity"."sample_id" AS "Sample Activity__sample_id",
+  "Sample Activity"."presampling_activity" AS "Sample Activity__presampling_activity",
+  "Activity - Presampling Activity"."id" AS "Activity - Presampling Activity__id",
+  "Activity - Presampling Activity"."activity" AS "Activity - Presampling Activity__activity",
+  "Specimen Processing"."id" AS "Specimen Processing__id",
+  "Specimen Processing"."specimen_processing" AS "Specimen Processing__specimen_processing",
   "Geo Loc"."id" AS "Geo Loc__id",
   "Geo Loc"."geo_loc_name_country" AS "Geo Loc__geo_loc_name_country",
   "Geo Loc"."geo_loc_name_state_province_region" AS "Geo Loc__geo_loc_name_state_province_region",
   "Geo Loc"."geo_loc_name_site" AS "Geo Loc__geo_loc_name_site",
   "Geo Loc"."geo_loc_latitude" AS "Geo Loc__geo_loc_latitude",
   "Geo Loc"."geo_loc_longitude" AS "Geo Loc__geo_loc_longitude",
-  "Environmental Data"."id" AS "Environmental Data__id",
-  "Environmental Data"."environmental_material" AS "Environmental Data__environmental_material",
-  "Environmental Data"."environmental_site" AS "Environmental Data__environmental_site",
-  "Environmental Data"."weather_type" AS "Environmental Data__weather_type",
-  "Environmental Data"."water_data" AS "Environmental Data__water_data",
-  "Environmental Data"."air_temperature" AS "Environmental Data__air_temperature",
-  "Environmental Data"."available_data_type" AS "Environmental Data__available_data_type",
-  "Environmental Data"."animal_or_plant_population" AS "Environmental Data__animal_or_plant_population",
-  "Food Data"."id" AS "Food Data__id",
-  "Food Data"."food_product" AS "Food Data__food_product",
-  "Food Data"."food_product_property" AS "Food Data__food_product_property",
-  "Food Data"."animal_source_of_food" AS "Food Data__animal_source_of_food",
-  "Food Data"."food_product_production_stream" AS "Food Data__food_product_production_stream",
-  "Food Data"."food_packaging" AS "Food Data__food_packaging",
-  "Food Data"."food_packaging_date" AS "Food Data__food_packaging_date",
-  "Food Data"."food_quality_date" AS "Food Data__food_quality_date",
-  "Collection"."id" AS "Collection__id",
-  "Collection"."sample_storage_method" AS "Collection__sample_storage_method",
-  "Collection"."sample_storage_medium" AS "Collection__sample_storage_medium",
-  "Collection"."collection_device" AS "Collection__collection_device",
-  "Collection"."collection_method" AS "Collection__collection_method",
-  "Anatomical Data"."id" AS "Anatomical Data__id",
-  "Anatomical Data"."anatomical_material" AS "Anatomical Data__anatomical_material",
-  "Anatomical Data"."body_product" AS "Anatomical Data__body_product",
-  "Anatomical Data"."anatomical_part" AS "Anatomical Data__anatomical_part",
-  "Anatomical Data"."anatomical_region" AS "Anatomical Data__anatomical_region",
-  "Contact Information - Sample Collected By"."id" AS "Contact Information - Sample Collected By__id",
-  "Contact Information - Sample Collected By"."agency" AS "Contact Information - Sample Collected By__agency",
-  "Contact Information - Sample Collected By"."laboratory_name" AS "Contact Information - Sample Collected By__laboratory_name",
-  "Contact Information - Sample Collected By"."contact_name" AS "Contact Information - Sample Collected By__contact_name",
-  "Contact Information - Sample Collected By"."contact_email" AS "Contact Information - Sample Collected By__contact_email",
-  "Agency"."id" AS "Agency",
-  "Agency"."agency" AS "Agency__agency",
-  "Agency"."description" AS "Agency__description",
-  "Sample Collection Date Precision"."id" AS "Sample Collection Date Precision__id",
-  "Sample Collection Date Precision"."sample_collection_date_precision" AS "Sample Collection Date Precision__sample_collection_fedbc862",
-  "Activity - Presampling Activity"."id" AS "Activity - Presampling Activity__id",
-  "Activity - Presampling Activity"."activity" AS "Activity - Presampling Activity__activity",
-  "Purpose - Purpose Of Sampling"."id" AS "Purpose - Purpose Of Sampling__id",
-  "Purpose - Purpose Of Sampling"."purpose" AS "Purpose - Purpose Of Sampling__purpose",
-  "Specimen Processing"."id" AS "Specimen Processing__id",
-  "Specimen Processing"."specimen_processing" AS "Specimen Processing__specimen_processing",
   "Country - Geo Loc Name Country"."id" AS "Country - Geo Loc Name Country__id",
   "Country - Geo Loc Name Country"."country" AS "Country - Geo Loc Name Country__country",
+  "State Province Region - Geo Loc Name State Province Region"."id" AS "State Province Region - Geo Loc Name State Province_3a67694b",
+  "State Province Region - Geo Loc Name State Province Region"."geo_loc_state_province_region" AS "State Province Region - Geo Loc Name State Province_75747284",
   "Geo Loc Name Site"."id" AS "Geo Loc Name Site__id",
   "Geo Loc Name Site"."geo_loc_name_site" AS "Geo Loc Name Site__geo_loc_name_site",
-  "State Province Region - Geo Loc Name State Province Region"."id" AS "State Province Region - Geo Loc Name State Province_3a67694b",
-  "State Province Region - Geo Loc Name State Province Region"."geo_loc_state_province_region" AS "State Province Region - Geo Loc Name State Province_7ccaa4ec",
-  "Anatomical Material"."id" AS "Anatomical Material__id",
-  "Anatomical Material"."anatomical_material" AS "Anatomical Material__anatomical_material",
-  "Anatomical Part"."id" AS "Anatomical Part__id",
-  "Anatomical Part"."anatomical_part" AS "Anatomical Part__anatomical_part",
-  "Body Product"."id" AS "Body Product__id",
-  "Body Product"."body_product" AS "Body Product__body_product",
-  "Anatomical Region"."id" AS "Anatomical Region__id",
-  "Anatomical Region"."anatomical_region" AS "Anatomical Region__anatomical_region",
-  "Animal Source Of Food - Animal Or Plant Population"."id" AS "Animal Source Of Food - Animal Or Plant Population__id",
-  "Animal Source Of Food - Animal Or Plant Population"."animal_source_of_food" AS "Animal Source Of Food - Animal Or Plant Population__f69dcd27",
-  "Environmental Material"."id" AS "Environmental Material__id",
-  "Environmental Material"."environmental_material" AS "Environmental Material__environmental_material",
   "Water Data"."id" AS "Water Data__id",
   "Water Data"."sendiment_depth" AS "Water Data__sendiment_depth",
   "Water Data"."water_depth" AS "Water Data__water_depth",
   "Water Data"."water_temperature" AS "Water Data__water_temperature",
-  "Weather Type"."id" AS "Weather Type__id",
-  "Weather Type"."weather_type" AS "Weather Type__weather_type",
+  "Anatomical Data Material"."sample_collection_and_processing" AS "Anatomical Data Material__sample_collection_and_processing",
+  "Anatomical Data Material"."anatomical_material" AS "Anatomical Data Material__anatomical_material",
+  "Anatomical Material"."id" AS "Anatomical Material__id",
+  "Anatomical Material"."anatomical_material" AS "Anatomical Material__anatomical_material",
+  "Anatomical Data Body"."sample_collection_and_processing" AS "Anatomical Data Body__sample_collection_and_processing",
+  "Anatomical Data Body"."body_product" AS "Anatomical Data Body__body_product",
+  "Body Product"."id" AS "Body Product__id",
+  "Body Product"."body_product" AS "Body Product__body_product",
+  "Anatomical Data Part"."sample_collection_and_processing" AS "Anatomical Data Part__sample_collection_and_processing",
+  "Anatomical Data Part"."anatomical_part" AS "Anatomical Data Part__anatomical_part",
+  "Anatomical Part"."id" AS "Anatomical Part__id",
+  "Anatomical Part"."anatomical_part" AS "Anatomical Part__anatomical_part",
+   "Environment Data Material"."sample_collection_and_processing" AS "Environment Data Material__sample_collection_and_processing",
+  "Environment Data Material"."environmental_material" AS "Environment Data Material__environmental_material",
+  "Environmental Material"."id" AS "Environmental Material__id",
+  "Environmental Material"."environmental_material" AS "Environmental Material__environmental_material",
+   "Environment Data Animal Plant"."sample_collection_and_processing" AS "Environment Data Animal Plant__sample_collection_an_7ca5ab51",
+  "Environment Data Animal Plant"."animal_or_plant_population" AS "Environment Data Animal Plant__animal_or_plant_population",
+  "Environment Data Available Data Type"."sample_collection_and_processing" AS "Environment Data Available Data Type__sample_collec_77035d80",
+  "Environment Data Available Data Type"."available_data_type" AS "Environment Data Available Data Type__available_data_type",
+  "Animal Or Plant Population"."id" AS "Animal Or Plant Population__id",
+  "Animal Or Plant Population"."animal_or_plant_population" AS "Animal Or Plant Population__animal_or_plant_population",
   "Available Data Type"."id" AS "Available Data Type__id",
   "Available Data Type"."available_data_type" AS "Available Data Type__available_data_type",
+  "Environment Data Site"."sample_collection_and_processing" AS "Environment Data Site__sample_collection_and_processing",
+  "Environment Data Site"."environmental_site" AS "Environment Data Site__environmental_site",
+  "Environment Data Weather Type"."sample_collection_and_processing" AS "Environment Data Weather Type__sample_collection_an_10923388",
+  "Environment Data Weather Type"."weather_type" AS "Environment Data Weather Type__weather_type",
   "Environmental Site"."id" AS "Environmental Site__id",
   "Environmental Site"."environmental_site" AS "Environmental Site__environmental_site",
+  "Weather Type"."id" AS "Weather Type__id",
+  "Weather Type"."weather_type" AS "Weather Type__weather_type",
+   "Food Data Product"."sample_collection_and_processing" AS "Food Data Product__sample_collection_and_processing",
+  "Food Data Product"."food_product" AS "Food Data Product__food_product",
+  "Food Data Product Property"."sample_collection_and_processing" AS "Food Data Product Property__sample_collection_and_processing",
+  "Food Data Product Property"."food_product_property" AS "Food Data Product Property__food_product_property",
+  "Food Data Packaging"."sample_collection_and_processing" AS "Food Data Packaging__sample_collection_and_processing",
+  "Food Data Packaging"."food_packaging" AS "Food Data Packaging__food_packaging",
+  "Food Data Source"."sample_collection_and_processing" AS "Food Data Source__sample_collection_and_processing",
+  "Food Data Source"."animal_source_of_food" AS "Food Data Source__animal_source_of_food",
   "Food Product"."id" AS "Food Product__id",
   "Food Product"."food_product" AS "Food Product__food_product",
-  "Animal Source Of Food"."id" AS "Animal Source Of Food__id",
-  "Animal Source Of Food"."animal_source_of_food" AS "Animal Source Of Food__animal_source_of_food",
-  "Food Product Property"."id" AS "Food Product Property__id",
+   "Food Product Property"."id" AS "Food Product Property__id",
   "Food Product Property"."food_product_property" AS "Food Product Property__food_product_property",
-  "Food Product Production Stream"."id" AS "Food Product Production Stream__id",
-  "Food Product Production Stream"."food_product_production_stream" AS "Food Product Production Stream__food_product_produc_060b416e",
   "Food Packaging"."id" AS "Food Packaging__id",
   "Food Packaging"."food_packaging" AS "Food Packaging__food_packaging",
+  "Animal Source Of Food"."id" AS "Animal Source Of Food__id",
+  "Animal Source Of Food"."animal_source_of_food" AS "Animal Source Of Food__animal_source_of_food",
+  "Food Product Production Stream"."id" AS "Food Product Production Stream__id",
+  "Food Product Production Stream"."food_product_production_stream" AS "Food Product Production Stream__food_product_produc_060b416e",
+   "Collection"."id" AS "Collection__id",
+  "Collection"."sample_storage_method" AS "Collection__sample_storage_method",
+  "Collection"."sample_storage_medium" AS "Collection__sample_storage_medium",
+  "Collection"."collection_device" AS "Collection__collection_device",
+  "Collection"."collection_method" AS "Collection__collection_method",
   "Collection Device"."id" AS "Collection Device__id",
   "Collection Device"."collection_device" AS "Collection Device__collection_device",
-  "Collection Method"."id" AS "Collection Method__id",
+   "Collection Method"."id" AS "Collection Method__id",
   "Collection Method"."collection_method" AS "Collection Method__collection_method"
   
 FROM
   "public"."sample_collection_and_processing"
  
 LEFT JOIN "public"."sample" AS "Sample" ON "public"."sample_collection_and_processing"."sample" = "Sample"."id"
-  LEFT JOIN "public"."geo_loc" AS "Geo Loc" ON "public"."sample_collection_and_processing"."geo_loc" = "Geo Loc"."id"
-  LEFT JOIN "public"."environmental_data" AS "Environmental Data" ON "public"."sample_collection_and_processing"."environmental_data" = "Environmental Data"."id"
-  LEFT JOIN "public"."food_data" AS "Food Data" ON "public"."sample_collection_and_processing"."food_data" = "Food Data"."id"
-  LEFT JOIN "public"."collection" AS "Collection" ON "public"."sample_collection_and_processing"."collection" = "Collection"."id"
-  LEFT JOIN "public"."anatomical_data" AS "Anatomical Data" ON "public"."sample_collection_and_processing"."anatomical_data" = "Anatomical Data"."id"
   LEFT JOIN "public"."contact_information" AS "Contact Information - Sample Collected By" ON "Sample"."sample_collected_by" = "Contact Information - Sample Collected By"."id"
   LEFT JOIN "public"."agency" AS "Agency" ON "Contact Information - Sample Collected By"."agency" = "Agency"."id"
   LEFT JOIN "public"."sample_collection_date_precision" AS "Sample Collection Date Precision" ON "Sample"."sample_collection_date_precision" = "Sample Collection Date Precision"."id"
-  LEFT JOIN "public"."activity" AS "Activity - Presampling Activity" ON "Sample"."presampling_activity" = "Activity - Presampling Activity"."id"
-  LEFT JOIN "public"."purpose" AS "Purpose - Purpose Of Sampling" ON "Sample"."purpose_of_sampling" = "Purpose - Purpose Of Sampling"."id"
+  LEFT JOIN "public"."sample_purpose" AS "Sample Purpose" ON "Sample"."id" = "Sample Purpose"."sample_id"
+  LEFT JOIN "public"."purpose" AS "Purpose - Purpose Of Sampling" ON "Sample Purpose"."purpose_of_sampling" = "Purpose - Purpose Of Sampling"."id"
+  LEFT JOIN "public"."sample_activity" AS "Sample Activity" ON "Sample"."id" = "Sample Activity"."sample_id"
+  LEFT JOIN "public"."activity" AS "Activity - Presampling Activity" ON "Sample Activity"."presampling_activity" = "Activity - Presampling Activity"."id"
   LEFT JOIN "public"."specimen_processing" AS "Specimen Processing" ON "Sample"."specimen_processing" = "Specimen Processing"."id"
+  LEFT JOIN "public"."geo_loc" AS "Geo Loc" ON "public"."sample_collection_and_processing"."geo_loc" = "Geo Loc"."id"
   LEFT JOIN "public"."country" AS "Country - Geo Loc Name Country" ON "Geo Loc"."geo_loc_name_country" = "Country - Geo Loc Name Country"."id"
-  LEFT JOIN "public"."geo_loc_name_site" AS "Geo Loc Name Site" ON "Geo Loc"."geo_loc_name_site" = "Geo Loc Name Site"."id"
   LEFT JOIN "public"."state_province_region" AS "State Province Region - Geo Loc Name State Province Region" ON "Geo Loc"."geo_loc_name_state_province_region" = "State Province Region - Geo Loc Name State Province Region"."id"
-  LEFT JOIN "public"."anatomical_material" AS "Anatomical Material" ON "Anatomical Data"."anatomical_material" = "Anatomical Material"."id"
-  LEFT JOIN "public"."anatomical_part" AS "Anatomical Part" ON "Anatomical Data"."anatomical_part" = "Anatomical Part"."id"
-  LEFT JOIN "public"."body_product" AS "Body Product" ON "Anatomical Data"."body_product" = "Body Product"."id"
-  LEFT JOIN "public"."anatomical_region" AS "Anatomical Region" ON "Anatomical Data"."anatomical_region" = "Anatomical Region"."id"
-  LEFT JOIN "public"."animal_source_of_food" AS "Animal Source Of Food - Animal Or Plant Population" ON "Environmental Data"."animal_or_plant_population" = "Animal Source Of Food - Animal Or Plant Population"."id"
-  LEFT JOIN "public"."environmental_material" AS "Environmental Material" ON "Environmental Data"."environmental_material" = "Environmental Material"."id"
-  LEFT JOIN "public"."water_data" AS "Water Data" ON "Environmental Data"."water_data" = "Water Data"."id"
-  LEFT JOIN "public"."weather_type" AS "Weather Type" ON "Environmental Data"."weather_type" = "Weather Type"."id"
-  LEFT JOIN "public"."available_data_type" AS "Available Data Type" ON "Environmental Data"."available_data_type" = "Available Data Type"."id"
-  LEFT JOIN "public"."environmental_site" AS "Environmental Site" ON "Environmental Data"."environmental_site" = "Environmental Site"."id"
-  LEFT JOIN "public"."food_product" AS "Food Product" ON "Food Data"."food_product" = "Food Product"."id"
-  LEFT JOIN "public"."animal_source_of_food" AS "Animal Source Of Food" ON "Food Data"."animal_source_of_food" = "Animal Source Of Food"."id"
-  LEFT JOIN "public"."food_product_property" AS "Food Product Property" ON "Food Data"."food_product_property" = "Food Product Property"."id"
-  LEFT JOIN "public"."food_product_production_stream" AS "Food Product Production Stream" ON "Food Data"."food_product_production_stream" = "Food Product Production Stream"."id"
-  LEFT JOIN "public"."food_packaging" AS "Food Packaging" ON "Food Data"."food_packaging" = "Food Packaging"."id"
+  LEFT JOIN "public"."geo_loc_name_site" AS "Geo Loc Name Site" ON "Geo Loc"."geo_loc_name_site" = "Geo Loc Name Site"."id"
+  LEFT JOIN "public"."water_data" AS "Water Data" ON "public"."sample_collection_and_processing"."water_data" = "Water Data"."id"
+  LEFT JOIN "public"."anatomical_data_material" AS "Anatomical Data Material" ON "public"."sample_collection_and_processing"."id" = "Anatomical Data Material"."sample_collection_and_processing"
+  LEFT JOIN "public"."anatomical_material" AS "Anatomical Material" ON "Anatomical Data Material"."anatomical_material" = "Anatomical Material"."id"
+  LEFT JOIN "public"."anatomical_data_body" AS "Anatomical Data Body" ON "public"."sample_collection_and_processing"."id" = "Anatomical Data Body"."sample_collection_and_processing"
+  LEFT JOIN "public"."body_product" AS "Body Product" ON "Anatomical Data Body"."body_product" = "Body Product"."id"
+  LEFT JOIN "public"."anatomical_data_part" AS "Anatomical Data Part" ON "public"."sample_collection_and_processing"."id" = "Anatomical Data Part"."sample_collection_and_processing"
+  LEFT JOIN "public"."anatomical_part" AS "Anatomical Part" ON "Anatomical Data Part"."anatomical_part" = "Anatomical Part"."id"
+  LEFT JOIN "public"."environment_data_material" AS "Environment Data Material" ON "public"."sample_collection_and_processing"."id" = "Environment Data Material"."sample_collection_and_processing"
+  LEFT JOIN "public"."environmental_material" AS "Environmental Material" ON "Environment Data Material"."environmental_material" = "Environmental Material"."id"
+  LEFT JOIN "public"."environment_data_animal_plant" AS "Environment Data Animal Plant" ON "public"."sample_collection_and_processing"."id" = "Environment Data Animal Plant"."sample_collection_and_processing"
+  LEFT JOIN "public"."environment_data_available_data_type" AS "Environment Data Available Data Type" ON "public"."sample_collection_and_processing"."id" = "Environment Data Available Data Type"."sample_collection_and_processing"
+  LEFT JOIN "public"."animal_or_plant_population" AS "Animal Or Plant Population" ON "Environment Data Animal Plant"."animal_or_plant_population" = "Animal Or Plant Population"."id"
+  LEFT JOIN "public"."available_data_type" AS "Available Data Type" ON "Environment Data Available Data Type"."available_data_type" = "Available Data Type"."id"
+  LEFT JOIN "public"."environment_data_site" AS "Environment Data Site" ON "public"."sample_collection_and_processing"."id" = "Environment Data Site"."sample_collection_and_processing"
+  LEFT JOIN "public"."environment_data_weather_type" AS "Environment Data Weather Type" ON "public"."sample_collection_and_processing"."id" = "Environment Data Weather Type"."sample_collection_and_processing"
+  LEFT JOIN "public"."environmental_site" AS "Environmental Site" ON "Environment Data Site"."environmental_site" = "Environmental Site"."id"
+  LEFT JOIN "public"."weather_type" AS "Weather Type" ON "Environment Data Weather Type"."weather_type" = "Weather Type"."id"
+  LEFT JOIN "public"."food_data_product" AS "Food Data Product" ON "public"."sample_collection_and_processing"."id" = "Food Data Product"."sample_collection_and_processing"
+  LEFT JOIN "public"."food_data_product_property" AS "Food Data Product Property" ON "public"."sample_collection_and_processing"."id" = "Food Data Product Property"."sample_collection_and_processing"
+  LEFT JOIN "public"."food_data_packaging" AS "Food Data Packaging" ON "public"."sample_collection_and_processing"."id" = "Food Data Packaging"."sample_collection_and_processing"
+  LEFT JOIN "public"."food_data_source" AS "Food Data Source" ON "public"."sample_collection_and_processing"."id" = "Food Data Source"."sample_collection_and_processing"
+  LEFT JOIN "public"."food_product" AS "Food Product" ON "Food Data Product"."food_product" = "Food Product"."id"
+  LEFT JOIN "public"."food_product_property" AS "Food Product Property" ON "Food Data Product Property"."food_product_property" = "Food Product Property"."id"
+  LEFT JOIN "public"."food_packaging" AS "Food Packaging" ON "Food Data Packaging"."food_packaging" = "Food Packaging"."id"
+  LEFT JOIN "public"."animal_source_of_food" AS "Animal Source Of Food" ON "Food Data Source"."animal_source_of_food" = "Animal Source Of Food"."id"
+  LEFT JOIN "public"."food_product_production_stream" AS "Food Product Production Stream" ON "public"."sample_collection_and_processing"."food_product_production_stream" = "Food Product Production Stream"."id"
+  LEFT JOIN "public"."collection" AS "Collection" ON "public"."sample_collection_and_processing"."collection" = "Collection"."id"
   LEFT JOIN "public"."collection_device" AS "Collection Device" ON "Collection"."collection_device" = "Collection Device"."id"
   LEFT JOIN "public"."collection_method" AS "Collection Method" ON "Collection"."collection_method" = "Collection Method"."id"
+
 ;
 
 
@@ -639,6 +663,11 @@ CREATE TABLE SEQUENCING (
 
 
 );
+CREATE TABLE SEQUENCING_PURPOSE(
+    SEQUENCING_ID integer REFERENCES SEQUENCING(id),
+    PURPOSE_OF_SEQUENCING integer REFERENCES PURPOSE(id),
+    CONSTRAINT Sequencing_purposeSequencing_pk PRIMARY KEY (SEQUENCING_ID, PURPOSE_OF_SEQUENCING)
+);
 --create view
 CREATE VIEW combined_sequence_table AS
 SELECT
@@ -646,7 +675,10 @@ SELECT
   "public"."sequencing"."isolate_id" AS "isolate_id",
   "public"."sequencing"."library_id" AS "library_id",
   "public"."sequencing"."sequenced_by" AS "sequenced_by",
-  "public"."sequencing"."purpose_of_sequencing" AS "purpose_of_sequencing",
+  "Sequencing Purpose"."sequencing_id" AS "Sequencing Purpose__sequencing_id",
+  "Sequencing Purpose"."purpose_of_sequencing" AS "Sequencing Purpose__purpose_of_sequencing",
+  "Purpose - Purpose Of Sequencing"."id" AS "Purpose - Purpose Of Sequencing__id",
+  "Purpose - Purpose Of Sequencing"."purpose" AS "Purpose - Purpose Of Sequencing__purpose",
   "public"."sequencing"."sequencing_project_name" AS "sequencing_project_name",
   "public"."sequencing"."sequencing_platform" AS "sequencing_platform",
   "public"."sequencing"."sequencing_instrument" AS "sequencing_instrument",
@@ -675,6 +707,8 @@ LEFT JOIN "public"."contact_information" AS "Contact Information - Sequenced By"
   LEFT JOIN "public"."agency" AS "Agency" ON "Contact Information - Sequenced By"."agency" = "Agency"."id"
   LEFT JOIN "public"."sequencing_instrument" AS "Sequencing Instrument" ON "public"."sequencing"."sequencing_instrument" = "Sequencing Instrument"."id"
   LEFT JOIN "public"."sequencing_platform" AS "Sequencing Platform" ON "public"."sequencing"."sequencing_platform" = "Sequencing Platform"."id"
+  LEFT JOIN "public"."sequencing_purpose" AS "Sequencing Purpose" ON "public"."sequencing"."id" = "Sequencing Purpose"."sequencing_id"
+  LEFT JOIN "public"."purpose" AS "Purpose - Purpose Of Sequencing" ON "Sequencing Purpose"."purpose_of_sequencing" = "Purpose - Purpose Of Sequencing"."id"
 ;
 
 CREATE TABLE ATTRIBUTE_PACKAGE (
@@ -724,10 +758,14 @@ CREATE TABLE RISK_ASSESSMENT (
     PREVALENCE_METRICS INTEGER REFERENCES PREVALENCE_METRICS(id),
     PREVALENCE_METRICS_DETAILS TEXT,
     STAGE_OF_PRODUCTION INTEGER REFERENCES STAGE_OF_PRODUCTION(id),
-    EXPERIMENTAL_INTERVATION INTEGER REFERENCES ACTIVITY(id),
     EXPERIMENTAL_INTERVENTION_DETAILS TEXT
     
 
+);
+CREATE TABLE RISK_ACTIVITY(
+    RISK_ID integer REFERENCES RISK_ASSESSMENT(id),
+    EXPERIMENTAL_INTERVENTION integer REFERENCES ACTIVITY(id),
+    CONSTRAINT Risk_ExperimentalIntervation_pk PRIMARY KEY (RISK_ID, EXPERIMENTAL_INTERVENTION)
 );
 -- create view
 CREATE VIEW combined_risk_assessment AS
@@ -738,10 +776,11 @@ SELECT
   "public"."risk_assessment"."prevalence_metrics" AS "prevalence_metrics",
   "public"."risk_assessment"."prevalence_metrics_details" AS "prevalence_metrics_details",
   "public"."risk_assessment"."stage_of_production" AS "stage_of_production",
-  "public"."risk_assessment"."experimental_intervation" AS "experimental_intervation",
   "public"."risk_assessment"."experimental_intervention_details" AS "experimental_intervention_details",
-  "Activity - Experimental Intervation"."id" AS "Activity - Experimental Intervation__id",
-  "Activity - Experimental Intervation"."activity" AS "Activity - Experimental Intervation__activity",
+  "Risk Activity"."risk_id" AS "Risk Activity__risk_id",
+  "Risk Activity"."experimental_intervention" AS "Risk Activity__experimental_intervention",
+  "Activity - Experimental Intervention"."id" AS "Activity - Experimental Intervention__id",
+  "Activity - Experimental Intervention"."activity" AS "Activity - Experimental Intervention__activity",
   "Stage Of Production"."id" AS "Stage Of Production__id",
   "Stage Of Production"."stage_of_production" AS "Stage Of Production__stage_of_production",
   "Prevalence Metrics"."id" AS "Prevalence Metrics__id",
@@ -752,9 +791,9 @@ FROM
  
 LEFT JOIN "public"."stage_of_production" AS "Stage Of Production" ON "public"."risk_assessment"."stage_of_production" = "Stage Of Production"."id"
 LEFT JOIN "public"."prevalence_metrics" AS "Prevalence Metrics" ON "public"."risk_assessment"."prevalence_metrics" = "Prevalence Metrics"."id"
-LEFT JOIN "public"."activity" AS "Activity - Experimental Intervation" ON "public"."risk_assessment"."experimental_intervation" = "Activity - Experimental Intervation"."id"
+LEFT JOIN "public"."risk_activity" AS "Risk Activity" ON "public"."risk_assessment"."id" = "Risk Activity"."risk_id"
+LEFT JOIN "public"."activity" AS "Activity - Experimental Intervention" ON "Risk Activity"."experimental_intervention" = "Activity - Experimental Intervention"."id"
 ;
-
 --AMR_info
 CREATE TABLE AMR_INFO(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
