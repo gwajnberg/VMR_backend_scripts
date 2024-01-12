@@ -38,6 +38,10 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
     new_ont_terms = copy.deepcopy(ontology_terms_and_values)
     dict_terms_file={'sample':{},'host':{},'isolate':{},'sequence':{},'publicRep':{},'AMR':{},'risk':{}}
     terms_to_fix={}
+    terms_accepting_multiple_values =["environmental_site","weather_type","available_data_types","animal_or_plant_population",
+                                     "environmental_material","anatomical_material","body_product","anatomical_part","food_product",
+                                     "food_product_properties","animal_source_of_food","food_packaging","purpose_of_sequencing","experimental_intervention",
+                                     "pre_sampling_activity","purpose_of_sampling"]
     if len(xl.sheet_names) > 8:
         temp_dict={}
         
@@ -71,48 +75,97 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 key2 = "antimicrobial_laboratory_typing_method"
                             if (key == 'production_stream'):
                                 key2 ="food_product_production_stream"
-                            cell=row[i]
+                            cell=""
+                            if key2 in terms_accepting_multiple_values:
+                                cell_prov=row[i].split[";"]
+                                cell=[]
+                                for sub in cell_prov:
+                                    if isinstance(sub,str):
+                                        cell_sub=sub.strip()
+                                        cell.append(cell_sub)
+
+                            else:
+                                cell = row[i]
+
+                                if isinstance(cell,str):
+                                    cell=cell.strip()
                             print(cell)
-                            if isinstance(cell,str):
-                                cell=cell.strip()
+                             
                             if key2 in ontology_terms_and_values.keys():
                                 if "terms" in ontology_terms_and_values[key2].keys():
-                           
-                                    flag = 0;
-                                    pseudoid=""
-                                    if(":" in cell and "[" not in cell):
-                                        wanted = cell.split(":")
-                                        cell = wanted[0]
-                                        pseudoid = wanted[1]
+                                    if key2 in terms_accepting_multiple_values:
+                                        for index,cell_sub in enumerate(cell):
+                                            flag = 0;
+                                            pseudoid=""
+                                            if(":" in cell_sub and "[" not in cell_sub):
+                                                wanted = cell_sub.split(":")
+                                                cell_sub = wanted[0]
+                                                pseudoid = wanted[1]
                                    # print(ontology_terms_and_values[key]["terms"])
                                     
-                                    for item in ontology_terms_and_values[key2]["terms"]:
-                                #print(item.keys())
-                                        if type(item) != dict:
-                                            if cell == item:
-                                                flag+=1;
-                                        else:
-                                            for keyI in item.keys():
-                                                #print(type(keyI))
-                                                if cell in keyI:
-                                                   # print(cell,keyI)
+                                            for item in ontology_terms_and_values[key2]["terms"]:
+                                        #print(item.keys())
+                                                if type(item) != dict:
+                                                    if cell_sub == item:
+                                                        flag+=1;
+                                                else:
+                                                    for keyI in item.keys():
+                                                        #print(type(keyI))
+                                                        if cell_sub in keyI:
+                                                        # print(cell,keyI)
+                                                            flag+=1;
+                                                            cell[index]= item[keyI]["term"]+"//"+item[keyI]["term_id"]
+                                                            #print("added //",cell)
+                                                            #sys.exit()
+                                            if flag == 0:
+                                                #print("diferent term: ",cell," with id: ",pseudoid," in field:",key)
+                                                if ( cell_sub in terms_to_fix.keys()):
+                                                    if (key in terms_to_fix[cell].keys()):
+                                                        terms_to_fix[cell_sub][key] += 1
+                                                else:
+                                                    terms_to_fix[cell_sub] = {}
+                                                    terms_to_fix[cell_sub] [key] = 1
+                                                    ##Provisory adding terms to the ontology_terms
+                                                    new_ont_terms[key]['terms'].append({cell_sub+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
+                                                    #print(cell,ontology_terms_and_values[key])
+                                                    
+                                                    cell[index]= cell_sub+"//"+pseudoid
+                                    else:
+                                        flag = 0;
+                                        pseudoid=""
+                                        if(":" in cell and "[" not in cell):
+                                            wanted = cell.split(":")
+                                            cell = wanted[0]
+                                            pseudoid = wanted[1]
+                                    # print(ontology_terms_and_values[key]["terms"])
+                                        
+                                        for item in ontology_terms_and_values[key2]["terms"]:
+                                    #print(item.keys())
+                                            if type(item) != dict:
+                                                if cell == item:
                                                     flag+=1;
-                                                    cell= item[keyI]["term"]+"//"+item[keyI]["term_id"]
-                                                    #print("added //",cell)
-                                                    #sys.exit()
-                                    if flag == 0:
-                                        #print("diferent term: ",cell," with id: ",pseudoid," in field:",key)
-                                        if ( cell in terms_to_fix.keys()):
-                                            if (key in terms_to_fix[cell].keys()):
-                                                terms_to_fix[cell][key] += 1
-                                        else:
-                                            terms_to_fix[cell] = {}
-                                            terms_to_fix[cell] [key] = 1
-                                            ##Provisory adding terms to the ontology_terms
-                                            new_ont_terms[key]['terms'].append({cell+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
-                                            #print(cell,ontology_terms_and_values[key])
-                                            
-                                            cell= cell+"//"+pseudoid
+                                            else:
+                                                for keyI in item.keys():
+                                                    #print(type(keyI))
+                                                    if cell in keyI:
+                                                    # print(cell,keyI)
+                                                        flag+=1;
+                                                        cell= item[keyI]["term"]+"//"+item[keyI]["term_id"]
+                                                        #print("added //",cell)
+                                                        #sys.exit()
+                                        if flag == 0:
+                                            #print("diferent term: ",cell," with id: ",pseudoid," in field:",key)
+                                            if ( cell in terms_to_fix.keys()):
+                                                if (key in terms_to_fix[cell].keys()):
+                                                    terms_to_fix[cell][key] += 1
+                                            else:
+                                                terms_to_fix[cell] = {}
+                                                terms_to_fix[cell] [key] = 1
+                                                ##Provisory adding terms to the ontology_terms
+                                                new_ont_terms[key]['terms'].append({cell+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
+                                                #print(cell,ontology_terms_and_values[key])
+                                                
+                                                cell= cell+"//"+pseudoid
                             if 'date' in key:
                                 last_part_of_key = key.split("_")[-1] 
                                 if "date" in last_part_of_key:
@@ -279,11 +332,26 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                             if (key == 'production_stream'):
                                 key2 ="food_product_production_stream"
 
+                            cell=""
+                            #print("debugging_here")
+                            #print (key,row[i])
+                            if key2 in terms_accepting_multiple_values:
+                                cell_prov=row[i].split(";")
+                               # print(cell_prov)
+                                cell=[]
+                                for sub in cell_prov:
+                                    if isinstance(sub,str):
+                                        cell_sub=sub.strip()
+                                        cell.append(cell_sub)
+
+                            else:
+                                cell = row[i]
+
+                                if isinstance(cell,str):
+                                    cell=cell.strip()
                             
-                            cell=row[i]
                             
-                            if isinstance(cell,str):
-                                cell=cell.strip()
+                            #print(cell,"here")
                             flag_to_discard = 0
                             #print (ontology_terms_and_values)
                             #sys.exit()
@@ -291,49 +359,93 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                             if key2 in ontology_terms_and_values.keys():
                                 
                                 if "terms" in ontology_terms_and_values[key2].keys():
-                           
-                                    flag = 0;
-                                    pseudoid=""
-                                    if(":" in cell and "[" not in cell):
-                                        wanted = cell.split(":")
-                                        cell = wanted[0]
-                                        pseudoid = wanted[1]
-                                   # print(ontology_terms_and_values[key]["terms"])
-                                    
-                                    for item in ontology_terms_and_values[key2]["terms"]:
-                                #print(item.keys())
-                                        
-                                        if type(item) != dict:
-                                            if cell == item:
-                                                flag+=1;
-                                        else:
-                                            for keyI in item.keys():
-                                                #print(type(keyI))
-                                                if cell in keyI:
-                                                   # print(cell,keyI)
-                                                    flag+=1;
-                                                #    print(item[keyI])
-                                                    cell= item[keyI]["term"]+"//"+item[keyI]["term_id"]
-                                                    #print("added //",cell)
-                                                    #sys.exit()
-                                    
-                                    
-                                    if flag == 0:
-                                        flag2 = 0
-                                                                      
-                                        if flag2 == 0:
-                                            flag_to_discard += 1
-                                            if ( cell in terms_to_fix.keys()):
-                                                if (key in terms_to_fix[cell].keys()):
-                                                    terms_to_fix[cell][key] += 1
-                                            else:
-                                                terms_to_fix[cell] = {}
-                                                terms_to_fix[cell] [key] = 1
-                                                ##Provisory adding terms to the ontology_terms
-                                                new_ont_terms[key2]['terms'].append({cell+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
-                                                #print(cell,ontology_terms_and_values[key])
+                                    if key2 in terms_accepting_multiple_values:
+                                        for index,cell_sub in enumerate(cell):
+                                            flag = 0;
+                                            pseudoid=""
+                                            if(":" in cell_sub and "[" not in cell_sub):
+                                                wanted = cell_sub.split(":")
+                                                cell_sub = wanted[0]
+                                                pseudoid = wanted[1]
+                                        # print(ontology_terms_and_values[key]["terms"])
+                                            
+                                            for item in ontology_terms_and_values[key2]["terms"]:
+                                        #print(item.keys())
                                                 
-                                                cell= cell+"//"+pseudoid
+                                                if type(item) != dict:
+                                                    if cell_sub == item:
+                                                        flag+=1;
+                                                else:
+                                                    for keyI in item.keys():
+                                                        #print(type(keyI))
+                                                        if cell_sub in keyI:
+                                                        # print(cell,keyI)
+                                                            flag+=1;
+                                                        #    print(item[keyI])
+                                                            cell[index]=item[keyI]["term"]+"//"+item[keyI]["term_id"]
+                                                            #print("added //",cell)
+                                                            #sys.exit()
+                                            
+                                            
+                                            if flag == 0:
+                                                flag2 = 0
+                                                                            
+                                                if flag2 == 0:
+                                                    flag_to_discard += 1
+                                                    if ( cell_sub in terms_to_fix.keys()):
+                                                        if (key in terms_to_fix[cell_sub].keys()):
+                                                            terms_to_fix[cell_sub][key] += 1
+                                                    else:
+                                                        terms_to_fix[cell_sub] = {}
+                                                        terms_to_fix[cell_sub] [key] = 1
+                                                        ##Provisory adding terms to the ontology_terms
+                                                        new_ont_terms[key2]['terms'].append({cell_sub+"//"+pseudoid:{'term': cell_sub, 'term_id': pseudoid}})
+                                                        #print(cell,ontology_terms_and_values[key])
+                                                        
+                                                        cell[index]=cell_sub+"//"+pseudoid
+                                    else:
+                                        flag = 0;
+                                        pseudoid=""
+                                        if(":" in cell and "[" not in cell):
+                                            wanted = cell.split(":")
+                                            cell = wanted[0]
+                                            pseudoid = wanted[1]
+                                    # print(ontology_terms_and_values[key]["terms"])
+                                        
+                                        for item in ontology_terms_and_values[key2]["terms"]:
+                                    #print(item.keys())
+                                            
+                                            if type(item) != dict:
+                                                if cell == item:
+                                                    flag+=1;
+                                            else:
+                                                for keyI in item.keys():
+                                                    #print(type(keyI))
+                                                    if cell in keyI:
+                                                    # print(cell,keyI)
+                                                        flag+=1;
+                                                    #    print(item[keyI])
+                                                        cell= item[keyI]["term"]+"//"+item[keyI]["term_id"]
+                                                        #print("added //",cell)
+                                                        #sys.exit()
+                                        
+                                        
+                                        if flag == 0:
+                                            flag2 = 0
+                                                                        
+                                            if flag2 == 0:
+                                                flag_to_discard += 1
+                                                if ( cell in terms_to_fix.keys()):
+                                                    if (key in terms_to_fix[cell].keys()):
+                                                        terms_to_fix[cell][key] += 1
+                                                else:
+                                                    terms_to_fix[cell] = {}
+                                                    terms_to_fix[cell] [key] = 1
+                                                    ##Provisory adding terms to the ontology_terms
+                                                    new_ont_terms[key2]['terms'].append({cell+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
+                                                    #print(cell,ontology_terms_and_values[key])
+                                                    
+                                                    cell= cell+"//"+pseudoid
                             if 'date' in key:
                                 
                                 #print (type(cell))
@@ -441,7 +553,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
     print("A total of terms different from the vocabulary:",countEvents)
     print('done dict of terms')
     #print(dict_terms_file)
-    
-    return(dict_terms_file,new_ont_terms)
+    #sys.exit()
+    return(dict_terms_file,new_ont_terms,terms_accepting_multiple_values)
 
 
