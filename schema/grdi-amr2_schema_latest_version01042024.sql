@@ -40,7 +40,6 @@ CREATE TABLE AGENCY(
 
 CREATE TABLE CONTACT_INFORMATION(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    AGENCY INTEGER REFERENCES AGENCY(id),  
     LABORATORY_NAME VARCHAR(150),
     CONTACT_NAME VARCHAR(150),
     CONTACT_EMAIL VARCHAR(150)
@@ -81,7 +80,8 @@ CREATE TABLE SAMPLE(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     SAMPLE_COLLECTOR_SAMPLE_ID TEXT,
     ALTERNATIVE_SAMPLE_ID TEXT NOT NULL,
-    SAMPLE_COLLECTED_BY INTEGER REFERENCES CONTACT_INFORMATION(id),
+    SAMPLE_COLLECTED_BY INTEGER REFERENCES AGENCY(id),
+    SAMPLE_COLLECTED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
     SAMPLE_COLLECTION_PROJECT_NAME TEXT,
     SAMPLE_COLLECTION_DATE DATE,
     SAMPLE_COLLECTION_DATE_PRECISION INTEGER REFERENCES SAMPLE_COLLECTION_DATE_PRECISION(id),
@@ -324,6 +324,7 @@ SELECT
   "Sample"."sample_collector_sample_id" AS "Sample__sample_collector_sample_id",
   "Sample"."alternative_sample_id" AS "Sample__alternative_sample_id",
   "Sample"."sample_collected_by" AS "Sample__sample_collected_by",
+  "Sample"."sample_collected_by_contact_name" AS "Sample__sample_collected_by_contact_name",
   "Sample"."sample_collection_project_name" AS "Sample__sample_collection_project_name",
   "Sample"."sample_collection_date" AS "Sample__sample_collection_date",
   "Sample"."sample_collection_date_precision" AS "Sample__sample_collection_date_precision",
@@ -332,12 +333,11 @@ SELECT
   "Sample"."original_sample_description" AS "Sample__original_sample_description",
   "Sample"."specimen_processing" AS "Sample__specimen_processing",
   "Contact Information - Sample Collected By"."id" AS "Contact Information - Sample Collected By__id",
-  "Contact Information - Sample Collected By"."agency" AS "Contact Information - Sample Collected By__agency",
   "Contact Information - Sample Collected By"."laboratory_name" AS "Contact Information - Sample Collected By__laboratory_name",
   "Contact Information - Sample Collected By"."contact_name" AS "Contact Information - Sample Collected By__contact_name",
   "Contact Information - Sample Collected By"."contact_email" AS "Contact Information - Sample Collected By__contact_email",
-  "Agency"."id" AS "Agency__id",
-  "Agency"."agency" AS "Agency__agency",
+  "Agency - Sample Collected By"."id" AS "Agency - Sample Collected By__id",
+  "Agency - Sample Collected By"."agency" AS "Agency - Sample Collected By__agency",
   "Sample Collection Date Precision"."id" AS "Sample Collection Date Precision__id",
   "Sample Collection Date Precision"."sample_collection_date_precision" AS "Sample Collection Date Precision__sample_collection_fedbc862",
   "Sample Purpose"."sample_id" AS "Sample Purpose__sample_id",
@@ -430,8 +430,8 @@ FROM
   "public"."sample_collection_and_processing"
  
 LEFT JOIN "public"."sample" AS "Sample" ON "public"."sample_collection_and_processing"."sample" = "Sample"."id"
-  LEFT JOIN "public"."contact_information" AS "Contact Information - Sample Collected By" ON "Sample"."sample_collected_by" = "Contact Information - Sample Collected By"."id"
-  LEFT JOIN "public"."agency" AS "Agency" ON "Contact Information - Sample Collected By"."agency" = "Agency"."id"
+   LEFT JOIN "public"."contact_information" AS "Contact Information - Sample Collected By" ON "Sample"."sample_collected_by_contact_name" = "Contact Information - Sample Collected By"."id"
+  LEFT JOIN "public"."agency" AS "Agency - Sample Collected By" ON "Sample"."sample_collected_by" = "Agency - Sample Collected By"."id"
   LEFT JOIN "public"."sample_collection_date_precision" AS "Sample Collection Date Precision" ON "Sample"."sample_collection_date_precision" = "Sample Collection Date Precision"."id"
   LEFT JOIN "public"."sample_purpose" AS "Sample Purpose" ON "Sample"."id" = "Sample Purpose"."sample_id"
   LEFT JOIN "public"."purpose" AS "Purpose - Purpose Of Sampling" ON "Sample Purpose"."purpose_of_sampling" = "Purpose - Purpose Of Sampling"."id"
@@ -578,7 +578,8 @@ CREATE TABLE ISOLATE (
     STRAIN TEXT,
     MICROBIOLOGICAL_METHOD TEXT,
     PROGENY_ISOLATE_ID TEXT,
-    ISOLATED_BY INTEGER REFERENCES CONTACT_INFORMATION(id),
+    ISOLATED_BY INTEGER REFERENCES AGENCY(id),
+    ISOLATED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
     ISOLATION_DATE DATE,
     ISOLATE_RECEIVED_DATE DATE,
     IRIDA_ISOLATE_ID TEXT,
@@ -597,6 +598,7 @@ SELECT
   "public"."isolate"."microbiological_method" AS "microbiological_method",
   "public"."isolate"."progeny_isolate_id" AS "progeny_isolate_id",
   "public"."isolate"."isolated_by" AS "isolated_by",
+  "public"."isolate"."isolated_by_contact_name" AS "isolated_by_contact_name",
   "public"."isolate"."isolation_date" AS "isolation_date",
   "public"."isolate"."isolate_received_date" AS "isolate_received_date",
   "public"."isolate"."irida_isolate_id" AS "irida_isolate_id",
@@ -613,13 +615,12 @@ SELECT
   "Taxonomic Identification Process"."id" AS "Taxonomic Identification Process__id",
   "Taxonomic Identification Process"."taxonomic_identification_process" AS "Taxonomic Identification Process__taxonomic_identification_process",
   "Taxonomic Identification Process"."details" AS "Taxonomic Identification Process__details",
-  "Contact Information - Isolated By"."id" AS "Contact Information - Isolated By__id",
-  "Contact Information - Isolated By"."agency" AS "Contact Information - Isolated By__agency",
-  "Contact Information - Isolated By"."laboratory_name" AS "Contact Information - Isolated By__laboratory_name",
-  "Contact Information - Isolated By"."contact_name" AS "Contact Information - Isolated By__contact_name",
-  "Contact Information - Isolated By"."contact_email" AS "Contact Information - Isolated By__contact_email",
-  "Agency"."id" AS "Agency",
-  "Agency"."agency" AS "Agency__agency"
+  "Contact Information - Isolated By Contact Name"."id" AS "Contact Information - Isolated By Contact Name__id",
+  "Contact Information - Isolated By Contact Name"."laboratory_name" AS "Contact Information - Isolated By Contact Name__laboratory_name",
+  "Contact Information - Isolated By Contact Name"."contact_name" AS "Contact Information - Isolated By Contact Name__contact_name",
+  "Contact Information - Isolated By Contact Name"."contact_email" AS "Contact Information - Isolated By Contact Name__contact_email",
+  "Agency - Isolated By"."id" AS "Agency - Isolated By__id",
+  "Agency - Isolated By"."agency" AS "Agency - Isolated By__agency"
   
 FROM
   "public"."isolate"
@@ -627,8 +628,8 @@ FROM
 LEFT JOIN "public"."organism_data" AS "Organism Data" ON "public"."isolate"."organism_data" = "Organism Data"."id"
 LEFT JOIN "public"."organism" AS "Organism" ON "Organism Data"."id" = "Organism"."id"
 LEFT JOIN "public"."taxonomic_identification_process" AS "Taxonomic Identification Process" ON "Organism Data"."id" = "Taxonomic Identification Process"."id"
-LEFT JOIN "public"."contact_information" AS "Contact Information - Isolated By" ON "public"."isolate"."isolated_by" = "Contact Information - Isolated By"."id"
-LEFT JOIN "public"."agency" AS "Agency" ON "Contact Information - Isolated By"."agency" = "Agency"."id"
+LEFT JOIN "public"."contact_information" AS "Contact Information - Isolated By Contact Name" ON "public"."isolate"."isolated_by_contact_name" = "Contact Information - Isolated By Contact Name"."id"
+LEFT JOIN "public"."agency" AS "Agency - Isolated By" ON "public"."isolate"."isolated_by" = "Agency - Isolated By"."id"
 ;
 --sequencing fields
 CREATE TABLE SEQUENCING_PLATFORM (
@@ -647,7 +648,8 @@ CREATE TABLE SEQUENCING (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     ISOLATE_ID INTEGER REFERENCES ISOLATE(id),
     LIBRARY_ID TEXT,
-    SEQUENCED_BY INTEGER REFERENCES CONTACT_INFORMATION(id),
+    SEQUENCED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
+    SEQUENCED_BY INTEGER REFERENCES AGENCY(id),
     PURPOSE_OF_SEQUENCING INTEGER REFERENCES PURPOSE(id),
     SEQUENCING_PROJECT_NAME TEXT,
     SEQUENCING_PLATFORM INTEGER REFERENCES SEQUENCING_PLATFORM(id),
@@ -675,6 +677,7 @@ SELECT
   "public"."sequencing"."isolate_id" AS "isolate_id",
   "public"."sequencing"."library_id" AS "library_id",
   "public"."sequencing"."sequenced_by" AS "sequenced_by",
+  "public"."sequencing"."sequenced_by_contact_name" AS "sequenced_by_contact_name",
   "Sequencing Purpose"."sequencing_id" AS "Sequencing Purpose__sequencing_id",
   "Sequencing Purpose"."purpose_of_sequencing" AS "Sequencing Purpose__purpose_of_sequencing",
   "Purpose - Purpose Of Sequencing"."id" AS "Purpose - Purpose Of Sequencing__id",
@@ -688,13 +691,12 @@ SELECT
   "public"."sequencing"."r2_fastq_filename" AS "r2_fastq_filename",
   "public"."sequencing"."fast5_filename" AS "fast5_filename",
   "public"."sequencing"."assembly_filename" AS "assembly_filename",
-  "Contact Information - Sequenced By"."id" AS "Contact Information - Sequenced By__id",
-  "Contact Information - Sequenced By"."agency" AS "Contact Information - Sequenced By__agency",
-  "Contact Information - Sequenced By"."laboratory_name" AS "Contact Information - Sequenced By__laboratory_name",
-  "Contact Information - Sequenced By"."contact_name" AS "Contact Information - Sequenced By__contact_name",
-  "Contact Information - Sequenced By"."contact_email" AS "Contact Information - Sequenced By__contact_email",
-  "Agency"."id" AS "Agency__id",
-  "Agency"."agency" AS "Agency__agency",
+  "Contact Information - Sequenced By Contact Name"."id" AS "Contact Information - Sequenced By Contact Name__id",
+  "Contact Information - Sequenced By Contact Name"."laboratory_name" AS "Contact Information - Sequenced By Contact Name__laboratory_name",
+  "Contact Information - Sequenced By Contact Name"."contact_name" AS "Contact Information - Sequenced By Contact Name__contact_name",
+  "Contact Information - Sequenced By Contact Name"."contact_email" AS "Contact Information - Sequenced By Contact Name__contact_email",
+  "Agency - Sequenced By"."id" AS "Agency - Sequenced By__id",
+  "Agency - Sequenced By"."agency" AS "Agency - Sequenced By__agency",
   "Sequencing Instrument"."id" AS "Sequencing Instrument__id",
   "Sequencing Instrument"."sequencing_instrument" AS "Sequencing Instrument__sequencing_instrument",
   "Sequencing Platform"."id" AS "Sequencing Platform__id",
@@ -703,8 +705,8 @@ SELECT
 FROM
   "public"."sequencing"
  
-LEFT JOIN "public"."contact_information" AS "Contact Information - Sequenced By" ON "public"."sequencing"."sequenced_by" = "Contact Information - Sequenced By"."id"
-  LEFT JOIN "public"."agency" AS "Agency" ON "Contact Information - Sequenced By"."agency" = "Agency"."id"
+LEFT JOIN "public"."contact_information" AS "Contact Information - Sequenced By Contact Name" ON "public"."sequencing"."sequenced_by_contact_name" = "Contact Information - Sequenced By Contact Name"."id"
+  LEFT JOIN "public"."agency" AS "Agency - Sequenced By" ON "public"."sequencing"."sequenced_by" = "Agency - Sequenced By"."id"
   LEFT JOIN "public"."sequencing_instrument" AS "Sequencing Instrument" ON "public"."sequencing"."sequencing_instrument" = "Sequencing Instrument"."id"
   LEFT JOIN "public"."sequencing_platform" AS "Sequencing Platform" ON "public"."sequencing"."sequencing_platform" = "Sequencing Platform"."id"
   LEFT JOIN "public"."sequencing_purpose" AS "Sequencing Purpose" ON "public"."sequencing"."id" = "Sequencing Purpose"."sequencing_id"
@@ -720,7 +722,8 @@ CREATE TABLE ATTRIBUTE_PACKAGE (
 CREATE TABLE PUBLIC_REPOSITORY_INFORMATION (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     ISOLATE_ID INTEGER REFERENCES ISOLATE(id),
-    SEQUENCE_SUBMITED_BY INTEGER REFERENCES CONTACT_INFORMATION(id),
+    SEQUENCE_SUBMITED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
+    SEQUENCE_SUBMITED_BY INTEGER REFERENCES AGENCY(id),
     PUBLICATION_ID TEXT,
     BIOPROJECT_ACCESSION TEXT,
     BIOSAMPLE_ACCESSION TEXT,
@@ -732,7 +735,35 @@ CREATE TABLE PUBLIC_REPOSITORY_INFORMATION (
 
 );
 
-
+--create view
+CREATE VIEW combined_public_repository_table AS
+SELECT
+  "public"."public_repository_information"."id" AS "id",
+  "public"."public_repository_information"."isolate_id" AS "isolate_id",
+  "public"."public_repository_information"."sequence_submited_by_contact_name" AS "sequence_submited_by_contact_name",
+  "public"."public_repository_information"."sequence_submited_by" AS "sequence_submited_by",
+  "public"."public_repository_information"."publication_id" AS "publication_id",
+  "public"."public_repository_information"."bioproject_accession" AS "bioproject_accession",
+  "public"."public_repository_information"."biosample_accession" AS "biosample_accession",
+  "public"."public_repository_information"."sra_accession" AS "sra_accession",
+  "public"."public_repository_information"."genbank_accession" AS "genbank_accession",
+  "public"."public_repository_information"."attribute_package" AS "attribute_package",
+"Contact Information - Sequence Submited By Contact Name"."id" AS "Contact Information - Sequence Submited By Contact Name__id",
+  "Contact Information - Sequence Submited By Contact Name"."laboratory_name" AS "Contact Information - Sequence Submited By Contact _68bfa7b0",
+  "Contact Information - Sequence Submited By Contact Name"."contact_name" AS "Contact Information - Sequence Submited By Contact _a700ee48",
+  "Contact Information - Sequence Submited By Contact Name"."contact_email" AS "Contact Information - Sequence Submited By Contact _760f3373",
+  "Agency - Sequence Submited By"."id" AS "Agency - Sequence Submited By__id",
+  "Agency - Sequence Submited By"."agency" AS "Agency - Sequence Submited By__agency",
+  "Attribute Package"."id" AS "Attribute Package__id",
+  "Attribute Package"."attribute_package" AS "Attribute Package__attribute_package"
+  
+FROM
+  "public"."public_repository_information"
+ 
+LEFT JOIN "public"."contact_information" AS "Contact Information - Sequence Submited By Contact Name" ON "public"."public_repository_information"."sequence_submited_by_contact_name" = "Contact Information - Sequence Submited By Contact Name"."id"
+  LEFT JOIN "public"."agency" AS "Agency - Sequence Submited By" ON "public"."public_repository_information"."sequence_submited_by" = "Agency - Sequence Submited By"."id"
+  LEFT JOIN "public"."attribute_package" AS "Attribute Package" ON "public"."public_repository_information"."attribute_package" = "Attribute Package"."id"
+;
 
 
 
@@ -798,7 +829,8 @@ LEFT JOIN "public"."activity" AS "Activity - Experimental Intervention" ON "Risk
 CREATE TABLE AMR_INFO(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ISOLATE_ID INTEGER REFERENCES ISOLATE(id),
-    AMR_TESTED_BY INTEGER REFERENCES CONTACT_INFORMATION(id),
+    AMR_TESTED_BY INTEGER REFERENCES AGENCY(id),
+    AMR_TESTED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
     AMR_TESTING_DATE DATE
 
 
@@ -811,20 +843,20 @@ SELECT
   "public"."amr_info"."id" AS "id",
   "public"."amr_info"."isolate_id" AS "isolate_id",
   "public"."amr_info"."amr_tested_by" AS "amr_tested_by",
+  "public"."amr_info"."amr_tested_by_contact_name" AS "amr_tested_by_contact_name",
   "public"."amr_info"."amr_testing_date" AS "amr_testing_date",
-  "Contact Information - Amr Tested By"."id" AS "Contact Information - Amr Tested By__id",
-  "Contact Information - Amr Tested By"."agency" AS "Contact Information - Amr Tested By__agency",
-  "Contact Information - Amr Tested By"."laboratory_name" AS "Contact Information - Amr Tested By__laboratory_name",
-  "Contact Information - Amr Tested By"."contact_name" AS "Contact Information - Amr Tested By__contact_name",
-  "Contact Information - Amr Tested By"."contact_email" AS "Contact Information - Amr Tested By__contact_email",
-  "Agency"."id" AS "Agency__id",
-  "Agency"."agency" AS "Agency__agency"
+  "Contact Information - Amr Tested By Contact Name"."id" AS "Contact Information - Amr Tested By Contact Name__id",
+  "Contact Information - Amr Tested By Contact Name"."laboratory_name" AS "Contact Information - Amr Tested By Contact Name__laboratory_name",
+  "Contact Information - Amr Tested By Contact Name"."contact_name" AS "Contact Information - Amr Tested By Contact Name__contact_name",
+  "Contact Information - Amr Tested By Contact Name"."contact_email" AS "Contact Information - Amr Tested By Contact Name__contact_email",
+  "Agency - Amr Tested By"."id" AS "Agency - Amr Tested By__id",
+  "Agency - Amr Tested By"."agency" AS "Agency - Amr Tested By__agency"
  
 FROM
   "public"."amr_info"
  
-LEFT JOIN "public"."contact_information" AS "Contact Information - Amr Tested By" ON "public"."amr_info"."amr_tested_by" = "Contact Information - Amr Tested By"."id"
-LEFT JOIN "public"."agency" AS "Agency" ON "Contact Information - Amr Tested By"."agency" = "Agency"."id"
+LEFT JOIN "public"."contact_information" AS "Contact Information - Amr Tested By Contact Name" ON "public"."amr_info"."amr_tested_by_contact_name" = "Contact Information - Amr Tested By Contact Name"."id"
+LEFT JOIN "public"."agency" AS "Agency - Amr Tested By" ON "public"."amr_info"."amr_tested_by" = "Agency - Amr Tested By"."id"
 ;
 
 CREATE TABLE MEASUREMENT_UNITS (
