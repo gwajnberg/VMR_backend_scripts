@@ -38,8 +38,8 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
     def valuesIns (values,term,count,length): 
        # print ('before',values)
         #print ('before',term)
-        if (term == 'NULL'):
-            value = "NULL"
+        if (term == None):
+            value = None
         else:
             value = str(term)
       #  print ('after',values)
@@ -84,7 +84,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                # print(fields)
                 column_ins = columnIns(column_ins,fields[field],count,length)
                 
-                list_terms.append(valuesIns(values,"NULL",count,length))
+                list_terms.append(valuesIns(values,None,count,length))
                 values += "%s"
                 if (count +1 != length):
                     values += ","
@@ -130,7 +130,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         else:
             print (contact_info_id,"exists")
             contact_info_id = contact_info_id[0]
-        sample_table_fields["sample_collected_by_contact_name"]=["sample_collected_by_contact_name"]
+        sample_table_fields["sample_collected_by_contact_name"]="sample_collected_by_contact_name"
         dict_sample_table["sample_collected_by_contact_name"]=contact_info_id 
         print (contact_info_id)
         
@@ -138,35 +138,37 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             id=""
             
             if keys in dict_of_samples['sample'][index].keys():
-                cor_field = controlled_samples[keys][0]
-                sample_table_fields[keys]=cor_field
+                #cor_field = controlled_samples[keys][0]
+                sample_table_fields[keys]=keys
                 id = check_exists_id(dict_of_samples['sample'][index][keys],controlled_samples[keys][0],controlled_samples[keys][0])[0]
                 #dict_sample_table[keys]=id
             else:
-                id = "NULL"
+                id = None
             dict_sample_table[keys]=id   
 
-        print (controlled_samples)
+        print (dict_sample_table," here after controlled")
         
-        not_controlled_samples = {"sample_collector_sample_id":0,"alternative_sample_id":0,"sample_collection_project_name":0,"sample_collection_date":0,"presampling_activity_details":0,"sample_received_date":0,"original_sample_description":0}
+        not_controlled_samples = {"sample_collector_sample_ID":0,"alternative_sample_id":0,"sample_collection_project_name":0,"sample_collection_date":0,"presampling_activity_details":0,"sample_received_date":0,"original_sample_description":0}
         for keys in not_controlled_samples:
             if keys in dict_of_samples['sample'][index].keys():
-                not_controlled_samples[keys] = dict_of_samples['sample'][index]
+                not_controlled_samples[keys] = dict_of_samples['sample'][index][keys]
                 dict_sample_table[keys] = not_controlled_samples[keys]
             else:
-                not_controlled_samples[keys] = "NULL"
+                not_controlled_samples[keys] = None
                 dict_sample_table[keys] = not_controlled_samples[keys]
             
             
             sample_table_fields[keys]=keys
         print (dict_sample_table)
-        sample_id = check_exists_id(dict_of_samples['sample'][index]["sample_collector_sample_id"],"sample_collector_sample_id","sample")
+        print(sample_table_fields)
+
+        sample_id = check_exists_id(dict_of_samples['sample'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","sample")
         if not sample_id:
             print ("doesnt exists")
             sample_id =create_insert(dict_sample_table,sample_table_fields,"","sample",10) 
         else:
             print (contact_info_id,"exists")
-            sample_id = contact_info_id[0]
+            sample_id = sample_id[0]
         print (sample_id)
 
         #create_insert(dict_of_samples['sample'][index],["sample_storage_method","sample_storage_medium"],{"collection_device":"collection_device", "collection_method": "collection_method"})
