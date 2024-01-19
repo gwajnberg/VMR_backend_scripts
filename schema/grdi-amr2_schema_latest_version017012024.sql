@@ -194,7 +194,7 @@ CREATE TABLE SAMPLES(
 );
 CREATE TABLE COLLECTION_INFORMATION(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    SAMPLE_COLLECTOR_SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
     SAMPLE_COLLECTED_BY INTEGER REFERENCES AGENCIES(id),
     SAMPLE_COLLECTED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
     SAMPLE_COLLECTION_PROJECT_NAME TEXT,
@@ -225,7 +225,7 @@ CREATE TABLE SAMPLE_ACTIVITY(
 
 CREATE TABLE GEO_LOC(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_COLLECTOR_SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
     GEO_LOC_NAME_COUNTRY INTEGER REFERENCES COUNTRIES(id),
     GEO_LOC_NAME_STATE_PROVINCE_REGION INTEGER REFERENCES STATE_PROVINCE_REGIONS(id),
     GEO_LOC_NAME_SITE INTEGER REFERENCES GEO_LOC_NAME_SITES(id),
@@ -235,7 +235,7 @@ CREATE TABLE GEO_LOC(
 
 CREATE TABLE FOOD_DATA(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_COLLECTOR_SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
     FOOD_PRODUCT_PRODUCTION_STREAM INTEGER REFERENCES FOOD_PRODUCT_PRODUCTION_STREAM(id),
     FOOD_PACKAGING_DATE DATE,
     FOOD_QUALITY_DATE DATE
@@ -267,7 +267,7 @@ CREATE TABLE FOOD_DATA_PACKAGING(
 
 CREATE TABLE ANATOMICAL_DATA(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_COLLECTOR_SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
     ANATOMICAL_REGION INTEGER REFERENCES ANATOMICAL_REGION(id)
 
 
@@ -291,7 +291,7 @@ CREATE TABLE ANATOMICAL_DATA_MATERIAL(
 
 CREATE TABLE ENVIRONMENTAL_DATA(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_COLLECTOR_SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
     AIR_TEMPERATURE FLOAT,
     SENDIMENT_DEPTH FLOAT,
     WATER_DEPTH FLOAT,
@@ -341,7 +341,7 @@ SELECT
   "public"."samples"."alternative_sample_id" AS "alternative_sample_id",
   "public"."samples"."validation_status" AS "validation_status",
   "Collection Information"."id" AS "Collection Information__id",
-  "Collection Information"."sample_collector_sample_id" AS "Collection Information__sample_collector_sample_id",
+  "Collection Information"."sample_id" AS "Collection Information__sample_id",
   "Collection Information"."sample_collected_by" AS "Collection Information__sample_collected_by",
   "Collection Information"."sample_collected_by_contact_name" AS "Collection Information__sample_collected_by_contact_name",
   "Collection Information"."sample_collection_project_name" AS "Collection Information__sample_collection_project_name",
@@ -392,7 +392,7 @@ SELECT
   "Collection Methods"."ontology_id" AS "Collection Methods__ontology_id",
   "Collection Methods"."description" AS "Collection Methods__description",
   "Geo Loc"."id" AS "Geo Loc__id",
-  "Geo Loc"."sample_collector_sample_id" AS "Geo Loc__sample_collector_sample_id",
+  "Geo Loc"."sample_id" AS "Geo Loc__sample_id",
   "Geo Loc"."geo_loc_name_country" AS "Geo Loc__geo_loc_name_country",
   "Geo Loc"."geo_loc_name_state_province_region" AS "Geo Loc__geo_loc_name_state_province_region",
   "Geo Loc"."geo_loc_name_site" AS "Geo Loc__geo_loc_name_site",
@@ -409,7 +409,7 @@ SELECT
   "Geo Loc Name Sites"."id" AS "Geo Loc Name Sites__id",
   "Geo Loc Name Sites"."geo_loc_name_site" AS "Geo Loc Name Sites__geo_loc_name_site",
   "Food Data"."id" AS "Food Data__id",
-  "Food Data"."sample_collector_sample_id" AS "Food Data__sample_collector_sample_id",
+  "Food Data"."sample_id" AS "Food Data__sample_id",
   "Food Data"."food_product_production_stream" AS "Food Data__food_product_production_stream",
   "Food Data"."food_packaging_date" AS "Food Data__food_packaging_date",
   "Food Data"."food_quality_date" AS "Food Data__food_quality_date",
@@ -442,7 +442,7 @@ SELECT
   "Animal Source Of Food"."ontology_id" AS "Animal Source Of Food__ontology_id",
   "Animal Source Of Food"."description" AS "Animal Source Of Food__description",
   "Environmental Data"."id" AS "Environmental Data__id",
-  "Environmental Data"."sample_collector_sample_id" AS "Environmental Data__sample_collector_sample_id",
+  "Environmental Data"."sample_id" AS "Environmental Data__sample_id",
   "Environmental Data"."air_temperature" AS "Environmental Data__air_temperature",
   "Environmental Data"."sendiment_depth" AS "Environmental Data__sendiment_depth",
   "Environmental Data"."water_depth" AS "Environmental Data__water_depth",
@@ -478,7 +478,7 @@ SELECT
   "Weather Type"."ontology_id" AS "Weather Type__ontology_id",
   "Weather Type"."description" AS "Weather Type__description",
   "Anatomical Data"."id" AS "Anatomical Data__id",
-  "Anatomical Data"."sample_collector_sample_id" AS "Anatomical Data__sample_collector_sample_id",
+  "Anatomical Data"."sample_id" AS "Anatomical Data__sample_id",
   "Anatomical Data"."anatomical_region" AS "Anatomical Data__anatomical_region",
   "Anatomical Region"."id" AS "Anatomical Region__id",
   "Anatomical Region"."anatomical_region" AS "Anatomical Region__anatomical_region",
@@ -505,7 +505,7 @@ SELECT
 FROM
   "public"."samples"
  
-LEFT JOIN "public"."collection_information" AS "Collection Information" ON "public"."samples"."id" = "Collection Information"."sample_collector_sample_id"
+LEFT JOIN "public"."collection_information" AS "Collection Information" ON "public"."samples"."id" = "Collection Information"."sample_id"
   LEFT JOIN "public"."sample_purpose" AS "Sample Purpose" ON "Collection Information"."id" = "Sample Purpose"."collection_information"
   LEFT JOIN "public"."purposes" AS "Purposes - Purpose Of Sampling" ON "Sample Purpose"."purpose_of_sampling" = "Purposes - Purpose Of Sampling"."id"
   LEFT JOIN "public"."sample_activity" AS "Sample Activity" ON "Collection Information"."id" = "Sample Activity"."collection_information"
@@ -516,11 +516,11 @@ LEFT JOIN "public"."collection_information" AS "Collection Information" ON "publ
   LEFT JOIN "public"."specimen_processing" AS "Specimen Processing" ON "Collection Information"."specimen_processing" = "Specimen Processing"."id"
   LEFT JOIN "public"."collection_devices" AS "Collection Devices" ON "Collection Information"."collection_device" = "Collection Devices"."id"
   LEFT JOIN "public"."collection_methods" AS "Collection Methods" ON "Collection Information"."collection_method" = "Collection Methods"."id"
-  LEFT JOIN "public"."geo_loc" AS "Geo Loc" ON "public"."samples"."id" = "Geo Loc"."sample_collector_sample_id"
+  LEFT JOIN "public"."geo_loc" AS "Geo Loc" ON "public"."samples"."id" = "Geo Loc"."sample_id"
   LEFT JOIN "public"."countries" AS "Countries - Geo Loc Name Country" ON "Geo Loc"."geo_loc_name_country" = "Countries - Geo Loc Name Country"."id"
   LEFT JOIN "public"."state_province_regions" AS "State Province Regions - Geo Loc Name State Province Region" ON "Geo Loc"."geo_loc_name_state_province_region" = "State Province Regions - Geo Loc Name State Province Region"."id"
   LEFT JOIN "public"."geo_loc_name_sites" AS "Geo Loc Name Sites" ON "Geo Loc"."geo_loc_name_site" = "Geo Loc Name Sites"."id"
-  LEFT JOIN "public"."food_data" AS "Food Data" ON "public"."samples"."id" = "Food Data"."sample_collector_sample_id"
+  LEFT JOIN "public"."food_data" AS "Food Data" ON "public"."samples"."id" = "Food Data"."sample_id"
   LEFT JOIN "public"."food_product_production_stream" AS "Food Product Production Stream" ON "Food Data"."food_product_production_stream" = "Food Product Production Stream"."id"
   LEFT JOIN "public"."food_data_product" AS "Food Data Product" ON "Food Data"."id" = "Food Data Product"."food_data"
   LEFT JOIN "public"."food_product" AS "Food Product" ON "Food Data Product"."food_product" = "Food Product"."id"
@@ -530,7 +530,7 @@ LEFT JOIN "public"."collection_information" AS "Collection Information" ON "publ
   LEFT JOIN "public"."food_packaging" AS "Food Packaging" ON "Food Data Packaging"."food_packaging" = "Food Packaging"."id"
   LEFT JOIN "public"."food_data_source" AS "Food Data Source" ON "Food Data"."id" = "Food Data Source"."food_data"
   LEFT JOIN "public"."animal_source_of_food" AS "Animal Source Of Food" ON "Food Data Source"."animal_source_of_food" = "Animal Source Of Food"."id"
-  LEFT JOIN "public"."environmental_data" AS "Environmental Data" ON "public"."samples"."id" = "Environmental Data"."sample_collector_sample_id"
+  LEFT JOIN "public"."environmental_data" AS "Environmental Data" ON "public"."samples"."id" = "Environmental Data"."sample_id"
   LEFT JOIN "public"."environment_data_material" AS "Environment Data Material" ON "Environmental Data"."id" = "Environment Data Material"."environmental_data"
   LEFT JOIN "public"."environmental_material" AS "Environmental Material" ON "Environment Data Material"."environmental_material" = "Environmental Material"."id"
   LEFT JOIN "public"."environment_data_animal_plant" AS "Environment Data Animal Plant" ON "Environmental Data"."id" = "Environment Data Animal Plant"."environmental_data"
@@ -541,7 +541,7 @@ LEFT JOIN "public"."collection_information" AS "Collection Information" ON "publ
   LEFT JOIN "public"."environmental_site" AS "Environmental Site" ON "Environment Data Site"."environmental_site" = "Environmental Site"."id"
   LEFT JOIN "public"."environment_data_weather_type" AS "Environment Data Weather Type" ON "Environmental Data"."id" = "Environment Data Weather Type"."environmental_data"
   LEFT JOIN "public"."weather_type" AS "Weather Type" ON "Environment Data Weather Type"."weather_type" = "Weather Type"."id"
-  LEFT JOIN "public"."anatomical_data" AS "Anatomical Data" ON "public"."samples"."id" = "Anatomical Data"."sample_collector_sample_id"
+  LEFT JOIN "public"."anatomical_data" AS "Anatomical Data" ON "public"."samples"."id" = "Anatomical Data"."sample_id"
   LEFT JOIN "public"."anatomical_region" AS "Anatomical Region" ON "Anatomical Data"."anatomical_region" = "Anatomical Region"."id"
   LEFT JOIN "public"."anatomical_data_material" AS "Anatomical Data Material" ON "Anatomical Data"."id" = "Anatomical Data Material"."anatomical_data"
   LEFT JOIN "public"."anatomical_material" AS "Anatomical Material" ON "Anatomical Data Material"."anatomical_material" = "Anatomical Material"."id"
@@ -582,7 +582,7 @@ CREATE TABLE HOST_AGE_BIN (
 CREATE TABLE HOSTS (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     HOST_COMMON_NAME INTEGER REFERENCES HOST_COMMON_NAMES(id),
-    SAMPLE_COLLECTOR_SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
     HOST_SCIENTIFIC_NAME INTEGER REFERENCES HOST_SCIENTIFIC_NAMES(id),
     HOST_ECOTYPE TEXT,
     HOST_BREED TEXT,
@@ -598,7 +598,7 @@ CREATE VIEW combined_host_table AS
 SELECT
   "public"."host"."id" AS "id",
   "public"."host"."host_common_name" AS "host_common_name",
-  "public"."host"."sample_collector_sample_id" AS "sample_collector_sample_id",
+  "public"."host"."sample_id" AS "sample_id",
   "public"."host"."host_scientific_name" AS "host_scientific_name",
   "public"."host"."host_ecotype" AS "host_ecotype",
   "public"."host"."host_breed" AS "host_breed",
@@ -639,16 +639,16 @@ CREATE TABLE TAXONOMIC_IDENTIFICATION_PROCESSES (
 );
 CREATE TABLE STRAINS (
    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-   STRAIN INTEGER REFERENCES (ISOLATES(id))
+   STRAIN TEXT
 
 
 );
 CREATE TABLE ISOLATES (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    SAMPLE_COLLECTOR_SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
     ISOLATE_ID TEXT NOT NULL,
     ALNTERNATIVE_ISOLATE_ID TEXT,
-    STRAIN TEXT,
+    STRAIN INTEGER REFERENCES STRAINS(id),
     MICROBIOLOGICAL_METHOD TEXT,
     PROGENY_ISOLATE_ID TEXT,
     ISOLATED_BY INTEGER REFERENCES AGENCIES(id),
@@ -668,7 +668,7 @@ CREATE TABLE ISOLATES (
 CREATE VIEW combined_isolate_table AS
 SELECT
   "public"."isolate"."id" AS "id",
-  "public"."isolate"."sample_collector_sample_id" AS "sample_collector_sample_id",
+  "public"."isolate"."sample_id" AS "sample_id",
   "public"."isolate"."isolate_id" AS "isolate_id",
   "public"."isolate"."alnternative_isolate_id" AS "alnternative_isolate_id",
   "public"."isolate"."strain" AS "strain",
