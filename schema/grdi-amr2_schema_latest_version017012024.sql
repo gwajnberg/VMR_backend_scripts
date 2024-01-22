@@ -196,7 +196,7 @@ CREATE TABLE COLLECTION_INFORMATION(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
     SAMPLE_COLLECTED_BY INTEGER REFERENCES AGENCIES(id),
-    SAMPLE_COLLECTED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
+    CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     SAMPLE_COLLECTION_PROJECT_NAME TEXT,
     SAMPLE_COLLECTION_DATE DATE,
     SAMPLE_COLLECTION_DATE_PRECISION INTEGER REFERENCES SAMPLE_COLLECTION_DATE_PRECISION(id),
@@ -343,7 +343,7 @@ SELECT
   "Collection Information"."id" AS "Collection Information__id",
   "Collection Information"."sample_id" AS "Collection Information__sample_id",
   "Collection Information"."sample_collected_by" AS "Collection Information__sample_collected_by",
-  "Collection Information"."sample_collected_by_contact_name" AS "Collection Information__sample_collected_by_contact_name",
+  "Collection Information"."contact_information" AS "Collection Information__contact_information",
   "Collection Information"."sample_collection_project_name" AS "Collection Information__sample_collection_project_name",
   "Collection Information"."sample_collection_date" AS "Collection Information__sample_collection_date",
   "Collection Information"."sample_collection_date_precision" AS "Collection Information__sample_collection_date_precision",
@@ -359,38 +359,24 @@ SELECT
   "Sample Purpose"."purpose_of_sampling" AS "Sample Purpose__purpose_of_sampling",
   "Purposes - Purpose Of Sampling"."id" AS "Purposes - Purpose Of Sampling__id",
   "Purposes - Purpose Of Sampling"."purpose" AS "Purposes - Purpose Of Sampling__purpose",
-  "Purposes - Purpose Of Sampling"."ontology_id" AS "Purposes - Purpose Of Sampling__ontology_id",
-  "Purposes - Purpose Of Sampling"."description" AS "Purposes - Purpose Of Sampling__description",
   "Sample Activity"."collection_information" AS "Sample Activity__collection_information",
   "Sample Activity"."presampling_activity" AS "Sample Activity__presampling_activity",
   "Activities - Presampling Activity"."id" AS "Activities - Presampling Activity__id",
   "Activities - Presampling Activity"."activity" AS "Activities - Presampling Activity__activity",
-  "Activities - Presampling Activity"."ontology_id" AS "Activities - Presampling Activity__ontology_id",
-  "Activities - Presampling Activity"."description" AS "Activities - Presampling Activity__description",
-  "Contact Information - Sample Collected By Contact Name"."id" AS "Contact Information - Sample Collected By Contact Name__id",
-  "Contact Information - Sample Collected By Contact Name"."laboratory_name" AS "Contact Information - Sample Collected By Contact N_a6bee8c0",
-  "Contact Information - Sample Collected By Contact Name"."contact_name" AS "Contact Information - Sample Collected By Contact N_c7070a1d",
-  "Contact Information - Sample Collected By Contact Name"."contact_email" AS "Contact Information - Sample Collected By Contact N_6d6e91ec",
+  "Contact Information - Contact Information"."id" AS "Contact Information - Contact Information__id",
+  "Contact Information - Contact Information"."laboratory_name" AS "Contact Information - Contact Information_a6bee8c0",
+  "Contact Information - Contact Information"."contact_name" AS "Contact Information - Contact Information_c7070a1d",
+  "Contact Information - Contact Information"."contact_email" AS "Contact Information - Contact Information_6d6e91ec",
   "Agencies - Sample Collected By"."id" AS "Agencies - Sample Collected By__id",
   "Agencies - Sample Collected By"."agency" AS "Agencies - Sample Collected By__agency",
-  "Agencies - Sample Collected By"."ontology_id" AS "Agencies - Sample Collected By__ontology_id",
-  "Agencies - Sample Collected By"."description" AS "Agencies - Sample Collected By__description",
   "Sample Collection Date Precision"."id" AS "Sample Collection Date Precision__id",
   "Sample Collection Date Precision"."sample_collection_date_precision" AS "Sample Collection Date Precision__sample_collection_fedbc862",
-  "Sample Collection Date Precision"."ontology_id" AS "Sample Collection Date Precision__ontology_id",
-  "Sample Collection Date Precision"."description" AS "Sample Collection Date Precision__description",
   "Specimen Processing"."id" AS "Specimen Processing__id",
   "Specimen Processing"."specimen_processing" AS "Specimen Processing__specimen_processing",
-  "Specimen Processing"."ontology_id" AS "Specimen Processing__ontology_id",
-  "Specimen Processing"."description" AS "Specimen Processing__description",
   "Collection Devices"."id" AS "Collection Devices__id",
   "Collection Devices"."collection_device" AS "Collection Devices__collection_device",
-  "Collection Devices"."ontology_id" AS "Collection Devices__ontology_id",
-  "Collection Devices"."description" AS "Collection Devices__description",
   "Collection Methods"."id" AS "Collection Methods__id",
   "Collection Methods"."collection_method" AS "Collection Methods__collection_method",
-  "Collection Methods"."ontology_id" AS "Collection Methods__ontology_id",
-  "Collection Methods"."description" AS "Collection Methods__description",
   "Geo Loc"."id" AS "Geo Loc__id",
   "Geo Loc"."sample_id" AS "Geo Loc__sample_id",
   "Geo Loc"."geo_loc_name_country" AS "Geo Loc__geo_loc_name_country",
@@ -400,12 +386,8 @@ SELECT
   "Geo Loc"."geo_loc_longitude" AS "Geo Loc__geo_loc_longitude",
   "Countries - Geo Loc Name Country"."id" AS "Countries - Geo Loc Name Country__id",
   "Countries - Geo Loc Name Country"."country" AS "Countries - Geo Loc Name Country__country",
-  "Countries - Geo Loc Name Country"."ontology_id" AS "Countries - Geo Loc Name Country__ontology_id",
-  "Countries - Geo Loc Name Country"."description" AS "Countries - Geo Loc Name Country__description",
   "State Province Regions - Geo Loc Name State Province Region"."id" AS "State Province Regions - Geo Loc Name State Provinc_2977140a",
   "State Province Regions - Geo Loc Name State Province Region"."geo_loc_state_province_region" AS "State Province Regions - Geo Loc Name State Provinc_bfc4a2b4",
-  "State Province Regions - Geo Loc Name State Province Region"."ontology_id" AS "State Province Regions - Geo Loc Name State Provinc_c838a289",
-  "State Province Regions - Geo Loc Name State Province Region"."description" AS "State Province Regions - Geo Loc Name State Provinc_774ce6c7",
   "Geo Loc Name Sites"."id" AS "Geo Loc Name Sites__id",
   "Geo Loc Name Sites"."geo_loc_name_site" AS "Geo Loc Name Sites__geo_loc_name_site",
   "Food Data"."id" AS "Food Data__id",
@@ -415,32 +397,22 @@ SELECT
   "Food Data"."food_quality_date" AS "Food Data__food_quality_date",
   "Food Product Production Stream"."id" AS "Food Product Production Stream__id",
   "Food Product Production Stream"."food_product_production_stream" AS "Food Product Production Stream__food_product_produc_060b416e",
-  "Food Product Production Stream"."ontology_id" AS "Food Product Production Stream__ontology_id",
-  "Food Product Production Stream"."description" AS "Food Product Production Stream__description",
   "Food Data Product"."food_data" AS "Food Data Product__food_data",
   "Food Data Product"."food_product" AS "Food Data Product__food_product",
   "Food Product"."id" AS "Food Product__id",
   "Food Product"."food_product" AS "Food Product__food_product",
-  "Food Product"."ontology_id" AS "Food Product__ontology_id",
-  "Food Product"."description" AS "Food Product__description",
   "Food Data Product Property"."food_data" AS "Food Data Product Property__food_data",
   "Food Data Product Property"."food_product_property" AS "Food Data Product Property__food_product_property",
   "Food Product Property"."id" AS "Food Product Property__id",
   "Food Product Property"."food_product_property" AS "Food Product Property__food_product_property",
-  "Food Product Property"."ontology_id" AS "Food Product Property__ontology_id",
-  "Food Product Property"."description" AS "Food Product Property__description",
   "Food Data Packaging"."food_data" AS "Food Data Packaging__food_data",
   "Food Data Packaging"."food_packaging" AS "Food Data Packaging__food_packaging",
   "Food Packaging"."id" AS "Food Packaging__id",
   "Food Packaging"."food_packaging" AS "Food Packaging__food_packaging",
-  "Food Packaging"."ontology_id" AS "Food Packaging__ontology_id",
-  "Food Packaging"."description" AS "Food Packaging__description",
   "Food Data Source"."food_data" AS "Food Data Source__food_data",
   "Food Data Source"."animal_source_of_food" AS "Food Data Source__animal_source_of_food",
   "Animal Source Of Food"."id" AS "Animal Source Of Food__id",
   "Animal Source Of Food"."animal_source_of_food" AS "Animal Source Of Food__animal_source_of_food",
-  "Animal Source Of Food"."ontology_id" AS "Animal Source Of Food__ontology_id",
-  "Animal Source Of Food"."description" AS "Animal Source Of Food__description",
   "Environmental Data"."id" AS "Environmental Data__id",
   "Environmental Data"."sample_id" AS "Environmental Data__sample_id",
   "Environmental Data"."air_temperature" AS "Environmental Data__air_temperature",
@@ -451,57 +423,40 @@ SELECT
   "Environment Data Material"."environmental_material" AS "Environment Data Material__environmental_material",
   "Environmental Material"."id" AS "Environmental Material__id",
   "Environmental Material"."environmental_material" AS "Environmental Material__environmental_material",
-  "Environmental Material"."ontology_id" AS "Environmental Material__ontology_id",
-  "Environmental Material"."description" AS "Environmental Material__description",
   "Environment Data Animal Plant"."environmental_data" AS "Environment Data Animal Plant__environmental_data",
   "Environment Data Animal Plant"."animal_or_plant_population" AS "Environment Data Animal Plant__animal_or_plant_population",
   "Animal Or Plant Population"."id" AS "Animal Or Plant Population__id",
   "Animal Or Plant Population"."animal_or_plant_population" AS "Animal Or Plant Population__animal_or_plant_population",
-  "Animal Or Plant Population"."ontology_id" AS "Animal Or Plant Population__ontology_id",
-  "Animal Or Plant Population"."description" AS "Animal Or Plant Population__description",
   "Environment Data Available Data Type"."environmental_data" AS "Environment Data Available Data Type__environmental_data",
   "Environment Data Available Data Type"."available_data_type" AS "Environment Data Available Data Type__available_data_type",
   "Available Data Type"."id" AS "Available Data Type__id",
   "Available Data Type"."available_data_type" AS "Available Data Type__available_data_type",
-  "Available Data Type"."ontology_id" AS "Available Data Type__ontology_id",
-  "Available Data Type"."description" AS "Available Data Type__description",
   "Environment Data Site"."environmental_data" AS "Environment Data Site__environmental_data",
   "Environment Data Site"."environmental_site" AS "Environment Data Site__environmental_site",
   "Environmental Site"."id" AS "Environmental Site__id",
   "Environmental Site"."environmental_site" AS "Environmental Site__environmental_site",
-  "Environmental Site"."ontology_id" AS "Environmental Site__ontology_id",
-  "Environmental Site"."description" AS "Environmental Site__description",
   "Environment Data Weather Type"."environmental_data" AS "Environment Data Weather Type__environmental_data",
   "Environment Data Weather Type"."weather_type" AS "Environment Data Weather Type__weather_type",
   "Weather Type"."id" AS "Weather Type__id",
   "Weather Type"."weather_type" AS "Weather Type__weather_type",
-  "Weather Type"."ontology_id" AS "Weather Type__ontology_id",
-  "Weather Type"."description" AS "Weather Type__description",
   "Anatomical Data"."id" AS "Anatomical Data__id",
   "Anatomical Data"."sample_id" AS "Anatomical Data__sample_id",
   "Anatomical Data"."anatomical_region" AS "Anatomical Data__anatomical_region",
   "Anatomical Region"."id" AS "Anatomical Region__id",
   "Anatomical Region"."anatomical_region" AS "Anatomical Region__anatomical_region",
-  "Anatomical Region"."ontology_id" AS "Anatomical Region__ontology_id",
-  "Anatomical Region"."description" AS "Anatomical Region__description",
   "Anatomical Data Material"."anatomical_data" AS "Anatomical Data Material__anatomical_data",
   "Anatomical Data Material"."anatomical_material" AS "Anatomical Data Material__anatomical_material",
   "Anatomical Material"."id" AS "Anatomical Material__id",
   "Anatomical Material"."anatomical_material" AS "Anatomical Material__anatomical_material",
-  "Anatomical Material"."ontology_id" AS "Anatomical Material__ontology_id",
-  "Anatomical Material"."description" AS "Anatomical Material__description",
   "Anatomical Data Body"."anatomical_data" AS "Anatomical Data Body__anatomical_data",
   "Anatomical Data Body"."body_product" AS "Anatomical Data Body__body_product",
   "Body Product"."id" AS "Body Product__id",
   "Body Product"."body_product" AS "Body Product__body_product",
-  "Body Product"."ontology_id" AS "Body Product__ontology_id",
-  "Body Product"."description" AS "Body Product__description",
   "Anatomical Data Part"."anatomical_data" AS "Anatomical Data Part__anatomical_data",
   "Anatomical Data Part"."anatomical_part" AS "Anatomical Data Part__anatomical_part",
   "Anatomical Part"."id" AS "Anatomical Part__id",
-  "Anatomical Part"."anatomical_part" AS "Anatomical Part__anatomical_part",
-  "Anatomical Part"."ontology_id" AS "Anatomical Part__ontology_id",
-  "Anatomical Part"."description" AS "Anatomical Part__description"
+  "Anatomical Part"."anatomical_part" AS "Anatomical Part__anatomical_part"
+  
 FROM
   "public"."samples"
  
@@ -510,7 +465,7 @@ LEFT JOIN "public"."collection_information" AS "Collection Information" ON "publ
   LEFT JOIN "public"."purposes" AS "Purposes - Purpose Of Sampling" ON "Sample Purpose"."purpose_of_sampling" = "Purposes - Purpose Of Sampling"."id"
   LEFT JOIN "public"."sample_activity" AS "Sample Activity" ON "Collection Information"."id" = "Sample Activity"."collection_information"
   LEFT JOIN "public"."activities" AS "Activities - Presampling Activity" ON "Sample Activity"."presampling_activity" = "Activities - Presampling Activity"."id"
-  LEFT JOIN "public"."contact_information" AS "Contact Information - Sample Collected By Contact Name" ON "Collection Information"."sample_collected_by_contact_name" = "Contact Information - Sample Collected By Contact Name"."id"
+  LEFT JOIN "public"."contact_information" AS "Contact Information - Contact Information" ON "Collection Information"."contact_information" = "Contact Information - Contact Information"."id"
   LEFT JOIN "public"."agencies" AS "Agencies - Sample Collected By" ON "Collection Information"."sample_collected_by" = "Agencies - Sample Collected By"."id"
   LEFT JOIN "public"."sample_collection_date_precision" AS "Sample Collection Date Precision" ON "Collection Information"."sample_collection_date_precision" = "Sample Collection Date Precision"."id"
   LEFT JOIN "public"."specimen_processing" AS "Specimen Processing" ON "Collection Information"."specimen_processing" = "Specimen Processing"."id"
@@ -596,32 +551,32 @@ CREATE TABLE HOSTS (
 --create view
 CREATE VIEW combined_host_table AS
 SELECT
-  "public"."host"."id" AS "id",
-  "public"."host"."host_common_name" AS "host_common_name",
-  "public"."host"."sample_id" AS "sample_id",
-  "public"."host"."host_scientific_name" AS "host_scientific_name",
-  "public"."host"."host_ecotype" AS "host_ecotype",
-  "public"."host"."host_breed" AS "host_breed",
-  "public"."host"."host_food_production_name" AS "host_food_production_name",
-  "public"."host"."host_disease" AS "host_disease",
-  "public"."host"."host_age_bin" AS "host_age_bin",
-  "public"."host"."geo_loc_name_host_origin_geo_loc_name_country" AS "geo_loc_name_host_origin_geo_loc_name_country",
-  "Host Age Bin"."id" AS "Host Age Bin__id",
-  "Host Age Bin"."host_age_bin" AS "Host Age Bin__host_age_bin",
-   "Host Food Production Name"."id" AS "Host Food Production Name__id",
-  "Host Food Production Name"."host_food_production_name" AS "Host Food Production Name__host_food_production_name",
-  "Host Common Name"."id" AS "Host Common Name__id",
-  "Host Common Name"."host_common_name" AS "Host Common Name__host_common_name",
-  "Host Scientific Name"."id" AS "Host Scientific Name__id",
-  "Host Scientific Name"."host_scientific_name" AS "Host Scientific Name__host_scientific_name"
+  "public"."hosts"."id" AS "id",
+  "public"."hosts"."host_common_name" AS "host_common_name",
+  "public"."hosts"."sample_id" AS "sample_id",
+  "public"."hosts"."host_scientific_name" AS "host_scientific_name",
+  "public"."hosts"."host_ecotype" AS "host_ecotype",
+  "public"."hosts"."host_breed" AS "host_breed",
+  "public"."hosts"."host_food_production_name" AS "host_food_production_name",
+  "public"."hosts"."host_disease" AS "host_disease",
+  "public"."hosts"."host_age_bin" AS "host_age_bin",
+  "public"."hosts"."geo_loc_name_host_origin_geo_loc_name_country" AS "geo_loc_name_host_origin_geo_loc_name_country",
+  "Host Common Names"."id" AS "Host Common Names__id",
+  "Host Common Names"."host_common_name" AS "Host Common Names__host_common_name",
+  "Host Scientific Names"."id" AS "Host Scientific Names__id",
+  "Host Scientific Names"."host_scientific_name" AS "Host Scientific Names__host_scientific_name",
+  "Host Food Production Names"."id" AS "Host Food Production Names__id",
+  "Host Food Production Names"."host_food_production_name" AS "Host Food Production Names__host_food_production_name",
+   "Host Age Bin"."id" AS "Host Age Bin__id",
+  "Host Age Bin"."host_age_bin" AS "Host Age Bin__host_age_bin"
   
-FROM
-  "public"."host"
+  FROM
+  "public"."hosts"
  
-LEFT JOIN "public"."host_age_bin" AS "Host Age Bin" ON "public"."host"."host_age_bin" = "Host Age Bin"."id"
-  LEFT JOIN "public"."host_food_production_name" AS "Host Food Production Name" ON "public"."host"."host_food_production_name" = "Host Food Production Name"."id"
-  LEFT JOIN "public"."host_common_name" AS "Host Common Name" ON "public"."host"."host_common_name" = "Host Common Name"."id"
-  LEFT JOIN "public"."host_scientific_name" AS "Host Scientific Name" ON "public"."host"."host_scientific_name" = "Host Scientific Name"."id"
+LEFT JOIN "public"."host_common_names" AS "Host Common Names" ON "public"."hosts"."host_common_name" = "Host Common Names"."id"
+  LEFT JOIN "public"."host_scientific_names" AS "Host Scientific Names" ON "public"."hosts"."host_scientific_name" = "Host Scientific Names"."id"
+  LEFT JOIN "public"."host_food_production_names" AS "Host Food Production Names" ON "public"."hosts"."host_food_production_name" = "Host Food Production Names"."id"
+  LEFT JOIN "public"."host_age_bin" AS "Host Age Bin" ON "public"."hosts"."host_age_bin" = "Host Age Bin"."id"
 ;
 --isolate fields
 CREATE TABLE ORGANISMS (
@@ -652,7 +607,7 @@ CREATE TABLE ISOLATES (
     MICROBIOLOGICAL_METHOD TEXT,
     PROGENY_ISOLATE_ID TEXT,
     ISOLATED_BY INTEGER REFERENCES AGENCIES(id),
-    ISOLATED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
+    CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     ISOLATION_DATE DATE,
     ISOLATE_RECEIVED_DATE DATE,
     IRIDA_ISOLATE_ID TEXT,
@@ -665,48 +620,48 @@ CREATE TABLE ISOLATES (
 );
 
 --view isolate
-CREATE VIEW combined_isolate_table AS
+CREATE VIEW combined_isolates AS
 SELECT
-  "public"."isolate"."id" AS "id",
-  "public"."isolate"."sample_id" AS "sample_id",
-  "public"."isolate"."isolate_id" AS "isolate_id",
-  "public"."isolate"."alnternative_isolate_id" AS "alnternative_isolate_id",
-  "public"."isolate"."strain" AS "strain",
-  "public"."isolate"."microbiological_method" AS "microbiological_method",
-  "public"."isolate"."progeny_isolate_id" AS "progeny_isolate_id",
-  "public"."isolate"."isolated_by" AS "isolated_by",
-  "public"."isolate"."isolated_by_contact_name" AS "isolated_by_contact_name",
-  "public"."isolate"."isolation_date" AS "isolation_date",
-  "public"."isolate"."isolate_received_date" AS "isolate_received_date",
-  "public"."isolate"."irida_isolate_id" AS "irida_isolate_id",
-  "public"."isolate"."irida_project_id" AS "irida_project_id",
-  "public"."isolate"."organism_data" AS "organism_data",
-  "Organism Data"."id" AS "Organism Data__id",
-  "Organism Data"."organism" AS "Organism Data__organism",
-  "Organism Data"."taxonomic_identification_process" AS "Organism Data__taxonomic_identification_process",
-  "Organism Data"."serovar" AS "Organism Data__serovar",
-  "Organism Data"."serotyping_method" AS "Organism Data__serotyping_method",
-  "Organism Data"."phagetype" AS "Organism Data__phagetype",
-  "Organism"."id" AS "Organism__id",
-  "Organism"."organism" AS "Organism__organism",
-  "Taxonomic Identification Process"."id" AS "Taxonomic Identification Process__id",
-  "Taxonomic Identification Process"."taxonomic_identification_process" AS "Taxonomic Identification Process__taxonomic_identification_process",
-  "Taxonomic Identification Process"."details" AS "Taxonomic Identification Process__details",
-  "Contact Information - Isolated By Contact Name"."id" AS "Contact Information - Isolated By Contact Name__id",
-  "Contact Information - Isolated By Contact Name"."laboratory_name" AS "Contact Information - Isolated By Contact Name__laboratory_name",
-  "Contact Information - Isolated By Contact Name"."contact_name" AS "Contact Information - Isolated By Contact Name__contact_name",
-  "Contact Information - Isolated By Contact Name"."contact_email" AS "Contact Information - Isolated By Contact Name__contact_email",
-  "Agency - Isolated By"."id" AS "Agency - Isolated By__id",
-  "Agency - Isolated By"."agency" AS "Agency - Isolated By__agency"
+  "public"."isolates"."id" AS "id",
+  "public"."isolates"."sample_id" AS "sample_id",
+  "public"."isolates"."isolate_id" AS "isolate_id",
+  "public"."isolates"."alnternative_isolate_id" AS "alnternative_isolate_id",
+  "public"."isolates"."strain" AS "strain",
+  "public"."isolates"."microbiological_method" AS "microbiological_method",
+  "public"."isolates"."progeny_isolate_id" AS "progeny_isolate_id",
+  "public"."isolates"."isolated_by" AS "isolated_by",
+  "public"."isolates"."contact_information" AS "contact_information",
+  "public"."isolates"."isolation_date" AS "isolation_date",
+  "public"."isolates"."isolate_received_date" AS "isolate_received_date",
+  "public"."isolates"."irida_isolate_id" AS "irida_isolate_id",
+  "public"."isolates"."irida_project_id" AS "irida_project_id",
+  "public"."isolates"."organism" AS "organism",
+  "public"."isolates"."taxonomic_identification_process" AS "taxonomic_identification_process",
+  "public"."isolates"."serovar" AS "serovar",
+  "public"."isolates"."serotyping_method" AS "serotyping_method",
+  "public"."isolates"."phagetype" AS "phagetype",
+  "Contact Information"."id" AS "Contact Information__id",
+  "Contact Information"."laboratory_name" AS "Contact Information__laboratory_name",
+  "Contact Information"."contact_name" AS "Contact Information__contact_name",
+  "Contact Information"."contact_email" AS "Contact Information__contact_email",
+  "Agencies - Isolated By"."id" AS "Agencies - Isolated By__id",
+  "Agencies - Isolated By"."agency" AS "Agencies - Isolated By__agency",
+  "Strains"."id" AS "Strains__id",
+  "Strains"."strain" AS "Strains__strain",
+  "Taxonomic Identification Processes"."id" AS "Taxonomic Identification Processes__id",
+  "Taxonomic Identification Processes"."taxonomic_identification_process" AS "Taxonomic Identification Processes__taxonomic_ident_91e5277c",
+  "Taxonomic Identification Processes"."description" AS "Taxonomic Identification Processes__description",
+  "Organisms"."id" AS "Organisms__id",
+  "Organisms"."organism" AS "Organisms__organism"
   
 FROM
-  "public"."isolate"
+  "public"."isolates"
  
-LEFT JOIN "public"."organism_data" AS "Organism Data" ON "public"."isolate"."organism_data" = "Organism Data"."id"
-LEFT JOIN "public"."organism" AS "Organism" ON "Organism Data"."id" = "Organism"."id"
-LEFT JOIN "public"."taxonomic_identification_process" AS "Taxonomic Identification Process" ON "Organism Data"."id" = "Taxonomic Identification Process"."id"
-LEFT JOIN "public"."contact_information" AS "Contact Information - Isolated By Contact Name" ON "public"."isolate"."isolated_by_contact_name" = "Contact Information - Isolated By Contact Name"."id"
-LEFT JOIN "public"."agency" AS "Agency - Isolated By" ON "public"."isolate"."isolated_by" = "Agency - Isolated By"."id"
+LEFT JOIN "public"."contact_information" AS "Contact Information" ON "public"."isolates"."contact_information" = "Contact Information"."id"
+  LEFT JOIN "public"."agencies" AS "Agencies - Isolated By" ON "public"."isolates"."isolated_by" = "Agencies - Isolated By"."id"
+  LEFT JOIN "public"."strains" AS "Strains" ON "public"."isolates"."strain" = "Strains"."id"
+  LEFT JOIN "public"."taxonomic_identification_processes" AS "Taxonomic Identification Processes" ON "public"."isolates"."taxonomic_identification_process" = "Taxonomic Identification Processes"."id"
+  LEFT JOIN "public"."organisms" AS "Organisms" ON "public"."isolates"."organism" = "Organisms"."id"
 ;
 --sequencing fields
 CREATE TABLE SEQUENCING_PLATFORMS (
@@ -725,7 +680,7 @@ CREATE TABLE SEQUENCING (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
     LIBRARY_ID TEXT,
-    SEQUENCED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
+    CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     SEQUENCED_BY INTEGER REFERENCES AGENCIES(id),
     SEQUENCING_PROJECT_NAME TEXT,
     SEQUENCING_PLATFORM INTEGER REFERENCES SEQUENCING_PLATFORMS(id),
@@ -752,12 +707,8 @@ SELECT
   "public"."sequencing"."id" AS "id",
   "public"."sequencing"."isolate_id" AS "isolate_id",
   "public"."sequencing"."library_id" AS "library_id",
+  "public"."sequencing"."contact_information" AS "contact_information",
   "public"."sequencing"."sequenced_by" AS "sequenced_by",
-  "public"."sequencing"."sequenced_by_contact_name" AS "sequenced_by_contact_name",
-  "Sequencing Purpose"."sequencing_id" AS "Sequencing Purpose__sequencing_id",
-  "Sequencing Purpose"."purpose_of_sequencing" AS "Sequencing Purpose__purpose_of_sequencing",
-  "Purpose - Purpose Of Sequencing"."id" AS "Purpose - Purpose Of Sequencing__id",
-  "Purpose - Purpose Of Sequencing"."purpose" AS "Purpose - Purpose Of Sequencing__purpose",
   "public"."sequencing"."sequencing_project_name" AS "sequencing_project_name",
   "public"."sequencing"."sequencing_platform" AS "sequencing_platform",
   "public"."sequencing"."sequencing_instrument" AS "sequencing_instrument",
@@ -767,26 +718,37 @@ SELECT
   "public"."sequencing"."r2_fastq_filename" AS "r2_fastq_filename",
   "public"."sequencing"."fast5_filename" AS "fast5_filename",
   "public"."sequencing"."assembly_filename" AS "assembly_filename",
-  "Contact Information - Sequenced By Contact Name"."id" AS "Contact Information - Sequenced By Contact Name__id",
-  "Contact Information - Sequenced By Contact Name"."laboratory_name" AS "Contact Information - Sequenced By Contact Name__laboratory_name",
-  "Contact Information - Sequenced By Contact Name"."contact_name" AS "Contact Information - Sequenced By Contact Name__contact_name",
-  "Contact Information - Sequenced By Contact Name"."contact_email" AS "Contact Information - Sequenced By Contact Name__contact_email",
-  "Agency - Sequenced By"."id" AS "Agency - Sequenced By__id",
-  "Agency - Sequenced By"."agency" AS "Agency - Sequenced By__agency",
-  "Sequencing Instrument"."id" AS "Sequencing Instrument__id",
-  "Sequencing Instrument"."sequencing_instrument" AS "Sequencing Instrument__sequencing_instrument",
-  "Sequencing Platform"."id" AS "Sequencing Platform__id",
-  "Sequencing Platform"."sequencing_platform" AS "Sequencing Platform__sequencing_platform"
-  
+  "Contact Information"."id" AS "Contact Information__id",
+  "Contact Information"."laboratory_name" AS "Contact Information__laboratory_name",
+  "Contact Information"."contact_name" AS "Contact Information__contact_name",
+  "Contact Information"."contact_email" AS "Contact Information__contact_email",
+  "Sequencing Platforms"."id" AS "Sequencing Platforms__id",
+  "Sequencing Platforms"."sequencing_platform" AS "Sequencing Platforms__sequencing_platform",
+  "Sequencing Platforms"."ontology_id" AS "Sequencing Platforms__ontology_id",
+  "Sequencing Platforms"."description" AS "Sequencing Platforms__description",
+  "Agencies - Sequenced By"."id" AS "Agencies - Sequenced By__id",
+  "Agencies - Sequenced By"."agency" AS "Agencies - Sequenced By__agency",
+  "Agencies - Sequenced By"."ontology_id" AS "Agencies - Sequenced By__ontology_id",
+  "Agencies - Sequenced By"."description" AS "Agencies - Sequenced By__description",
+  "Sequencing Purpose"."sequencing_id" AS "Sequencing Purpose__sequencing_id",
+  "Sequencing Purpose"."purpose_of_sequencing" AS "Sequencing Purpose__purpose_of_sequencing",
+  "Purposes - Purpose Of Sequencing"."id" AS "Purposes - Purpose Of Sequencing__id",
+  "Purposes - Purpose Of Sequencing"."purpose" AS "Purposes - Purpose Of Sequencing__purpose",
+  "Purposes - Purpose Of Sequencing"."ontology_id" AS "Purposes - Purpose Of Sequencing__ontology_id",
+  "Purposes - Purpose Of Sequencing"."description" AS "Purposes - Purpose Of Sequencing__description",
+  "Sequencing Instruments"."id" AS "Sequencing Instruments__id",
+  "Sequencing Instruments"."sequencing_instrument" AS "Sequencing Instruments__sequencing_instrument",
+  "Sequencing Instruments"."ontology_id" AS "Sequencing Instruments__ontology_id",
+  "Sequencing Instruments"."description" AS "Sequencing Instruments__description"
 FROM
   "public"."sequencing"
  
-LEFT JOIN "public"."contact_information" AS "Contact Information - Sequenced By Contact Name" ON "public"."sequencing"."sequenced_by_contact_name" = "Contact Information - Sequenced By Contact Name"."id"
-  LEFT JOIN "public"."agency" AS "Agency - Sequenced By" ON "public"."sequencing"."sequenced_by" = "Agency - Sequenced By"."id"
-  LEFT JOIN "public"."sequencing_instrument" AS "Sequencing Instrument" ON "public"."sequencing"."sequencing_instrument" = "Sequencing Instrument"."id"
-  LEFT JOIN "public"."sequencing_platform" AS "Sequencing Platform" ON "public"."sequencing"."sequencing_platform" = "Sequencing Platform"."id"
+LEFT JOIN "public"."contact_information" AS "Contact Information" ON "public"."sequencing"."contact_information" = "Contact Information"."id"
+  LEFT JOIN "public"."sequencing_platforms" AS "Sequencing Platforms" ON "public"."sequencing"."sequencing_platform" = "Sequencing Platforms"."id"
+  LEFT JOIN "public"."agencies" AS "Agencies - Sequenced By" ON "public"."sequencing"."sequenced_by" = "Agencies - Sequenced By"."id"
   LEFT JOIN "public"."sequencing_purpose" AS "Sequencing Purpose" ON "public"."sequencing"."id" = "Sequencing Purpose"."sequencing_id"
-  LEFT JOIN "public"."purpose" AS "Purpose - Purpose Of Sequencing" ON "Sequencing Purpose"."purpose_of_sequencing" = "Purpose - Purpose Of Sequencing"."id"
+  LEFT JOIN "public"."purposes" AS "Purposes - Purpose Of Sequencing" ON "Sequencing Purpose"."purpose_of_sequencing" = "Purposes - Purpose Of Sequencing"."id"
+  LEFT JOIN "public"."sequencing_instruments" AS "Sequencing Instruments" ON "public"."sequencing"."sequencing_instrument" = "Sequencing Instruments"."id"
 ;
 
 CREATE TABLE ATTRIBUTE_PACKAGES (
@@ -798,7 +760,7 @@ CREATE TABLE ATTRIBUTE_PACKAGES (
 CREATE TABLE PUBLIC_REPOSITORY_INFORMATION (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
-    SEQUENCE_SUBMITED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
+    CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     SEQUENCE_SUBMITED_BY INTEGER REFERENCES AGENCIES(id),
     PUBLICATION_ID TEXT,
     BIOPROJECT_ACCESSION TEXT,
@@ -816,7 +778,7 @@ CREATE VIEW combined_public_repository_table AS
 SELECT
   "public"."public_repository_information"."id" AS "id",
   "public"."public_repository_information"."isolate_id" AS "isolate_id",
-  "public"."public_repository_information"."sequence_submited_by_contact_name" AS "sequence_submited_by_contact_name",
+  "public"."public_repository_information"."contact_information" AS "contact_information",
   "public"."public_repository_information"."sequence_submited_by" AS "sequence_submited_by",
   "public"."public_repository_information"."publication_id" AS "publication_id",
   "public"."public_repository_information"."bioproject_accession" AS "bioproject_accession",
@@ -824,21 +786,23 @@ SELECT
   "public"."public_repository_information"."sra_accession" AS "sra_accession",
   "public"."public_repository_information"."genbank_accession" AS "genbank_accession",
   "public"."public_repository_information"."attribute_package" AS "attribute_package",
-"Contact Information - Sequence Submited By Contact Name"."id" AS "Contact Information - Sequence Submited By Contact Name__id",
-  "Contact Information - Sequence Submited By Contact Name"."laboratory_name" AS "Contact Information - Sequence Submited By Contact _68bfa7b0",
-  "Contact Information - Sequence Submited By Contact Name"."contact_name" AS "Contact Information - Sequence Submited By Contact _a700ee48",
-  "Contact Information - Sequence Submited By Contact Name"."contact_email" AS "Contact Information - Sequence Submited By Contact _760f3373",
-  "Agency - Sequence Submited By"."id" AS "Agency - Sequence Submited By__id",
-  "Agency - Sequence Submited By"."agency" AS "Agency - Sequence Submited By__agency",
-  "Attribute Package"."id" AS "Attribute Package__id",
-  "Attribute Package"."attribute_package" AS "Attribute Package__attribute_package"
+  "Contact Information"."id" AS "Contact Information__id",
+  "Contact Information"."laboratory_name" AS "Contact Information__laboratory_name",
+  "Contact Information"."contact_name" AS "Contact Information__contact_name",
+  "Contact Information"."contact_email" AS "Contact Information__contact_email",
+  "Agencies - Sequence Submited By"."id" AS "Agencies - Sequence Submited By__id",
+  "Agencies - Sequence Submited By"."agency" AS "Agencies - Sequence Submited By__agency",
+  "Agencies - Sequence Submited By"."ontology_id" AS "Agencies - Sequence Submited By__ontology_id",
+  "Agencies - Sequence Submited By"."description" AS "Agencies - Sequence Submited By__description",
+  "Attribute Packages"."id" AS "Attribute Packages__id",
+  "Attribute Packages"."attribute_package" AS "Attribute Packages__attribute_package"
   
 FROM
   "public"."public_repository_information"
  
-LEFT JOIN "public"."contact_information" AS "Contact Information - Sequence Submited By Contact Name" ON "public"."public_repository_information"."sequence_submited_by_contact_name" = "Contact Information - Sequence Submited By Contact Name"."id"
-  LEFT JOIN "public"."agency" AS "Agency - Sequence Submited By" ON "public"."public_repository_information"."sequence_submited_by" = "Agency - Sequence Submited By"."id"
-  LEFT JOIN "public"."attribute_package" AS "Attribute Package" ON "public"."public_repository_information"."attribute_package" = "Attribute Package"."id"
+LEFT JOIN "public"."contact_information" AS "Contact Information" ON "public"."public_repository_information"."contact_information" = "Contact Information"."id"
+  LEFT JOIN "public"."agencies" AS "Agencies - Sequence Submited By" ON "public"."public_repository_information"."sequence_submited_by" = "Agencies - Sequence Submited By"."id"
+  LEFT JOIN "public"."attribute_packages" AS "Attribute Packages" ON "public"."public_repository_information"."attribute_package" = "Attribute Packages"."id"
 ;
 
 
@@ -884,29 +848,29 @@ SELECT
   "public"."risk_assessment"."prevalence_metrics_details" AS "prevalence_metrics_details",
   "public"."risk_assessment"."stage_of_production" AS "stage_of_production",
   "public"."risk_assessment"."experimental_intervention_details" AS "experimental_intervention_details",
-  "Risk Activity"."risk_id" AS "Risk Activity__risk_id",
-  "Risk Activity"."experimental_intervention" AS "Risk Activity__experimental_intervention",
-  "Activity - Experimental Intervention"."id" AS "Activity - Experimental Intervention__id",
-  "Activity - Experimental Intervention"."activity" AS "Activity - Experimental Intervention__activity",
+  "Prevalence Metrics"."id" AS "Prevalence Metrics__id",
+  "Prevalence Metrics"."prevalence_metrics" AS "Prevalence Metrics__prevalence_metrics",
   "Stage Of Production"."id" AS "Stage Of Production__id",
   "Stage Of Production"."stage_of_production" AS "Stage Of Production__stage_of_production",
-  "Prevalence Metrics"."id" AS "Prevalence Metrics__id",
-  "Prevalence Metrics"."prevalence_metrics" AS "Prevalence Metrics__prevalence_metrics"
+  "Risk Activity"."risk_id" AS "Risk Activity__risk_id",
+  "Risk Activity"."experimental_intervention" AS "Risk Activity__experimental_intervention",
+  "Activities - Experimental Intervention"."id" AS "Activities - Experimental Intervention__id",
+  "Activities - Experimental Intervention"."activity" AS "Activities - Experimental Intervention__activity"
   
 FROM
   "public"."risk_assessment"
  
-LEFT JOIN "public"."stage_of_production" AS "Stage Of Production" ON "public"."risk_assessment"."stage_of_production" = "Stage Of Production"."id"
 LEFT JOIN "public"."prevalence_metrics" AS "Prevalence Metrics" ON "public"."risk_assessment"."prevalence_metrics" = "Prevalence Metrics"."id"
-LEFT JOIN "public"."risk_activity" AS "Risk Activity" ON "public"."risk_assessment"."id" = "Risk Activity"."risk_id"
-LEFT JOIN "public"."activity" AS "Activity - Experimental Intervention" ON "Risk Activity"."experimental_intervention" = "Activity - Experimental Intervention"."id"
+  LEFT JOIN "public"."stage_of_production" AS "Stage Of Production" ON "public"."risk_assessment"."stage_of_production" = "Stage Of Production"."id"
+  LEFT JOIN "public"."risk_activity" AS "Risk Activity" ON "public"."risk_assessment"."id" = "Risk Activity"."risk_id"
+  LEFT JOIN "public"."activities" AS "Activities - Experimental Intervention" ON "Risk Activity"."experimental_intervention" = "Activities - Experimental Intervention"."id"
 ;
 --AMR_info
 CREATE TABLE AMR_INFO(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
     AMR_TESTED_BY INTEGER REFERENCES AGENCIES(id),
-    AMR_TESTED_BY_CONTACT_NAME INTEGER REFERENCES CONTACT_INFORMATION(id),
+    CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     AMR_TESTING_DATE DATE
 
 
@@ -919,20 +883,20 @@ SELECT
   "public"."amr_info"."id" AS "id",
   "public"."amr_info"."isolate_id" AS "isolate_id",
   "public"."amr_info"."amr_tested_by" AS "amr_tested_by",
-  "public"."amr_info"."amr_tested_by_contact_name" AS "amr_tested_by_contact_name",
+  "public"."amr_info"."contact_information" AS "contact_information",
   "public"."amr_info"."amr_testing_date" AS "amr_testing_date",
-  "Contact Information - Amr Tested By Contact Name"."id" AS "Contact Information - Amr Tested By Contact Name__id",
-  "Contact Information - Amr Tested By Contact Name"."laboratory_name" AS "Contact Information - Amr Tested By Contact Name__laboratory_name",
-  "Contact Information - Amr Tested By Contact Name"."contact_name" AS "Contact Information - Amr Tested By Contact Name__contact_name",
-  "Contact Information - Amr Tested By Contact Name"."contact_email" AS "Contact Information - Amr Tested By Contact Name__contact_email",
+  "Contact Information - Contact Information"."id" AS "Contact Information -Contact Information__id",
+  "Contact Information - Contact Information"."laboratory_name" AS "Contact Information - Contact Information__laboratory_name",
+  "Contact Information - Contact Information"."contact_name" AS "Contact Information - Contact Information__contact_name",
+  "Contact Information - Contact Information"."contact_email" AS "Contact Information - Contact Information__contact_email",
   "Agency - Amr Tested By"."id" AS "Agency - Amr Tested By__id",
   "Agency - Amr Tested By"."agency" AS "Agency - Amr Tested By__agency"
  
 FROM
   "public"."amr_info"
  
-LEFT JOIN "public"."contact_information" AS "Contact Information - Amr Tested By Contact Name" ON "public"."amr_info"."amr_tested_by_contact_name" = "Contact Information - Amr Tested By Contact Name"."id"
-LEFT JOIN "public"."agency" AS "Agency - Amr Tested By" ON "public"."amr_info"."amr_tested_by" = "Agency - Amr Tested By"."id"
+LEFT JOIN "public"."contact_information" AS "Contact Information - Contact Information" ON "public"."amr_info"."contact_information" = "Contact Information - Contact Information"."id"
+LEFT JOIN "public"."agency" AS "Agency - Contact Information" ON "public"."amr_info"."amr_tested_by" = "Agency - Amr Tested By"."id"
 ;
 
 CREATE TABLE MEASUREMENT_UNITS (
@@ -1035,10 +999,10 @@ SELECT
   "public"."amr_antibiotics_profile"."laboratory_typing_data" AS "laboratory_typing_data",
   "public"."amr_antibiotics_profile"."testing_standard_data" AS "testing_standard_data",
   "public"."amr_antibiotics_profile"."testing_breakpoint_data" AS "testing_breakpoint_data",
-  "Antimicrobial Agent"."id" AS "Antimicrobial Agent__id",
-  "Antimicrobial Agent"."antimicrobial_agent" AS "Antimicrobial Agent__antimicrobial_agent",
-  "Antimicrobial Phenotype"."id" AS "Antimicrobial Phenotype__id",
-  "Antimicrobial Phenotype"."antimicrobial_phenotype" AS "Antimicrobial Phenotype__antimicrobial_phenotype",
+  "Antimicrobial Phenotypes"."id" AS "Antimicrobial Phenotypes__id",
+  "Antimicrobial Phenotypes"."antimicrobial_phenotype" AS "Antimicrobial Phenotypes__antimicrobial_phenotype",
+  "Antimicrobial Agents"."id" AS "Antimicrobial Agents__id",
+  "Antimicrobial Agents"."antimicrobial_agent" AS "Antimicrobial Agents__antimicrobial_agent",
   "Testing Breakpoint Data"."id" AS "Testing Breakpoint Data__id",
   "Testing Breakpoint Data"."testing_susceptible_breakpoint" AS "Testing Breakpoint Data__testing_susceptible_breakpoint",
   "Testing Breakpoint Data"."testing_intermediate_breakpoint" AS "Testing Breakpoint Data__testing_intermediate_breakpoint",
@@ -1049,41 +1013,41 @@ SELECT
   "Testing Standard Data"."testing_standard_details" AS "Testing Standard Data__testing_standard_details",
   "Testing Standard"."id" AS "Testing Standard__id",
   "Testing Standard"."testing_standard" AS "Testing Standard__testing_standard",
-   "Measurement Data"."id" AS "Measurement Data__id",
-  "Measurement Data"."measurement" AS "Measurement Data__measurement",
-  "Measurement Data"."measurement_units" AS "Measurement Data__measurement_units",
-  "Measurement Data"."measurement_sign" AS "Measurement Data__measurement_sign",
-  "Measurement Sign"."id" AS "Measurement Sign__id",
-  "Measurement Sign"."measurement_sign" AS "Measurement Sign__measurement_sign",
-    "Measurement Units"."id" AS "Measurement Units__id",
-  "Measurement Units"."measurement_units" AS "Measurement Units__measurement_units",
-   "Laboratory Typing Data"."id" AS "Laboratory Typing Data__id",
+    "Laboratory Typing Data"."id" AS "Laboratory Typing Data__id",
   "Laboratory Typing Data"."laboratory_typing_method" AS "Laboratory Typing Data__laboratory_typing_method",
   "Laboratory Typing Data"."laboratory_typing_platform" AS "Laboratory Typing Data__laboratory_typing_platform",
   "Laboratory Typing Data"."laboratory_typing_platform_version" AS "Laboratory Typing Data__laboratory_typing_platform_version",
   "Laboratory Typing Data"."vendor_name" AS "Laboratory Typing Data__vendor_name",
   "Laboratory Typing Method"."id" AS "Laboratory Typing Method__id",
   "Laboratory Typing Method"."laboratory_typing_method" AS "Laboratory Typing Method__laboratory_typing_method",
-   "Laboratory Typing Platform"."id" AS "Laboratory Typing Platform__id",
+    "Laboratory Typing Platform"."id" AS "Laboratory Typing Platform__id",
   "Laboratory Typing Platform"."laboratory_typing_platform" AS "Laboratory Typing Platform__laboratory_typing_platform",
-  "Vendor Name"."id" AS "Vendor Name__id",
-  "Vendor Name"."vendor_name" AS "Vendor Name__vendor_name"
+    "Vendor Name"."id" AS "Vendor Name__id",
+  "Vendor Name"."vendor_name" AS "Vendor Name__vendor_name",
+    "Measurement Data"."id" AS "Measurement Data__id",
+  "Measurement Data"."measurement" AS "Measurement Data__measurement",
+  "Measurement Data"."measurement_units" AS "Measurement Data__measurement_units",
+  "Measurement Data"."measurement_sign" AS "Measurement Data__measurement_sign",
+  "Measurement Sign"."id" AS "Measurement Sign__id",
+  "Measurement Sign"."measurement_sign" AS "Measurement Sign__measurement_sign",
+   "Measurement Units"."id" AS "Measurement Units__id",
+  "Measurement Units"."measurement_units" AS "Measurement Units__measurement_units"
   
 FROM
   "public"."amr_antibiotics_profile"
  
-LEFT JOIN "public"."antimicrobial_agent" AS "Antimicrobial Agent" ON "public"."amr_antibiotics_profile"."antimicrobial_agent" = "Antimicrobial Agent"."id"
-  LEFT JOIN "public"."antimicrobial_phenotype" AS "Antimicrobial Phenotype" ON "public"."amr_antibiotics_profile"."antimicrobial_phenotype" = "Antimicrobial Phenotype"."id"
+LEFT JOIN "public"."antimicrobial_phenotypes" AS "Antimicrobial Phenotypes" ON "public"."amr_antibiotics_profile"."antimicrobial_phenotype" = "Antimicrobial Phenotypes"."id"
+  LEFT JOIN "public"."antimicrobial_agents" AS "Antimicrobial Agents" ON "public"."amr_antibiotics_profile"."antimicrobial_agent" = "Antimicrobial Agents"."id"
   LEFT JOIN "public"."testing_breakpoint_data" AS "Testing Breakpoint Data" ON "public"."amr_antibiotics_profile"."testing_breakpoint_data" = "Testing Breakpoint Data"."id"
   LEFT JOIN "public"."testing_standard_data" AS "Testing Standard Data" ON "public"."amr_antibiotics_profile"."testing_standard_data" = "Testing Standard Data"."id"
   LEFT JOIN "public"."testing_standard" AS "Testing Standard" ON "Testing Standard Data"."testing_standard" = "Testing Standard"."id"
-  LEFT JOIN "public"."measurement_data" AS "Measurement Data" ON "public"."amr_antibiotics_profile"."measurement_data" = "Measurement Data"."id"
-  LEFT JOIN "public"."measurement_sign" AS "Measurement Sign" ON "Measurement Data"."measurement_sign" = "Measurement Sign"."id"
-  LEFT JOIN "public"."measurement_units" AS "Measurement Units" ON "Measurement Data"."measurement_units" = "Measurement Units"."id"
   LEFT JOIN "public"."laboratory_typing_data" AS "Laboratory Typing Data" ON "public"."amr_antibiotics_profile"."laboratory_typing_data" = "Laboratory Typing Data"."id"
   LEFT JOIN "public"."laboratory_typing_method" AS "Laboratory Typing Method" ON "Laboratory Typing Data"."laboratory_typing_method" = "Laboratory Typing Method"."id"
   LEFT JOIN "public"."laboratory_typing_platform" AS "Laboratory Typing Platform" ON "Laboratory Typing Data"."laboratory_typing_platform" = "Laboratory Typing Platform"."id"
   LEFT JOIN "public"."vendor_name" AS "Vendor Name" ON "Laboratory Typing Data"."vendor_name" = "Vendor Name"."id"
+  LEFT JOIN "public"."measurement_data" AS "Measurement Data" ON "public"."amr_antibiotics_profile"."measurement_data" = "Measurement Data"."id"
+  LEFT JOIN "public"."measurement_sign" AS "Measurement Sign" ON "Measurement Data"."measurement_sign" = "Measurement Sign"."id"
+  LEFT JOIN "public"."measurement_units" AS "Measurement Units" ON "Measurement Data"."measurement_units" = "Measurement Units"."id"
   ;
 
 

@@ -35,41 +35,41 @@ def fill_ontology_fields(conn,cursor,xls):
                 term = row['Term'].strip()
                 if term not in institution and "Environment Canada" not in term:
                     institution.append(term)
-                    term_insertion ("agency","agency",term,row['Ontology Identifier'], row['Definition'])
+                    term_insertion ("agencies","agency",term,row['Ontology Identifier'], row['Definition'])
             elif  "purpose" in row['Field']:
                
                 term = row['Term'].strip()
                 if term not in purpose:
                     purpose.append(term)
-                    term_insertion ("purpose","purpose",term,row['Ontology Identifier'], row['Definition'])  
+                    term_insertion ("purposes","purpose",term,row['Ontology Identifier'], row['Definition'])  
             elif "presampling_activity" in row['Field'] or "experimental_intervention" in row['Field']:
                 term = row['Term'].strip()
                 if term not in activity:
                     activity.append(term)
-                    term_insertion ("activity","activity",term,row['Ontology Identifier'], row['Definition']) 
+                    term_insertion ("activities","activity",term,row['Ontology Identifier'], row['Definition']) 
             elif "country" in row['Field']:
                 term = row['Term'].strip()
                 if term not in country:
                     country.append(term)
-                    term_insertion ("country","country",term,row['Ontology Identifier'], row['Definition'])
+                    term_insertion ("countries","country",term,row['Ontology Identifier'], row['Definition'])
             elif "geo_loc_name (state/province/region)" in row['Field']:
                 term = row['Term'].strip()
-                term_insertion ("STATE_PROVINCE_REGION","GEO_LOC_STATE_PROVINCE_REGION",term,row['Ontology Identifier'], row['Definition'])
+                term_insertion ("STATE_PROVINCE_REGIONS","GEO_LOC_STATE_PROVINCE_REGION",term,row['Ontology Identifier'], row['Definition'])
             elif "geo_loc_name (site)" in row['Field']:
                 term = row['Term'].strip()
-                term_insertion ("GEO_LOC_NAME_SITE","GEO_LOC_NAME_SITE",term,row['Ontology Identifier'], row['Definition'])
+                term_insertion ("GEO_LOC_NAME_SITES","GEO_LOC_NAME_SITE",term,row['Ontology Identifier'], row['Definition'])
             elif "host (common name)" in row['Field']:
                 term = row['Term'].strip()
-                term_insertion ("HOST_COMMON_NAME","HOST_COMMON_NAME",term,row['Ontology Identifier'], row['Definition'])
+                term_insertion ("HOST_COMMON_NAMES","HOST_COMMON_NAME",term,row['Ontology Identifier'], row['Definition'])
             elif "host (scientific name)" in row['Field']:
                 term = row['Term'].strip()
-                term_insertion ("HOST_SCIENTIFIC_NAME","HOST_SCIENTIFIC_NAME",term,row['Ontology Identifier'], row['Definition'])
+                term_insertion ("HOST_SCIENTIFIC_NAMES","HOST_SCIENTIFIC_NAME",term,row['Ontology Identifier'], row['Definition'])
             elif "host (food production name)" in row['Field']:
                 term = row['Term'].strip()
-                term_insertion ("HOST_FOOD_PRODUCTION_NAME","HOST_FOOD_PRODUCTION_NAME",term,row['Ontology Identifier'], row['Definition'])
+                term_insertion ("HOST_FOOD_PRODUCTION_NAMES","HOST_FOOD_PRODUCTION_NAME",term,row['Ontology Identifier'], row['Definition'])
             elif "antimicrobial_agent_name" in row ['Field']:
                 term = row['Term'].strip()
-                term_insertion ("ANTIMICROBIAL_AGENT","ANTIMICROBIAL_AGENT",term,row['Ontology Identifier'], row['Definition'])
+                term_insertion ("ANTIMICROBIAL_AGENTS","ANTIMICROBIAL_AGENT",term,row['Ontology Identifier'], row['Definition'])
             elif "production_stream" in row ['Field']:
                 term = row['Term'].strip()
                 term_insertion ("FOOD_PRODUCT_PRODUCTION_STREAM","FOOD_PRODUCT_PRODUCTION_STREAM",term,row['Ontology Identifier'], row['Definition'])

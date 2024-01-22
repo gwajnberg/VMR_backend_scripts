@@ -44,15 +44,26 @@ def main():
     reference_file ="GRDI_Master-Reference-Guide_v8.9.8.xlsx"
     #valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_as_dict(xls_file)
     if args.drop_off_table_add_sql == "T":
-        cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public';")
-        tables_to_drop = cursor.fetchall()
+        drop_all_tables_query = sql.SQL("""
+            DO $$ DECLARE
+                rec RECORD;
+            BEGIN
+                -- Drop tables
+                FOR rec IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+                    EXECUTE 'DROP TABLE IF EXISTS ' || rec.tablename || ' CASCADE';
+                END LOOP;
 
-        for table in tables_to_drop:
-            table_name = table[0]
-            drop_table_query = sql.SQL("DROP TABLE IF EXISTS {} CASCADE;").format(sql.Identifier(table_name))
-            cursor.execute(drop_table_query)
-            conn.commit()
-        schema_file_path = Path("schema/grdi-amr2_schema_latest_version01042024.sql")
+                -- Drop types
+                FOR rec IN (SELECT typname FROM pg_type WHERE typnamespace = 'public'::regnamespace) LOOP
+                    EXECUTE 'DROP TYPE IF EXISTS ' || rec.typname || ' CASCADE';
+                END LOOP;
+            END $$;
+            """)
+
+            # Execute the dynamic query
+        cursor.execute(drop_all_tables_query)
+        conn.commit()
+        schema_file_path = Path("schema/grdi-amr2_schema_latest_version017012024.sql")
         with open(schema_file_path, 'r') as file:
             sql_script = file.read()
             cursor.execute(sql_script)
