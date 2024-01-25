@@ -302,6 +302,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
        # sys.exit()
         #={'sample':{},'host':{},'isolate':{},'sequence':{},'publicRep':{},'AMR':{},'risk':{}}
         #dict_terms_file={'sample':{},'isolate':{},'sequence':{},'AMR':{},'risk':{}}
+        sample_id = ""
+        sample_flagged_list =[]
         for index_sheet,sheet_from_array in enumerate(array_sheet):
             if(not sheet_from_array.empty):
                 
@@ -355,7 +357,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                             flag_to_discard = 0
                             #print (ontology_terms_and_values)
                             #sys.exit()
-                           
+                            if key2 == "sample_collector_sample_ID" :
+                                sample_id = cell
                             if key2 in ontology_terms_and_values.keys():
                                 
                                 if "terms" in ontology_terms_and_values[key2].keys():
@@ -395,9 +398,13 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                                     if ( cell_sub in terms_to_fix.keys()):
                                                         if (key in terms_to_fix[cell_sub].keys()):
                                                             terms_to_fix[cell_sub][key] += 1
+                                                            if sample_id not in sample_flagged_list:
+                                                                sample_flagged_list.append(sample_id)
                                                     else:
                                                         terms_to_fix[cell_sub] = {}
                                                         terms_to_fix[cell_sub] [key] = 1
+                                                        if sample_id not in sample_flagged_list:
+                                                                sample_flagged_list.append(sample_id)
                                                         ##Provisory adding terms to the ontology_terms
                                                         new_ont_terms[key2]['terms'].append({cell_sub+"//"+pseudoid:{'term': cell_sub, 'term_id': pseudoid}})
                                                         #print(cell,ontology_terms_and_values[key])
@@ -438,9 +445,13 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                                 if ( cell in terms_to_fix.keys()):
                                                     if (key in terms_to_fix[cell].keys()):
                                                         terms_to_fix[cell][key] += 1
+                                                        if sample_id not in sample_flagged_list:
+                                                                sample_flagged_list.append(sample_id)
                                                 else:
                                                     terms_to_fix[cell] = {}
                                                     terms_to_fix[cell] [key] = 1
+                                                    if sample_id not in sample_flagged_list:
+                                                                sample_flagged_list.append(sample_id)
                                                     ##Provisory adding terms to the ontology_terms
                                                     new_ont_terms[key2]['terms'].append({cell+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
                                                     #print(cell,ontology_terms_and_values[key])
@@ -554,6 +565,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
     print('done dict of terms')
     #print(dict_terms_file)
     #sys.exit()
-    return(dict_terms_file,new_ont_terms,terms_accepting_multiple_values)
+    #print (sample_flagged_list)
+    
+    return(dict_terms_file,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list)
 
 

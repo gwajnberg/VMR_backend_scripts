@@ -5,7 +5,7 @@ from psycopg2 import sql
 
 
 
-def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values):
+def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list):
     def fix(fields):
         fields = fields.replace("\n", "")
         fields = fields.replace(" ", "_")
@@ -117,6 +117,63 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
     #print(dict_of_samples['sample'][index].keys())
     for index in dict_of_samples['sample']:
         print(dict_of_samples['sample'][index].keys())
+        dict_sample_table = dict_of_samples['sample'][index]
+        sample_table_fields = {"sample_collector_sample_id":dict_of_samples['sample'][index]["sample_collector_sample_ID"]}
+                
+        if dict_of_samples['sample'][index]["sample_collector_sample_ID"] in sample_flagged_list:
+            sample_table_fields["validation_status"]= "flagged"
+        else:
+            sample_table_fields["validation_status"]= "curated"
+        #sample_table_fields[keys]=keys
+        print ("here")
+        sample_id = check_exists_id(dict_of_samples['sample'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
+        if not sample_id:
+            print ("doesnt exists")
+            print (dict_sample_table)
+            print (sample_table_fields)
+            sample_id =create_insert(sample_table_fields,{"sample_collector_sample_id":"sample_collector_sample_id","validation_status":"validation_status"},"","samples",2) 
+        else:
+            print (contact_info_id,"exists")
+            sample_id = sample_id[0]
+        print (sample_id)
+       # sample_table_id =create_insert(dict_of_samples['sample'][index],{"sample_collector_contact_name":"contact_name","sample_collected_by_laboratory_name":"laboratory_name","sample_collector_contact_email":"contact_email"},"","contact_information",3)
+        #sys.exit()
+        #alt_id =""
+        if ("alternative_sample_ID") in dict_of_samples['sample'][index].keys():
+            
+            list_alt_ids =[]
+            if ("|" in dict_of_samples['sample'][index]["alternative_sample_ID"]):
+                list_alt = re.split("|",dict_of_samples['sample'][index]["alternative_sample_ID"])
+                    
+                for alt in list_alt:
+                    alt_id = check_exists_id(alt,"alternative_sample_id","alternative_sample_ids")
+                    if not alt_id:
+                        alt_id =create_insert({"alternative_sample_id":alt,"sample_id":sample_id},{"alternative_sample_id":"alternative_sample_id","sample_id":"sample_id"},"","alternative_sample_ids",2) 
+                    list_alt_ids.append(alt_id)
+            elif (";" in dict_of_samples['sample'][index]["alternative_sample_ID"]):
+                list_alt = re.split(";",dict_of_samples['sample'][index]["alternative_sample_ID"])
+                for alt in list_alt:
+                    alt_id = check_exists_id(alt,"alternative_sample_id","alternative_sample_ids")
+                    if not alt_id:
+                        alt_id =create_insert({"alternative_sample_id":alt,"sample_id":sample_id},{"alternative_sample_id":"alternative_sample_id","sample_id":"sample_id"},"","alternative_sample_ids",2) 
+                    list_alt_ids.append(alt_id)
+                        
+            elif ("," in dict_of_samples['sample'][index]["alternative_sample_ID"]):
+                list_alt = re.split(",",dict_of_samples['sample'][index]["alternative_sample_ID"])
+                for alt in list_alt:
+                    alt_id = check_exists_id(alt,"alternative_sample_id","alternative_sample_ids")
+                    if not alt_id:
+                        alt_id =create_insert({"alternative_sample_id":alt,"sample_id":sample_id},{"alternative_sample_id":"alternative_sample_id","sample_id":"sample_id"},"","alternative_sample_ids",2) 
+                    list_alt_ids.append(alt_id)
+            else:
+                alt = dict_of_samples['sample'][index]["alternative_sample_ID"]    
+                alt_id = check_exists_id(alt,"alternative_sample_id","alternative_sample_ids")
+                if not alt_id:
+                    alt_id =create_insert({"alternative_sample_id":alt,"sample_id":sample_id},{"alternative_sample_id":"alternative_sample_id","sample_id":"sample_id"},"","alternative_sample_ids",2) 
+                list_alt_ids.append(alt_id)         
+        else:
+            sample_table_fields["alternative_sample_id"]=None
+        sys.exit()
         controlled_samples = {"sample_collected_by":["agency",0],"sample_collection_date_precision":["sample_collection_date_precision",0],"specimen_processing":["specimen_processing",0]}
         #sys.exit()
         print ("beginning checking")

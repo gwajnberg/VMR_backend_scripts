@@ -20,7 +20,7 @@ def fill_ontology_fields(conn,cursor,xls):
         if row['Field']:
             #print (row)
             #sql = "INSERT INTO ONTOLOGY_REFERENCE(NAME,BASE_ONTOLOGY_NAME,BASE_ONTOLOGY_IDENTIFIER,DEFINITION ,GUIDENCE,EXAMPLE) VALUES ('"+str(row['Field'])+"','"+str(row['Field'])+"','"+str(row['Ontology Identifier'])+"','"+str(row['Definition'])+"','"+str(row['Guidance'])+"','"+str(row['Examples'])+"')"
-            sql = "INSERT INTO ONTOLOGY_REFERENCE(NAME,BASE_ONTOLOGY_NAME,BASE_ONTOLOGY_IDENTIFIER,DEFINITION ,GUIDENCE,EXAMPLE) VALUES (%s,%s,%s,%s,%s,%s)"
+            sql = "INSERT INTO ONTOLOGY_REFERENCES(NAME,BASE_ONTOLOGY_NAME,BASE_ONTOLOGY_IDENTIFIER,DEFINITION ,GUIDENCE,EXAMPLE) VALUES (%s,%s,%s,%s,%s,%s)"
             print (sql,(row['Field'],row['Field'],row['Ontology Identifier'],row['Definition'],row['Guidance'],row['Examples']))
             cursor.execute(sql,(row['Field'],row['Field'],row['Ontology Identifier'],row['Definition'],row['Guidance'],row['Examples']))
             #sys.exit()
@@ -73,12 +73,43 @@ def fill_ontology_fields(conn,cursor,xls):
             elif "production_stream" in row ['Field']:
                 term = row['Term'].strip()
                 term_insertion ("FOOD_PRODUCT_PRODUCTION_STREAM","FOOD_PRODUCT_PRODUCTION_STREAM",term,row['Ontology Identifier'], row['Definition'])
+            elif "site" in row['Field'] or "population" in row['Field'] or "material" in row['Field'] or "product" in row['Field']or "part" in row['Field'] or "region" in row['Field'] or "device" in row['Field'] or "method" in row['Field'] or "organism" in row['Field'] or "platform" in row['Field'] or "instrument" in row['Field'] or "package" in row['Field']:
+                term = row['Term'].strip()
+                if (row['Field'] == "food_product_properties"):
+                    field = row['Field']
+                    row['Field'] = "food_product_property"
+                    term_insertion (field,row['Field'],term,row['Ontology Identifier'], row['Definition'])
+                elif ("antimicrobial" in row['Field']):
+                    field = row ['Field'].replace("antimicrobial_", "", 1)
+                    field1 = field + "s"
+                    term_insertion (field1,field,term,row['Ontology Identifier'], row['Definition'])
+                else:
+                    field = row['Field']+"s"
+                    print (field,"THISONE")
+                    term_insertion (field,row['Field'],term,row['Ontology Identifier'], row['Definition'])
+                #sys.exit()
+            elif "taxonomic_identification_process" in row ['Field']:
+                term = row['Term'].strip()
+                row['Field'] = row['Field'].strip()
+                field = row['Field']+"es"
+                print (field,"THISONE")
+                term_insertion (field,row['Field'],term,row['Ontology Identifier'], row['Definition'])
+
             elif "antimicrobial_" in row ['Field']:
                 term = row['Term'].strip()
                 field = row ['Field'].replace("antimicrobial_", "", 1)
+                print (term," and ", field, row['Ontology Identifier'], row['Definition'])
+                
                 if "phenotype" in row['Field']:
-                    term_insertion (row['Field'],row['Field'],term,row['Ontology Identifier'], row['Definition'])
+                    field = row['Field'] + "s"
+                    term_insertion (field,row['Field'],term,row['Ontology Identifier'], row['Definition'])
+                elif "vendor_name" in field:
+                    #print("DAMN HERE")
+                    field1 = field + "s"
+                    term_insertion (field1,field,term,row['Ontology Identifier'], row['Definition'])
+
                 else:
+                    
                     term_insertion (field,field,term,row['Ontology Identifier'], row['Definition'])
 
 
@@ -87,11 +118,13 @@ def fill_ontology_fields(conn,cursor,xls):
             else:
 
                 term = row['Term'].strip() 
+                print(row['Field'], "HEREHERE")
+                field = row['Field']
                 if row['Field'] == "available_data_types":
                     row['Field'] = "AVAILABLE_DATA_TYPE"
-                elif row['Field'] == "food_product_properties":
-                    row['Field'] = "food_product_property"
-                term_insertion (row['Field'],row['Field'],term,row['Ontology Identifier'], row['Definition'])
+                elif row['Field'] == "weather_type":
+                    field = "weather_types"
+                term_insertion (field,row['Field'],term,row['Ontology Identifier'], row['Definition'])
     
     conn.commit()         
            

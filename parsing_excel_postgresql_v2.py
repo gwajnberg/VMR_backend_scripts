@@ -40,25 +40,20 @@ def main():
     conn,cursor = connect_db()    
     
     #sys.exit()
-    xls_file = "GRDI_Harmonization-Template_v8.9.8.xlsm"
-    reference_file ="GRDI_Master-Reference-Guide_v8.9.8.xlsx"
+    xls_file = "GRDI_Harmonization-Template_v8.9.9.xlsm"
+    reference_file ="GRDI_Master-Reference-Guide_v8.9.9.xlsx"
     #valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_as_dict(xls_file)
     if args.drop_off_table_add_sql == "T":
         drop_all_tables_query = sql.SQL("""
-            DO $$ DECLARE
-                rec RECORD;
-            BEGIN
-                -- Drop tables
-                FOR rec IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-                    EXECUTE 'DROP TABLE IF EXISTS ' || rec.tablename || ' CASCADE';
-                END LOOP;
+        DO $$ DECLARE
+rec RECORD;
+BEGIN
+FOR rec IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+EXECUTE 'DROP TABLE IF EXISTS ' || rec.tablename || ' CASCADE';
+END LOOP;
+END $$;
+        """)
 
-                -- Drop types
-                FOR rec IN (SELECT typname FROM pg_type WHERE typnamespace = 'public'::regnamespace) LOOP
-                    EXECUTE 'DROP TYPE IF EXISTS ' || rec.typname || ' CASCADE';
-                END LOOP;
-            END $$;
-            """)
 
             # Execute the dynamic query
         cursor.execute(drop_all_tables_query)
@@ -74,9 +69,9 @@ def main():
         valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_dict(xls_file)
         xls_file2 = args.input_file
         print("uploading file ", xls_file2)
-        dict_of_samples,new_ont_terms,terms_accepting_multiple_values = create_dict_of_samples(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids)
+        dict_of_samples,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list = create_dict_of_samples(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids)
         print ("starting to feed vmr")
-        feed_vmr_table(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values)
+        feed_vmr_table(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list)
 
    
 
