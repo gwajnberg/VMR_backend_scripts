@@ -58,7 +58,7 @@ END $$;
             # Execute the dynamic query
         cursor.execute(drop_all_tables_query)
         conn.commit()
-        schema_file_path = Path("schema/grdi-amr2_schema_latest_version017012024.sql")
+        schema_file_path = Path("schema/grdi-amr2_schema_latest_version01302024.sql")
         with open(schema_file_path, 'r') as file:
             sql_script = file.read()
             cursor.execute(sql_script)

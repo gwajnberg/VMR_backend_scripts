@@ -299,7 +299,7 @@ CREATE TABLE ENVIRONMENTAL_DATA(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
     AIR_TEMPERATURE FLOAT,
-    SENDIMENT_DEPTH FLOAT,
+    SEDIMENT_DEPTH FLOAT,
     WATER_DEPTH FLOAT,
     WATER_TEMPERATURE FLOAT
 
@@ -426,7 +426,7 @@ SELECT
   "Environmental Data"."id" AS "Environmental Data__id",
   "Environmental Data"."sample_id" AS "Environmental Data__sample_id",
   "Environmental Data"."air_temperature" AS "Environmental Data__air_temperature",
-  "Environmental Data"."sendiment_depth" AS "Environmental Data__sendiment_depth",
+  "Environmental Data"."sediment_depth" AS "Environmental Data__sediment_depth",
   "Environmental Data"."water_depth" AS "Environmental Data__water_depth",
   "Environmental Data"."water_temperature" AS "Environmental Data__water_temperature",
   "Environment Data Material"."environmental_data" AS "Environment Data Material__environmental_data",
@@ -522,6 +522,14 @@ LEFT JOIN "public"."collection_information" AS "Collection Information" ON "publ
 --host fields
 
 
+CREATE TABLE HOST_BREEDS (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+   HOST_BREED TEXT
+);
+CREATE TABLE HOST_DISEASES (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+   HOST_DISEASE TEXT
+);
 CREATE TABLE HOST_COMMON_NAMES (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     HOST_COMMON_NAME TEXT NOT NULL,
@@ -552,11 +560,11 @@ CREATE TABLE HOSTS (
     SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
     HOST_SCIENTIFIC_NAME INTEGER REFERENCES HOST_SCIENTIFIC_NAMES(id),
     HOST_ECOTYPE TEXT,
-    HOST_BREED TEXT,
+    HOST_BREED INTEGER REFERENCES HOST_BREEDS(id),
     HOST_FOOD_PRODUCTION_NAME INTEGER REFERENCES HOST_FOOD_PRODUCTION_NAMES(id),
-    HOST_DISEASE TEXT,
+    HOST_DISEASE INTEGER REFERENCES HOST_DISEASES(id),
     HOST_AGE_BIN INTEGER REFERENCES HOST_AGE_BIN(id),
-    GEO_LOC_NAME_HOST_ORIGIN_GEO_LOC_NAME_COUNTRY INTEGER REFERENCES COUNTRIES(id)
+    HOST_ORIGIN_GEO_LOC_NAME_COUNTRY INTEGER REFERENCES COUNTRIES(id)
 
 );
 
@@ -572,7 +580,7 @@ SELECT
   "public"."hosts"."host_food_production_name" AS "host_food_production_name",
   "public"."hosts"."host_disease" AS "host_disease",
   "public"."hosts"."host_age_bin" AS "host_age_bin",
-  "public"."hosts"."geo_loc_name_host_origin_geo_loc_name_country" AS "geo_loc_name_host_origin_geo_loc_name_country",
+  "public"."hosts"."host_origin_geo_loc_name_country" AS "host_origin_geo_loc_name_country",
   "Host Common Names"."id" AS "Host Common Names__id",
   "Host Common Names"."host_common_name" AS "Host Common Names__host_common_name",
   "Host Scientific Names"."id" AS "Host Scientific Names__id",
@@ -588,6 +596,8 @@ SELECT
 LEFT JOIN "public"."host_common_names" AS "Host Common Names" ON "public"."hosts"."host_common_name" = "Host Common Names"."id"
   LEFT JOIN "public"."host_scientific_names" AS "Host Scientific Names" ON "public"."hosts"."host_scientific_name" = "Host Scientific Names"."id"
   LEFT JOIN "public"."host_food_production_names" AS "Host Food Production Names" ON "public"."hosts"."host_food_production_name" = "Host Food Production Names"."id"
+  LEFT JOIN "public"."host_breeds" AS "Host Breeds" ON "public"."hosts"."host_breed" = "Host Breeds"."id"
+  LEFT JOIN "public"."host_diseases" AS "Host Diseases" ON "public"."hosts"."host_disease" = "Host Diseases"."id"
   LEFT JOIN "public"."host_age_bin" AS "Host Age Bin" ON "public"."hosts"."host_age_bin" = "Host Age Bin"."id"
 ;
 --isolate fields
@@ -699,7 +709,8 @@ CREATE TABLE SEQUENCING_INSTRUMENTS (
     DESCRIPTION TEXT
 );
 CREATE TABLE SEQUENCING (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
     LIBRARY_ID TEXT,
     CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
@@ -728,6 +739,7 @@ CREATE VIEW combined_sequence_table AS
 SELECT
   "public"."sequencing"."id" AS "id",
   "public"."sequencing"."isolate_id" AS "isolate_id",
+  "public"."sequencing"."sample_id" AS "sample_id",
   "public"."sequencing"."library_id" AS "library_id",
   "public"."sequencing"."contact_information" AS "contact_information",
   "public"."sequencing"."sequenced_by" AS "sequenced_by",
@@ -782,6 +794,7 @@ CREATE TABLE ATTRIBUTE_PACKAGES (
 CREATE TABLE PUBLIC_REPOSITORY_INFORMATION (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
     CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     SEQUENCE_SUBMITED_BY INTEGER REFERENCES AGENCIES(id),
     PUBLICATION_ID TEXT,
@@ -800,6 +813,7 @@ CREATE VIEW combined_public_repository_table AS
 SELECT
   "public"."public_repository_information"."id" AS "id",
   "public"."public_repository_information"."isolate_id" AS "isolate_id",
+  "public"."public_repository_information"."sample_id" AS "sample_id",
   "public"."public_repository_information"."contact_information" AS "contact_information",
   "public"."public_repository_information"."sequence_submited_by" AS "sequence_submited_by",
   "public"."public_repository_information"."publication_id" AS "publication_id",
@@ -847,6 +861,7 @@ CREATE TABLE PREVALENCE_METRICS (
 CREATE TABLE RISK_ASSESSMENT (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
     SEQUENCE_ID TEXT,
     PREVALENCE_METRICS INTEGER REFERENCES PREVALENCE_METRICS(id),
     PREVALENCE_METRICS_DETAILS TEXT,
@@ -865,6 +880,7 @@ CREATE VIEW combined_risk_assessment AS
 SELECT
   "public"."risk_assessment"."id" AS "id",
   "public"."risk_assessment"."isolate_id" AS "isolate_id",
+  "public"."risk_assessment"."sample_id" AS "sample_id",
   "public"."risk_assessment"."sequence_id" AS "sequence_id",
   "public"."risk_assessment"."prevalence_metrics" AS "prevalence_metrics",
   "public"."risk_assessment"."prevalence_metrics_details" AS "prevalence_metrics_details",
@@ -1077,6 +1093,7 @@ LEFT JOIN "public"."antimicrobial_phenotypes" AS "Antimicrobial Phenotypes" ON "
 
 CREATE TABLE AMR_GENES_PROFILES(
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
     CUT_OFF TEXT,
     BEST_HIT_ARO TEXT,
