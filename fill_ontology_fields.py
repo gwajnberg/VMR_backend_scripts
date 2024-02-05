@@ -133,5 +133,5 @@ def fill_ontology_fields(conn,cursor,xls):
              
 
 
-    sys.exit()
+    #sys.exit()
 

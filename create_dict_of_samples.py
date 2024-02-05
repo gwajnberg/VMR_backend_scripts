@@ -308,6 +308,9 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
             if(not sheet_from_array.empty):
                 
                 for index, row in sheet_from_array.iterrows():
+                    #print(index, "number row")
+                    #print(row.index)
+                    #sys.exit()
                     for i in row.index:
                         if (row[i] != 0 and not isNaN(row[i]) and row[i] ):
                             key = i.strip()
@@ -363,7 +366,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 
                                 if "terms" in ontology_terms_and_values[key2].keys():
                                     if key2 in terms_accepting_multiple_values:
-                                        for index,cell_sub in enumerate(cell):
+                                        for index3,cell_sub in enumerate(cell):
                                             flag = 0;
                                             pseudoid=""
                                             if(":" in cell_sub and "[" not in cell_sub):
@@ -385,7 +388,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                                         # print(cell,keyI)
                                                             flag+=1;
                                                         #    print(item[keyI])
-                                                            cell[index]=item[keyI]["term"]+"//"+item[keyI]["term_id"]
+                                                            cell[index3]=item[keyI]["term"]+"//"+item[keyI]["term_id"]
                                                             #print("added //",cell)
                                                             #sys.exit()
                                             
@@ -409,7 +412,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                                         new_ont_terms[key2]['terms'].append({cell_sub+"//"+pseudoid:{'term': cell_sub, 'term_id': pseudoid}})
                                                         #print(cell,ontology_terms_and_values[key])
                                                         
-                                                        cell[index]=cell_sub+"//"+pseudoid
+                                                        cell[index3]=cell_sub+"//"+pseudoid
                                     else:
                                         flag = 0;
                                         pseudoid=""
@@ -469,6 +472,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                       #          print(cell)
                                 temp_dict[key]=cell    
                     #checking duplications
+                    
                     flag_dup =0
                     if index_sheet == 0:
                        # print ("checando...")
@@ -480,7 +484,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 flag_dup =1
                        # print("come on:",flag_dup)
                         if (flag_dup == 0 ):
-                           # print ("chegou aqui")
+                            #print ("chegou aqui",index)
                             dict_terms_file['sample'][index]=temp_dict
                             dict_terms_file['host'][index]=temp_dict
                     elif index_sheet == 1:
@@ -551,6 +555,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
   #                      print (dict_terms_file)
   #                      sys.exit()
                     temp_dict ={}
+ 
                             
                 
             
@@ -566,6 +571,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
     #print(dict_terms_file)
     #sys.exit()
     #print (sample_flagged_list)
+    #print(dict_terms_file['sample'])
+    #sys.exit()
     
     return(dict_terms_file,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list)
 

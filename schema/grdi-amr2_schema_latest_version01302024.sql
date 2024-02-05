@@ -708,6 +708,10 @@ CREATE TABLE SEQUENCING_INSTRUMENTS (
     ONTOLOGY_ID TEXT,
     DESCRIPTION TEXT
 );
+CREATE TABLE ASSEMBLY_FILENAMES(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    ASSEMBLY_FILENAME TEXT
+);
 CREATE TABLE SEQUENCING (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
@@ -723,7 +727,7 @@ CREATE TABLE SEQUENCING (
     R1_FASTQ_FILENAME TEXT,
     R2_FASTQ_FILENAME TEXT,
     FAST5_FILENAME TEXT,
-    ASSEMBLY_FILENAME TEXT
+    ASSEMBLY_FILENAME INTEGER REFERENCES ASSEMBLY_FILENAMES(id)
     
 
 
@@ -781,6 +785,7 @@ LEFT JOIN "public"."contact_information" AS "Contact Information" ON "public"."s
   LEFT JOIN "public"."sequencing_platforms" AS "Sequencing Platforms" ON "public"."sequencing"."sequencing_platform" = "Sequencing Platforms"."id"
   LEFT JOIN "public"."agencies" AS "Agencies - Sequenced By" ON "public"."sequencing"."sequenced_by" = "Agencies - Sequenced By"."id"
   LEFT JOIN "public"."sequencing_purpose" AS "Sequencing Purpose" ON "public"."sequencing"."id" = "Sequencing Purpose"."sequencing_id"
+  LEFT JOIN "public"."assembly_filenames" AS "Assembly Filenames" ON "public"."sequencing"."assembly_filename" = "Assembly Filenames"."id"
   LEFT JOIN "public"."purposes" AS "Purposes - Purpose Of Sequencing" ON "Sequencing Purpose"."purpose_of_sequencing" = "Purposes - Purpose Of Sequencing"."id"
   LEFT JOIN "public"."sequencing_instruments" AS "Sequencing Instruments" ON "public"."sequencing"."sequencing_instrument" = "Sequencing Instruments"."id"
 ;
@@ -796,7 +801,7 @@ CREATE TABLE PUBLIC_REPOSITORY_INFORMATION (
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
     SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
     CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
-    SEQUENCE_SUBMITED_BY INTEGER REFERENCES AGENCIES(id),
+    SEQUENCE_SUBMITTED_BY INTEGER REFERENCES AGENCIES(id),
     PUBLICATION_ID TEXT,
     BIOPROJECT_ACCESSION TEXT,
     BIOSAMPLE_ACCESSION TEXT,
@@ -815,7 +820,7 @@ SELECT
   "public"."public_repository_information"."isolate_id" AS "isolate_id",
   "public"."public_repository_information"."sample_id" AS "sample_id",
   "public"."public_repository_information"."contact_information" AS "contact_information",
-  "public"."public_repository_information"."sequence_submited_by" AS "sequence_submited_by",
+  "public"."public_repository_information"."sequence_submitted_by" AS "sequence_submitted_by",
   "public"."public_repository_information"."publication_id" AS "publication_id",
   "public"."public_repository_information"."bioproject_accession" AS "bioproject_accession",
   "public"."public_repository_information"."biosample_accession" AS "biosample_accession",
@@ -826,10 +831,10 @@ SELECT
   "Contact Information"."laboratory_name" AS "Contact Information__laboratory_name",
   "Contact Information"."contact_name" AS "Contact Information__contact_name",
   "Contact Information"."contact_email" AS "Contact Information__contact_email",
-  "Agencies - Sequence Submited By"."id" AS "Agencies - Sequence Submited By__id",
-  "Agencies - Sequence Submited By"."agency" AS "Agencies - Sequence Submited By__agency",
-  "Agencies - Sequence Submited By"."ontology_id" AS "Agencies - Sequence Submited By__ontology_id",
-  "Agencies - Sequence Submited By"."description" AS "Agencies - Sequence Submited By__description",
+  "Agencies - Sequence Submitted By"."id" AS "Agencies - Sequence Submitted By__id",
+  "Agencies - Sequence Submitted By"."agency" AS "Agencies - Sequence Submitted By__agency",
+  "Agencies - Sequence Submitted By"."ontology_id" AS "Agencies - Sequence Submitted By__ontology_id",
+  "Agencies - Sequence Submitted By"."description" AS "Agencies - Sequence Submitted By__description",
   "Attribute Packages"."id" AS "Attribute Packages__id",
   "Attribute Packages"."attribute_package" AS "Attribute Packages__attribute_package"
   
@@ -837,7 +842,7 @@ FROM
   "public"."public_repository_information"
  
 LEFT JOIN "public"."contact_information" AS "Contact Information" ON "public"."public_repository_information"."contact_information" = "Contact Information"."id"
-  LEFT JOIN "public"."agencies" AS "Agencies - Sequence Submited By" ON "public"."public_repository_information"."sequence_submited_by" = "Agencies - Sequence Submited By"."id"
+  LEFT JOIN "public"."agencies" AS "Agencies - Sequence Submitted By" ON "public"."public_repository_information"."sequence_submitted_by" = "Agencies - Sequence Submitted By"."id"
   LEFT JOIN "public"."attribute_packages" AS "Attribute Packages" ON "public"."public_repository_information"."attribute_package" = "Attribute Packages"."id"
 ;
 
@@ -907,7 +912,7 @@ LEFT JOIN "public"."prevalence_metrics" AS "Prevalence Metrics" ON "public"."ris
 CREATE TABLE AMR_INFO(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
-    AMR_TESTED_BY INTEGER REFERENCES AGENCIES(id),
+    AMR_TESTING_BY INTEGER REFERENCES AGENCIES(id),
     CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     AMR_TESTING_DATE DATE
 
@@ -920,21 +925,21 @@ CREATE VIEW combined_amr_info AS
 SELECT
   "public"."amr_info"."id" AS "id",
   "public"."amr_info"."isolate_id" AS "isolate_id",
-  "public"."amr_info"."amr_tested_by" AS "amr_tested_by",
+  "public"."amr_info"."amr_testing_by" AS "amr_testing_by",
   "public"."amr_info"."contact_information" AS "contact_information",
   "public"."amr_info"."amr_testing_date" AS "amr_testing_date",
   "Contact Information - Contact Information"."id" AS "Contact Information -Contact Information__id",
   "Contact Information - Contact Information"."laboratory_name" AS "Contact Information - Contact Information__laboratory_name",
   "Contact Information - Contact Information"."contact_name" AS "Contact Information - Contact Information__contact_name",
   "Contact Information - Contact Information"."contact_email" AS "Contact Information - Contact Information__contact_email",
-  "Agencies - Amr Tested By"."id" AS "Agencies - Amr Tested By__id",
-  "Agencies - Amr Tested By"."agency" AS "Agencies - Amr Tested By__agency"
+  "Agencies - Amr Testing By"."id" AS "Agencies - Amr Testing By__id",
+  "Agencies - Amr Testing By"."agency" AS "Agencies - Amr Testing By__agency"
  
 FROM
   "public"."amr_info"
  
 LEFT JOIN "public"."contact_information" AS "Contact Information - Contact Information" ON "public"."amr_info"."contact_information" = "Contact Information - Contact Information"."id"
-LEFT JOIN "public"."agencies" AS "Agencies - Amr Tested By" ON "public"."amr_info"."amr_tested_by" = "Agencies - Amr Tested By"."id"
+LEFT JOIN "public"."agencies" AS "Agencies - Amr Testing By" ON "public"."amr_info"."amr_testing_by" = "Agencies - Amr Testing By"."id"
 ;
 
 CREATE TABLE MEASUREMENT_UNITS (
