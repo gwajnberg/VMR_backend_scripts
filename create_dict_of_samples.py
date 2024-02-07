@@ -463,9 +463,10 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                             if 'date' in key:
                                 
                                 #print (type(cell))
-                                #print(cell)
-                                currentDateWithoutTime = cell.strftime('%Y-%m-%d')
-                                cell = currentDateWithoutTime
+                               # print(cell, "here?")
+                                if 'precision' not in key:
+                                    currentDateWithoutTime = cell.strftime('%Y-%m-%d')
+                                    cell = currentDateWithoutTime
                                 #print('after',cell)
                             
                             if flag_to_discard == 0:
@@ -537,7 +538,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                         subflag_dup =0
                         index_save = "y"
                         for index2 in dict_terms_file['risk']:
-                            if dict_terms_file['risk'][index2]['isolate_ID'] == temp_dict['isolate_ID'] :
+                            if dict_terms_file['risk'][index2]['sample_collector_sample_ID'] == temp_dict['sample_collector_sample_ID'] :
                                 for keys_temp in temp_dict:
                                     if temp_dict[keys_temp] != dict_terms_file['risk'][index2][keys_temp]:
                                         subflag_dup = 1

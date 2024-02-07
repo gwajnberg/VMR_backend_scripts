@@ -954,12 +954,7 @@ CREATE TABLE MEASUREMENT_SIGN (
     ONTOLOGY_ID TEXT,
     DESCRIPTION TEXT
 );
-CREATE TABLE MEASUREMENT_DATA (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    MEASUREMENT FLOAT(4),
-    MEASUREMENT_UNITS INTEGER REFERENCES MEASUREMENT_UNITS(id),
-    MEASUREMENT_SIGN INTEGER REFERENCES MEASUREMENT_SIGN(id) 
-);
+
 
 CREATE TABLE LABORATORY_TYPING_METHODS (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
@@ -979,34 +974,17 @@ CREATE TABLE VENDOR_NAMES (
     ONTOLOGY_ID TEXT,
     DESCRIPTION TEXT
 );
-CREATE TABLE LABORATORY_TYPING_DATA (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    LABORATORY_TYPING_METHOD INTEGER REFERENCES LABORATORY_TYPING_METHODS(id),
-    LABORATORY_TYPING_PLATFORM INTEGER REFERENCES LABORATORY_TYPING_PLATFORMS(id),
-    LABORATORY_TYPING_PLATFORM_VERSION TEXT,
-    VENDOR_NAME INTEGER REFERENCES VENDOR_NAMES(id) 
-);
+ 
+
 CREATE TABLE TESTING_STANDARD (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     TESTING_STANDARD TEXT NOT NULL,
     ONTOLOGY_ID TEXT,
     DESCRIPTION TEXT
 );
-CREATE TABLE TESTING_STANDARD_DATA (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    TESTING_STANDARD INTEGER REFERENCES TESTING_STANDARD(id),
-    TESTING_STANDARD_VERSION TEXT,
-    TESTING_STANDARD_DETAILS TEXT
-    
-);
 
-CREATE TABLE TESTING_BREAKPOINT_DATA (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    TESTING_SUSCEPTIBLE_BREAKPOINT FLOAT(4),
-    TESTING_INTERMEDIATE_BREAKPOINT FLOAT(4),
-    TESTING_RESISTANCE_BREAKPOINT FLOAT(4)
-    
-);
+
+
 CREATE TABLE ANTIMICROBIAL_AGENTS (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     ANTIMICROBIAL_AGENT TEXT NOT NULL,
@@ -1024,10 +1002,20 @@ CREATE TABLE AMR_ANTIBIOTICS_PROFILE(
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
     ANTIMICROBIAL_AGENT INTEGER REFERENCES ANTIMICROBIAL_AGENTS(id),
     ANTIMICROBIAL_PHENOTYPE INTEGER REFERENCES ANTIMICROBIAL_PHENOTYPES(id),
-    MEASUREMENT_DATA INTEGER REFERENCES MEASUREMENT_DATA(id),
-    LABORATORY_TYPING_DATA INTEGER REFERENCES LABORATORY_TYPING_DATA(id),
-    TESTING_STANDARD_DATA INTEGER REFERENCES TESTING_STANDARD_DATA(id),
-    TESTING_BREAKPOINT_DATA INTEGER REFERENCES TESTING_BREAKPOINT_DATA(id)
+    MEASUREMENT FLOAT(4),
+    MEASUREMENT_UNITS INTEGER REFERENCES MEASUREMENT_UNITS(id),
+    MEASUREMENT_SIGN INTEGER REFERENCES MEASUREMENT_SIGN(id),
+    LABORATORY_TYPING_METHOD INTEGER REFERENCES LABORATORY_TYPING_METHODS(id),
+    LABORATORY_TYPING_PLATFORM INTEGER REFERENCES LABORATORY_TYPING_PLATFORMS(id),
+    LABORATORY_TYPING_PLATFORM_VERSION TEXT,
+    TESTING_SUSCEPTIBLE_BREAKPOINT FLOAT(4),
+    TESTING_INTERMEDIATE_BREAKPOINT FLOAT(4),
+    TESTING_RESISTANCE_BREAKPOINT FLOAT(4),
+    TESTING_STANDARD INTEGER REFERENCES TESTING_STANDARD(id),
+    TESTING_STANDARD_VERSION TEXT,
+    TESTING_STANDARD_DETAILS TEXT,
+    VENDOR_NAME INTEGER REFERENCES VENDOR_NAMES(id)  
+    
     
 
 );
@@ -1038,39 +1026,31 @@ SELECT
   "public"."amr_antibiotics_profile"."isolate_id" AS "isolate_id",
   "public"."amr_antibiotics_profile"."antimicrobial_agent" AS "antimicrobial_agent",
   "public"."amr_antibiotics_profile"."antimicrobial_phenotype" AS "antimicrobial_phenotype",
-  "public"."amr_antibiotics_profile"."measurement_data" AS "measurement_data",
-  "public"."amr_antibiotics_profile"."laboratory_typing_data" AS "laboratory_typing_data",
-  "public"."amr_antibiotics_profile"."testing_standard_data" AS "testing_standard_data",
-  "public"."amr_antibiotics_profile"."testing_breakpoint_data" AS "testing_breakpoint_data",
+  "public"."amr_antibiotics_profile"."measurement" AS "measurement",
+  "public"."amr_antibiotics_profile"."measurement_units" AS "measurement_units",
+  "public"."amr_antibiotics_profile"."measurement_sign" AS "measurement_sign",
+  "public"."amr_antibiotics_profile"."laboratory_typing_method" AS "laboratory_typing_method",
+   "public"."amr_antibiotics_profile"."laboratory_typing_platform" AS "laboratory_typing_platform",
+   "public"."amr_antibiotics_profile"."laboratory_typing_platform_version" AS "laboratory_typing_platform_version",
+   "public"."amr_antibiotics_profile"."vendor_name" AS "vendor_name",
+  "public"."amr_antibiotics_profile"."testing_standard" AS "testing_standard",
+  "Testing Standard"."id" AS "Testing Standard__id",
+  "Testing Standard"."testing_standard" AS "Testing Standard__testing_standard",
+  "public"."amr_antibiotics_profile"."testing_standard_version" AS "testing_standard_version",
+  "public"."amr_antibiotics_profile"."testing_standard_details" AS "testing_standard_details",
+  "public"."amr_antibiotics_profile"."testing_susceptible_breakpoint" AS "testing_susceptible_breakpoint",
+  "public"."amr_antibiotics_profile"."testing_intermediate_breakpoint" AS "testing_intermediate_breakpoint",
+  "public"."amr_antibiotics_profile"."testing_resistance_breakpoint" AS "testing_resistance_breakpoint",
   "Antimicrobial Phenotypes"."id" AS "Antimicrobial Phenotypes__id",
   "Antimicrobial Phenotypes"."antimicrobial_phenotype" AS "Antimicrobial Phenotypes__antimicrobial_phenotype",
   "Antimicrobial Agents"."id" AS "Antimicrobial Agents__id",
   "Antimicrobial Agents"."antimicrobial_agent" AS "Antimicrobial Agents__antimicrobial_agent",
-  "Testing Breakpoint Data"."id" AS "Testing Breakpoint Data__id",
-  "Testing Breakpoint Data"."testing_susceptible_breakpoint" AS "Testing Breakpoint Data__testing_susceptible_breakpoint",
-  "Testing Breakpoint Data"."testing_intermediate_breakpoint" AS "Testing Breakpoint Data__testing_intermediate_breakpoint",
-  "Testing Breakpoint Data"."testing_resistance_breakpoint" AS "Testing Breakpoint Data__testing_resistance_breakpoint",
-  "Testing Standard Data"."id" AS "Testing Standard Data__id",
-  "Testing Standard Data"."testing_standard" AS "Testing Standard Data__testing_standard",
-  "Testing Standard Data"."testing_standard_version" AS "Testing Standard Data__testing_standard_version",
-  "Testing Standard Data"."testing_standard_details" AS "Testing Standard Data__testing_standard_details",
-  "Testing Standard"."id" AS "Testing Standard__id",
-  "Testing Standard"."testing_standard" AS "Testing Standard__testing_standard",
-    "Laboratory Typing Data"."id" AS "Laboratory Typing Data__id",
-  "Laboratory Typing Data"."laboratory_typing_method" AS "Laboratory Typing Data__laboratory_typing_method",
-  "Laboratory Typing Data"."laboratory_typing_platform" AS "Laboratory Typing Data__laboratory_typing_platform",
-  "Laboratory Typing Data"."laboratory_typing_platform_version" AS "Laboratory Typing Data__laboratory_typing_platform_version",
-  "Laboratory Typing Data"."vendor_name" AS "Laboratory Typing Data__vendor_name",
   "Laboratory Typing Methods"."id" AS "Laboratory Typing Methods__id",
   "Laboratory Typing Methods"."laboratory_typing_method" AS "Laboratory Typing Method__laboratory_typing_method",
-    "Laboratory Typing Platforms"."id" AS "Laboratory Typing Platforms__id",
+  "Laboratory Typing Platforms"."id" AS "Laboratory Typing Platforms__id",
   "Laboratory Typing Platforms"."laboratory_typing_platform" AS "Laboratory Typing Platforms__laboratory_typing_platform",
     "Vendor Names"."id" AS "Vendor Names__id",
   "Vendor Names"."vendor_name" AS "Vendor Names__vendor_name",
-    "Measurement Data"."id" AS "Measurement Data__id",
-  "Measurement Data"."measurement" AS "Measurement Data__measurement",
-  "Measurement Data"."measurement_units" AS "Measurement Data__measurement_units",
-  "Measurement Data"."measurement_sign" AS "Measurement Data__measurement_sign",
   "Measurement Sign"."id" AS "Measurement Sign__id",
   "Measurement Sign"."measurement_sign" AS "Measurement Sign__measurement_sign",
    "Measurement Units"."id" AS "Measurement Units__id",
@@ -1081,16 +1061,12 @@ FROM
  
 LEFT JOIN "public"."antimicrobial_phenotypes" AS "Antimicrobial Phenotypes" ON "public"."amr_antibiotics_profile"."antimicrobial_phenotype" = "Antimicrobial Phenotypes"."id"
   LEFT JOIN "public"."antimicrobial_agents" AS "Antimicrobial Agents" ON "public"."amr_antibiotics_profile"."antimicrobial_agent" = "Antimicrobial Agents"."id"
-  LEFT JOIN "public"."testing_breakpoint_data" AS "Testing Breakpoint Data" ON "public"."amr_antibiotics_profile"."testing_breakpoint_data" = "Testing Breakpoint Data"."id"
-  LEFT JOIN "public"."testing_standard_data" AS "Testing Standard Data" ON "public"."amr_antibiotics_profile"."testing_standard_data" = "Testing Standard Data"."id"
-  LEFT JOIN "public"."testing_standard" AS "Testing Standard" ON "Testing Standard Data"."testing_standard" = "Testing Standard"."id"
-  LEFT JOIN "public"."laboratory_typing_data" AS "Laboratory Typing Data" ON "public"."amr_antibiotics_profile"."laboratory_typing_data" = "Laboratory Typing Data"."id"
-  LEFT JOIN "public"."laboratory_typing_methods" AS "Laboratory Typing Methods" ON "Laboratory Typing Data"."laboratory_typing_method" = "Laboratory Typing Methods"."id"
-  LEFT JOIN "public"."laboratory_typing_platforms" AS "Laboratory Typing Platforms" ON "Laboratory Typing Data"."laboratory_typing_platform" = "Laboratory Typing Platforms"."id"
-  LEFT JOIN "public"."vendor_names" AS "Vendor Names" ON "Laboratory Typing Data"."vendor_name" = "Vendor Names"."id"
-  LEFT JOIN "public"."measurement_data" AS "Measurement Data" ON "public"."amr_antibiotics_profile"."measurement_data" = "Measurement Data"."id"
-  LEFT JOIN "public"."measurement_sign" AS "Measurement Sign" ON "Measurement Data"."measurement_sign" = "Measurement Sign"."id"
-  LEFT JOIN "public"."measurement_units" AS "Measurement Units" ON "Measurement Data"."measurement_units" = "Measurement Units"."id"
+  LEFT JOIN "public"."testing_standard" AS "Testing Standard" ON "public"."amr_antibiotics_profile"."testing_standard" = "Testing Standard"."id"
+  LEFT JOIN "public"."laboratory_typing_methods" AS "Laboratory Typing Methods" ON "public"."amr_antibiotics_profile"."laboratory_typing_method" = "Laboratory Typing Methods"."id"
+  LEFT JOIN "public"."laboratory_typing_platforms" AS "Laboratory Typing Platforms" ON "public"."amr_antibiotics_profile"."laboratory_typing_platform" = "Laboratory Typing Platforms"."id"
+  LEFT JOIN "public"."vendor_names" AS "Vendor Names" ON "public"."amr_antibiotics_profile"."vendor_name" = "Vendor Names"."id"
+  LEFT JOIN "public"."measurement_sign" AS "Measurement Sign" ON "public"."amr_antibiotics_profile"."measurement_sign" = "Measurement Sign"."id"
+  LEFT JOIN "public"."measurement_units" AS "Measurement Units" ON "public"."amr_antibiotics_profile"."measurement_units" = "Measurement Units"."id"
   ;
 
 
