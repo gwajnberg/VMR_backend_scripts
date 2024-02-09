@@ -27,6 +27,23 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         else:
             term= variable
         return (term)
+    def getTermAndId2 (variable):
+        
+        term=""
+        id=""
+        if ("//" in str(variable)):
+            listF = re.split("//",variable)
+            #print(listF.groups()[1])
+            
+            
+            print(listF[0])
+            term = listF[0]
+            id=listF[1]
+        else:
+            term= variable
+            id=None
+
+        return (term,id)
     def columnIns (column_ins,fields,count,length): 
        # print ('before',column_ins)
         column_ins += fields.upper()
@@ -47,6 +64,68 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         #    values += ","
         
         return(value)
+    def check_exists_id(term,field,table):
+        result=""
+        if (isinstance(term, list)):
+         #   print ("here before",term)
+
+            term1 = term[0]
+            
+            
+            term2 = getTermAndId(term[1])
+         #   print ("here ",term1,term2)
+            sql_query = """
+                     SELECT *
+                     FROM """ + table + """ 
+                     WHERE """+field[0]+""" = %s
+                    AND """+field[1]+""" = (SELECT id from """+field[2]+""" where """+field[3].upper()+""" = %s);
+                    """
+         #   print (sql_query,(term1,term2))
+            cursor.execute(sql_query, (term1, term2))
+            result = cursor.fetchall()
+           # print(result,"come on")
+            if (result):
+                result = "yes"
+            else:
+                result = ""
+
+        else:
+            print ("here WRONGbefore")
+
+            term = getTermAndId(term)
+            command = "SELECT id from "+table+" where "+field.upper()+" = %s"
+            print (command,term)
+            cursor.execute(command,(term,))
+            result = cursor.fetchone()
+            print(result,"here")
+            conn.commit()
+        
+        return(result)
+    def check_controlled_term(term,id,table,field):
+        print (term,table,field,id)
+        sql_query = """
+        SELECT id
+        FROM {}
+        WHERE {} = %s
+    """.format(table, field.upper())
+
+        print(sql_query, (term))  # Print the query and parameters for debugging
+        cursor.execute(sql_query, (term,))
+        result = cursor.fetchone()
+        #print (result[0],id)
+        if not result:
+            print ("Here not result")
+            sql = "INSERT INTO "+str(table.upper())+"("+str(field.upper())+",ONTOLOGY_ID,DESCRIPTION) VALUES (%s,%s,%s)"
+            description = "Term still not in the vocabulary, added temporary untill solving the problem"
+            print(sql,(term,id,description))
+            cursor.execute(sql,(term,id,description))
+            conn.commit()
+        else:
+            print (result)
+        if (term == "Midwest"):
+            sys.exit()
+
+
     def create_insert (row,fields,controlled_fields,table_name,length):
         print (fields,controlled_fields)
         #AMR_aid =create_insert(dict_of_samples['AMR'][index],AMR_afields,AMR_acontrolled,"amr_antibiotics_profile",len(AMR_afields))
@@ -59,8 +138,8 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             if field in row.keys():
                 #print (field)
                 
-                terms = getTermAndId(row[field])
-                #print(terms)
+                terms,id = getTermAndId2(row[field])
+                print('here passed',terms,id)
               
                 #field = fix(field)
                # print(fields)
@@ -70,6 +149,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                     if field in controlled_fields.keys():
                         
                         list_terms.append(terms)
+                        check_controlled_term(terms,id,controlled_fields[field][0],controlled_fields[field][1])
                         values += "(SELECT id from "+controlled_fields[field][0]+" where "+controlled_fields[field][1].upper()+" = %s)"
                         if (count +1 != length):
                             values += ","
@@ -122,43 +202,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             last_created_id = cursor.fetchone()
             conn.commit()
         return(last_created_id)
-    def check_exists_id(term,field,table):
-        result=""
-        if (isinstance(term, list)):
-         #   print ("here before",term)
-
-            term1 = term[0]
-            
-            
-            term2 = getTermAndId(term[1])
-         #   print ("here ",term1,term2)
-            sql_query = """
-                     SELECT *
-                     FROM """ + table + """ 
-                     WHERE """+field[0]+""" = %s
-                    AND """+field[1]+""" = (SELECT id from """+field[2]+""" where """+field[3].upper()+""" = %s);
-                    """
-         #   print (sql_query,(term1,term2))
-            cursor.execute(sql_query, (term1, term2))
-            result = cursor.fetchall()
-           # print(result,"come on")
-            if (result):
-                result = "yes"
-            else:
-                result = ""
-
-        else:
-            print ("here WRONGbefore")
-
-            term = getTermAndId(term)
-            command = "SELECT id from "+table+" where "+field.upper()+" = %s"
-            print (command,term)
-            cursor.execute(command,(term,))
-            result = cursor.fetchone()
-            print(result,"here")
-            conn.commit()
-        
-        return(result)
+    
     def multi (row,sfield,parent_field,parent_id,tfield,table_field,table_multi):
        if sfield in row.keys():
             terms = row[sfield]
@@ -198,6 +242,8 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             sample_id = sample_id
         sample_id = sample_id[0]
         dict_of_samples['sample'][index]["sample_id"] = sample_id
+        #print ( 'inicio',sample_id,dict_of_samples['sample'][index]["sample_id"])
+        #sys.exit()
        # sample_table_id =create_insert(dict_of_samples['sample'][index],{"sample_collector_contact_name":"contact_name","sample_collected_by_laboratory_name":"laboratory_name","sample_collector_contact_email":"contact_email"},"","contact_information",3)
         print ("here samples")
         #sys.exit()
@@ -244,18 +290,19 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             if not contact_info_id:
                 print ("doesnt exists")
                 contact_info_id =create_insert(dict_of_samples['sample'][index],{"sample_collector_contact_name":"contact_name","sample_collected_by_laboratory_name":"laboratory_name","sample_collector_contact_email":"contact_email"},"","contact_information",3)
+                #contact_info_id = contact_info_id[0]
             else:
                 print (contact_info_id,"exists")
                 
             contact_info_id = contact_info_id[0]
             
-            
+           
         if contact_info_id:
             dict_of_samples['sample'][index]["contact_information"] = contact_info_id
         else:
             dict_of_samples['sample'][index]["contact_information"] = None
         #    print (contact_info_id, " contact info")
-        
+        print ("testing", sample_id,dict_of_samples['sample'][index]["sample_id"],dict_of_samples['sample'][index]["contact_information"] ) 
         collection_fields = {"sample_id":"sample_id","sample_collected_by":"sample_collected_by","contact_information":"contact_information","sample_collection_project_name":"sample_collection_project_name",
  "sample_collection_date":"sample_collection_date","sample_collection_date_precision":"sample_collection_date_precision",  "presampling_activity_details":"presampling_activity_details",
  "sample_received_date":"sample_received_date","original_sample_description":"original_sample_description","specimen_processing":"specimen_processing","sample_storage_method":"sample_storage_method","sample_storage_medium":"sample_storage_medium",
@@ -616,7 +663,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                 print (purpose_of_sequencing_id,"exists")
         
 
-        for index in dict_of_samples['publicRep']:
+    for index in dict_of_samples['publicRep']:
             sample_id = check_exists_id(dict_of_samples['publicRep'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
             sample_id = sample_id[0]
             dict_of_samples['publicRep'][index]["sample_id"] = sample_id
@@ -653,14 +700,13 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             publicRep_controlled = {"sequence_submitted_by":["agencies","agency"],"attribute_package":["attribute_packages","attribute_package"]}  
             publicRep_id = check_exists_id(dict_of_samples['publicRep'][index]["sample_id"],"sample_id","public_repository_information")
             if not publicRep_id:
-                    print ("doesnt exists")
-                    publicRep_id =create_insert(dict_of_samples['publicRep'][index],publicRep_fields,publicRep_controlled,"public_repository_information",len(publicRep_fields))
+                print ("doesnt exists")
+                publicRep_id =create_insert(dict_of_samples['publicRep'][index],publicRep_fields,publicRep_controlled,"public_repository_information",len(publicRep_fields))
             else:
-                    print (publicRep_id,"exists")
+                print (publicRep_id,"exists")
            
 
-        """
-        CREATE TABLE RISK_ASSESSMENT (
+    """    CREATE TABLE RISK_ASSESSMENT (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
     SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
@@ -676,9 +722,10 @@ CREATE TABLE RISK_ACTIVITY(
     RISK_ID integer REFERENCES RISK_ASSESSMENT(id),
     EXPERIMENTAL_INTERVENTION integer REFERENCES ACTIVITIES(id),
     CONSTRAINT Risk_ExperimentalIntervation_pk PRIMARY KEY (RISK_ID, EXPERIMENTAL_INTERVENTION)
-);
-        """
-        for index in dict_of_samples['risk']:
+);"""
+
+     
+    for index in dict_of_samples['risk']:
             print("died risk")
             sample_id = check_exists_id(dict_of_samples['risk'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
             sample_id = sample_id[0]
@@ -719,7 +766,9 @@ CREATE TABLE RISK_ACTIVITY(
         
         #print(dict_of_samples['AMR'][0])
         
-        for index in dict_of_samples['AMR']:
+       # print (len(dict_of_samples['AMR']),"tamanho total")
+        #sys.exit()
+    for index in dict_of_samples['AMR']:
             #if dict_of_samples['AMR'][index]["isolate_ID"] == "CJ-MBS0172R":
 
 
@@ -769,11 +818,14 @@ CREATE TABLE RISK_ACTIVITY(
                     print (AMR_id,"exists")
             
             #amr_antibiotics_terms=['resistance_phenotype','measurement','measurement_units','measurement_sign','laboratory_typing_method','laboratory_typing_platform','laboratory_typing_platform_version','vendor_name','testing_standard','testing_standard_version','testing_standard_details','testing_susceptible_breakpoint','testing_intermediate_breakpoint','testing_resistance_breakpoint']
+           # print(dict_of_samples['AMR'][index])
+            #print(antimicrobian_agent_names_ids)
+            #sys.exit()
             for antibiotics in antimicrobian_agent_names_ids:
                 res = [val for key, val in dict_of_samples['AMR'][index].items() if antibiotics in key]
 
                 if (res):
-                    print(res)
+                    print(antibiotics,res)
                     #print(dict_of_samples['AMR'][index])
                     #sys.exit()
                     """
@@ -800,40 +852,39 @@ CREATE TABLE RISK_ACTIVITY(
 
 );
                     """
-                    print(dict_of_samples['AMR'][index])
-                    print(antibiotics)
                     
-                    dict_of_samples['AMR'][index]['antimicrobial_agent']= antibiotics
                     
-                    AMR_afields = ""
-                    AMR_acontrolled =""
+            dict_of_samples['AMR'][index]['antimicrobial_agent']= antibiotics.capitalize()
+                    
+            AMR_afields = ""
+            AMR_acontrolled =""
 
-                    if "AMR_measurement_units" in dict_of_samples['AMR'][index] or "AMR_laboratory_typing_platform" in dict_of_samples['AMR'][index]:                                                                                                                               
-                        AMR_afields = {"isolate_id":"isolate_id","antimicrobial_agent":"antimicrobial_agent",antibiotics+"_resistance_phenotype":"antimicrobial_phenotype",antibiotics+"_measurement":"measurement","AMR_measurement_units":"measurement_units",antibiotics+'_measurement_sign':"measurement_sign",'AMR_laboratory_typing_method':"laboratory_typing_method",
+            if "AMR_measurement_units" in dict_of_samples['AMR'][index] or "AMR_laboratory_typing_platform" in dict_of_samples['AMR'][index]:                                                                                                                               
+                AMR_afields = {"isolate_id":"isolate_id","antimicrobial_agent":"antimicrobial_agent",antibiotics+"_resistance_phenotype":"antimicrobial_phenotype",antibiotics+"_measurement":"measurement","AMR_measurement_units":"measurement_units",antibiotics+'_measurement_sign':"measurement_sign",'AMR_laboratory_typing_method':"laboratory_typing_method",
                                     'AMR_laboratory_typing_platform': "laboratory_typing_platform",'AMR_laboratory_typing_platform_version': "laboratory_typing_platform_version",antibiotics+'_vendor_name':"vendor_name",antibiotics+'_testing_standard':'testing_standard',antibiotics+'_testing_standard_version':'testing_standard_version',antibiotics+'_testing_standard_details':'testing_standard_details'
                                     ,antibiotics+'_testing_susceptible_breakpoint':'testing_susceptible_breakpoint',antibiotics+'_testing_intermediate_breakpoint':'testing_intermediate_breakpoint',antibiotics+'_testing_resistance_breakpoint':'testing_resistance_breakpoint'}
-                        AMR_acontrolled = {"antimicrobial_agent":["antimicrobial_agents","antimicrobial_agent"],antibiotics+"_resistance_phenotype":["antimicrobial_phenotypes","antimicrobial_phenotype"],"AMR_measurement_units":["measurement_units","measurement_units"],antibiotics+'_measurement_sign':["measurement_sign","measurement_sign"],'AMR_laboratory_typing_method':["laboratory_typing_methods","laboratory_typing_method"],
+                AMR_acontrolled = {"antimicrobial_agent":["antimicrobial_agents","antimicrobial_agent"],antibiotics+"_resistance_phenotype":["antimicrobial_phenotypes","antimicrobial_phenotype"],"AMR_measurement_units":["measurement_units","measurement_units"],antibiotics+'_measurement_sign':["measurement_sign","measurement_sign"],'AMR_laboratory_typing_method':["laboratory_typing_methods","laboratory_typing_method"],
                                         'AMR_laboratory_typing_platform':["laboratory_typing_platforms","laboratory_typing_platform"], antibiotics+'_testing_standard':["testing_standard","testing_standard"],antibiotics+'_vendor_name':["vendor_names","vendor_name"]}  
-                    else:
-                        AMR_afields = {"isolate_id":"isolate_id","antimicrobial_agent":"antimicrobial_agent",antibiotics+"_resistance_phenotype":"antimicrobial_phenotype",antibiotics+"_measurement":"measurement",antibiotics+"_measurement_units":"measurement_units",antibiotics+'_measurement_sign':"measurement_sign",antibiotics+'_laboratory_typing_method':"laboratory_typing_method",
+            else:
+                AMR_afields = {"isolate_id":"isolate_id","antimicrobial_agent":"antimicrobial_agent",antibiotics+"_resistance_phenotype":"antimicrobial_phenotype",antibiotics+"_measurement":"measurement",antibiotics+"_measurement_units":"measurement_units",antibiotics+'_measurement_sign':"measurement_sign",antibiotics+'_laboratory_typing_method':"laboratory_typing_method",
                                     antibiotics+'_laboratory_typing_platform': "laboratory_typing_platform",antibiotics+'_laboratory_typing_platform_version': "laboratory_typing_platform_version",antibiotics+'_vendor_name':"vendor_name",antibiotics+'_testing_standard':'testing_standard',antibiotics+'_testing_standard_version':'testing_standard_version',antibiotics+'_testing_standard_details':'testing_standard_details'
                                     ,antibiotics+'_testing_susceptible_breakpoint':'testing_susceptible_breakpoint',antibiotics+'_testing_intermediate_breakpoint':'testing_intermediate_breakpoint',antibiotics+'testing_resistance_breakpoint':'testing_resistance_breakpoint'}
-                        AMR_acontrolled = {"antimicrobial_agent":["antimicrobial_agents","antimicrobial_agent"],antibiotics+"_resistance_phetnotype":["antimicrobial_phenotypes","antimicrobial_phenotype"],antibiotics+"_measurement_units":["measurement_units","measurement_units"],antibiotics+'_measurement_sign':["measurement_sign","measurement_sign"],antibiotics+'_laboratory_typing_method':["laboratory_typing_methods","laboratory_typing_method"],
+                AMR_acontrolled = {"antimicrobial_agent":["antimicrobial_agents","antimicrobial_agent"],antibiotics+"_resistance_phetnotype":["antimicrobial_phenotypes","antimicrobial_phenotype"],antibiotics+"_measurement_units":["measurement_units","measurement_units"],antibiotics+'_measurement_sign':["measurement_sign","measurement_sign"],antibiotics+'_laboratory_typing_method':["laboratory_typing_methods","laboratory_typing_method"],
                                         antibiotics+'_laboratory_typing_platform':["laboratory_typing_platforms","laboratory_typing_platform"], antibiotics+'_testing_standard':["testing_standard","testing_standard"],antibiotics+'_vendor_name':["vendor_names","vendor_name"]}  
-                    AMR_aid = ""
+                AMR_aid = ""
                     
-                    command = "SELECT id from AMR_ANTIBIOTICS_PROFILE where ISOLATE_ID = %s AND ANTIMICROBIAL_AGENT = (SELECT id from ANTIMICROBIAL_AGENTS where ANTIMICROBIAL_AGENT = %s)"
-                    print (command,(dict_of_samples['AMR'][index]["isolate_id"],antibiotics))
-                    cursor.execute(command,(dict_of_samples['AMR'][index]["isolate_id"],antibiotics))
-                    AMR_aid = cursor.fetchone()
+            command = "SELECT id from AMR_ANTIBIOTICS_PROFILE where ISOLATE_ID = %s AND ANTIMICROBIAL_AGENT = (SELECT id from ANTIMICROBIAL_AGENTS where ANTIMICROBIAL_AGENT = %s)"
+            print (command,(dict_of_samples['AMR'][index]["isolate_id"],antibiotics))
+            cursor.execute(command,(dict_of_samples['AMR'][index]["isolate_id"],antibiotics.capitalize()))
+            AMR_aid = cursor.fetchone()
                     
-                    conn.commit()
-                    if not AMR_aid:
-                        print ("doesnt exists")
-                        AMR_aid =create_insert(dict_of_samples['AMR'][index],AMR_afields,AMR_acontrolled,"amr_antibiotics_profile",len(AMR_afields))
-                    else:
-                        print (AMR_aid,"exists")
-                    
+            conn.commit()
+            if not AMR_aid:
+                print ("doesnt exists")
+                AMR_aid =create_insert(dict_of_samples['AMR'][index],AMR_afields,AMR_acontrolled,"amr_antibiotics_profile",len(AMR_afields))
+            else:
+                print (AMR_aid,"exists")
+           # sys.exit()        
         
 
                     #sys.exit()
