@@ -122,8 +122,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             conn.commit()
         else:
             print (result)
-        if (term == "Midwest"):
-            sys.exit()
+        
 
 
     def create_insert (row,fields,controlled_fields,table_name,length):

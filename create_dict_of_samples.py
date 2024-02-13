@@ -51,15 +51,19 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
         publicRep_sheet = reading_file("Public Repository Information")
         array_sheet = [sample_sheet,host_sheet,isolate_sheet,sequence_sheet,publicRep_sheet,amr_sheet,risk_sheet]
         #dict_terms_file={'sample':{},'host':{},'isolate':{},'sequence':{},'publicRep':{},'AMR':{},'risk':{}}
+        sample_id = ""
+        sample_flagged_list =[]
         for index_sheet,sheet_from_array in enumerate(array_sheet):
             if(not sheet_from_array.empty):
                 for index, row in sheet_from_array.iterrows():
                     for i in row.index:
                         
                         if (row[i] != 0 and not isNaN(row[i]) and row[i] ):
+
                             key = i.strip()
                             
                             key2 = key
+                            print ("begin with",key2)
                             for abs in antimicrobian_agent_names_ids.keys():
                                 if abs == "nalidixic acid":
                                     abs = "nalidixic_acid"
@@ -77,7 +81,9 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 key2 ="food_product_production_stream"
                             cell=""
                             if key2 in terms_accepting_multiple_values:
-                                cell_prov=row[i].split[";"]
+                                print(row[i],"ready to split")
+                                cell_prov=row[i].split(";")
+                                print(cell_prov)
                                 cell=[]
                                 for sub in cell_prov:
                                     if isinstance(sub,str):
@@ -89,9 +95,11 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
 
                                 if isinstance(cell,str):
                                     cell=cell.strip()
-                            print(cell)
-                             
+                            print("Here_",cell)
+                            if key2 == "sample_collector_sample_ID" :
+                                sample_id = cell 
                             if key2 in ontology_terms_and_values.keys():
+                                print("Here", key2)
                                 if "terms" in ontology_terms_and_values[key2].keys():
                                     if key2 in terms_accepting_multiple_values:
                                         for index,cell_sub in enumerate(cell):
@@ -104,7 +112,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                    # print(ontology_terms_and_values[key]["terms"])
                                     
                                             for item in ontology_terms_and_values[key2]["terms"]:
-                                        #print(item.keys())
+                                                print(item)
                                                 if type(item) != dict:
                                                     if cell_sub == item:
                                                         flag+=1;
@@ -119,6 +127,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                                             #sys.exit()
                                             if flag == 0:
                                                 #print("diferent term: ",cell," with id: ",pseudoid," in field:",key)
+                                                if sample_id not in sample_flagged_list:
+                                                                sample_flagged_list.append(sample_id)
                                                 if ( cell_sub in terms_to_fix.keys()):
                                                     if (key in terms_to_fix[cell].keys()):
                                                         terms_to_fix[cell_sub][key] += 1
@@ -154,6 +164,8 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                                         #print("added //",cell)
                                                         #sys.exit()
                                         if flag == 0:
+                                            if sample_id not in sample_flagged_list:
+                                                                sample_flagged_list.append(sample_id)
                                             #print("diferent term: ",cell," with id: ",pseudoid," in field:",key)
                                             if ( cell in terms_to_fix.keys()):
                                                 if (key in terms_to_fix[cell].keys()):
@@ -171,18 +183,31 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 if "date" in last_part_of_key:
                                 
                                     #print (type(cell))
-                                    #print(cell)
+                                    print(cell,"before if")
                                     currentDateWithoutTime = ""
-                                    if (int(cell)):
-                                        currentDateWithoutTime = datetime.date(cell, 1, 1)
-                                    elif ("/" in cell):
+                                    
+                                    if ("/" in cell):
+                                        print("has /",cell)
                                         date_obj = datetime.datetime.strptime(cell, "%d/%m/%Y")
                                         currentDateWithoutTime = date_obj.strftime("%Y-%m-%d")
+                                    elif("-" in cell):
+                                        hyphen_count = cell.count("-")
+                                        if hyphen_count == 1:
+                                            datetime_object = datetime.datetime.strptime(cell, '%Y-%m')
+                                            currentDateWithoutTime = datetime_object.strftime('%Y-%m')
+                                        elif hyphen_count == 2:
+                                            datetime_object = datetime.datetime.strptime(cell, '%Y-%m-%d')
+                                            currentDateWithoutTime = datetime_object.strftime('%Y-%m-%d')
+                                        
                                     else:
-                                        currentDateWithoutTime = cell.strftime('%Y-%m-%d')
+                                        print("int",cell)
+                                        int_value = int(cell)
+                                        currentDateWithoutTime = datetime.date(int_value, 1, 1)
+                                        
                                     cell = currentDateWithoutTime
                                     #print('after',cell)
                             
+                            print ("temp_creating",key,cell)
                             temp_dict[key]=cell    
                     #checking duplications
                     flag_dup =0
@@ -290,6 +315,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 print ("Risk table duplication:","in row:",index_save,"term:",dict_terms_file['risk'][index_save]['isolate_ID']," and ","in row:",index,"term:",temp_dict['isolate_ID'])
                         if flag_dup ==0:
                             dict_terms_file['risk'][index]=temp_dict
+                    print(temp_dict)
                     temp_dict ={}
         #print(dict_terms_file)
         #sys.exit()
@@ -465,13 +491,18 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                                 #print (type(cell))
                                # print(cell, "here?")
                                 if 'precision' not in key:
+                                    #print (cell)
                                     currentDateWithoutTime = cell.strftime('%Y-%m-%d')
+                                   # print(cell)
                                     cell = currentDateWithoutTime
                                 #print('after',cell)
                             
                             if flag_to_discard == 0:
                       #          print(cell)
-                                temp_dict[key]=cell    
+                                temp_dict[key]=cell
+                            #keeping also terms not in the voc.
+                            else:
+                                temp_dict[key]=cell     
                     #checking duplications
                     
                     flag_dup =0
@@ -549,7 +580,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
                             flag_dup =0
                         else:
                             if (index_save != "y"): 
-                                print ("Risk table duplication:","in row:",index_save,"term:",dict_terms_file['risk'][index_save]['isolate_ID']," and ","in row:",index,"term:",temp_dict['isolate_ID'])
+                                print ("Risk table duplication:","in row:",index_save,"term:",dict_terms_file['risk'][index_save]['sample_collector_sample_ID']," and ","in row:",index,"term:",temp_dict['sample_collector_sample_ID'])
                         if flag_dup ==0:
                             dict_terms_file['risk'][index]=temp_dict
                     #if(dict_terms_file['AMR']):
@@ -571,7 +602,7 @@ def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_na
     print('done dict of terms')
     #print(dict_terms_file)
     #sys.exit()
-    #print (sample_flagged_list)
+    
     #print(dict_terms_file['sample'])
     #sys.exit()
     
