@@ -199,7 +199,7 @@ CREATE TABLE ALTERNATIVE_SAMPLE_IDS(
 );
 CREATE TABLE COLLECTION_INFORMATION(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
+    SAMPLE_ID INTEGER UNIQUE REFERENCES SAMPLES(id),
     SAMPLE_COLLECTED_BY INTEGER REFERENCES AGENCIES(id),
     CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     SAMPLE_COLLECTION_PROJECT_NAME TEXT,
@@ -230,7 +230,7 @@ CREATE TABLE SAMPLE_ACTIVITY(
 
 CREATE TABLE GEO_LOC(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
+    SAMPLE_ID INTEGER UNIQUE REFERENCES SAMPLES(id), 
     GEO_LOC_NAME_COUNTRY INTEGER REFERENCES COUNTRIES(id),
     GEO_LOC_NAME_STATE_PROVINCE_REGION INTEGER REFERENCES STATE_PROVINCE_REGIONS(id),
     GEO_LOC_NAME_SITE INTEGER REFERENCES GEO_LOC_NAME_SITES(id),
@@ -240,7 +240,7 @@ CREATE TABLE GEO_LOC(
 
 CREATE TABLE FOOD_DATA(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
+    SAMPLE_ID INTEGER UNIQUE REFERENCES SAMPLES(id),
     FOOD_PRODUCT_PRODUCTION_STREAM INTEGER REFERENCES FOOD_PRODUCT_PRODUCTION_STREAM(id),
     FOOD_PRODUCT_ORIGIN_COUNTRY INTEGER REFERENCES COUNTRIES(id),
     FOOD_PACKAGING_DATE DATE,
@@ -273,7 +273,7 @@ CREATE TABLE FOOD_DATA_PACKAGING(
 
 CREATE TABLE ANATOMICAL_DATA(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
+    SAMPLE_ID INTEGER UNIQUE REFERENCES SAMPLES(id), 
     ANATOMICAL_REGION INTEGER REFERENCES ANATOMICAL_REGIONS(id)
 
 
@@ -297,7 +297,7 @@ CREATE TABLE ANATOMICAL_DATA_MATERIAL(
 
 CREATE TABLE ENVIRONMENTAL_DATA(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
+    SAMPLE_ID INTEGER UNIQUE REFERENCES SAMPLES(id), 
     AIR_TEMPERATURE FLOAT,
     SEDIMENT_DEPTH FLOAT,
     WATER_DEPTH FLOAT,
@@ -557,7 +557,7 @@ CREATE TABLE HOST_AGE_BIN (
 CREATE TABLE HOSTS (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     HOST_COMMON_NAME INTEGER REFERENCES HOST_COMMON_NAMES(id),
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
+    SAMPLE_ID INTEGER UNIQUE REFERENCES SAMPLES(id),
     HOST_SCIENTIFIC_NAME INTEGER REFERENCES HOST_SCIENTIFIC_NAMES(id),
     HOST_ECOTYPE TEXT,
     HOST_BREED INTEGER REFERENCES HOST_BREEDS(id),
@@ -714,8 +714,6 @@ CREATE TABLE ASSEMBLY_FILENAMES(
 );
 CREATE TABLE SEQUENCING (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
-    ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
     LIBRARY_ID TEXT,
     CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     SEQUENCED_BY INTEGER REFERENCES AGENCIES(id),
@@ -738,12 +736,23 @@ CREATE TABLE SEQUENCING_PURPOSE(
     PURPOSE_OF_SEQUENCING integer REFERENCES PURPOSES(id),
     CONSTRAINT Sequencing_purposeSequencing_pk PRIMARY KEY (SEQUENCING_ID, PURPOSE_OF_SEQUENCING)
 );
+
+CREATE TABLE METAGENOMICS(
+    SAMPLE_ID integer REFERENCES SAMPLES(id),
+    SEQUENCING_ID integer REFERENCES SEQUENCING(id),
+    CONSTRAINT metagenomics_samplesequencing_pk PRIMARY KEY (SAMPLE_ID,SEQUENCING_ID)
+
+);
+CREATE TABLE WHOLEGENOMESEQUENCING(
+    ISOLATE_ID integer REFERENCES ISOLATES(id),
+    SEQUENCING_ID integer REFERENCES SEQUENCING(id),
+    CONSTRAINT metagenomics_isolatesSequencing_pk PRIMARY KEY (ISOLATE_ID,SEQUENCING_ID)
+
+);
 --create view
 CREATE VIEW combined_sequence_table AS
 SELECT
   "public"."sequencing"."id" AS "id",
-  "public"."sequencing"."isolate_id" AS "isolate_id",
-  "public"."sequencing"."sample_id" AS "sample_id",
   "public"."sequencing"."library_id" AS "library_id",
   "public"."sequencing"."contact_information" AS "contact_information",
   "public"."sequencing"."sequenced_by" AS "sequenced_by",
@@ -768,6 +777,10 @@ SELECT
   "Agencies - Sequenced By"."agency" AS "Agencies - Sequenced By__agency",
   "Agencies - Sequenced By"."ontology_id" AS "Agencies - Sequenced By__ontology_id",
   "Agencies - Sequenced By"."description" AS "Agencies - Sequenced By__description",
+  "Metagenomics"."sample_id" AS "Metagenomics__sample_id",
+  "Metagenomics"."sequencing_id" AS "Metagenomics__sequencing_id",
+  "Wholegenomesequencing"."isolate_id" AS "Wholegenomesequencings__isolate_id",
+  "Wholegenomesequencing"."sequencing_id" AS "Wholegenomesequencing__sequencing_id",
   "Sequencing Purpose"."sequencing_id" AS "Sequencing Purpose__sequencing_id",
   "Sequencing Purpose"."purpose_of_sequencing" AS "Sequencing Purpose__purpose_of_sequencing",
   "Purposes - Purpose Of Sequencing"."id" AS "Purposes - Purpose Of Sequencing__id",
@@ -787,6 +800,8 @@ LEFT JOIN "public"."contact_information" AS "Contact Information" ON "public"."s
   LEFT JOIN "public"."sequencing_purpose" AS "Sequencing Purpose" ON "public"."sequencing"."id" = "Sequencing Purpose"."sequencing_id"
   LEFT JOIN "public"."assembly_filenames" AS "Assembly Filenames" ON "public"."sequencing"."assembly_filename" = "Assembly Filenames"."id"
   LEFT JOIN "public"."purposes" AS "Purposes - Purpose Of Sequencing" ON "Sequencing Purpose"."purpose_of_sequencing" = "Purposes - Purpose Of Sequencing"."id"
+  LEFT JOIN "public"."metagenomics" AS "Metagenomics" ON "public"."sequencing"."id" = "Metagenomics"."sequencing_id"
+  LEFT JOIN "public"."wholegenomesequencing" AS "Wholegenomesequencing" ON "public"."sequencing"."id" = "Wholegenomesequencing"."sequencing_id"
   LEFT JOIN "public"."sequencing_instruments" AS "Sequencing Instruments" ON "public"."sequencing"."sequencing_instrument" = "Sequencing Instruments"."id"
 ;
 
@@ -798,8 +813,7 @@ CREATE TABLE ATTRIBUTE_PACKAGES (
 );
 CREATE TABLE PUBLIC_REPOSITORY_INFORMATION (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
+    SEQUENCING_ID INTEGER REFERENCES SEQUENCING(id),
     CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
     SEQUENCE_SUBMITTED_BY INTEGER REFERENCES AGENCIES(id),
     PUBLICATION_ID TEXT,
@@ -817,8 +831,7 @@ CREATE TABLE PUBLIC_REPOSITORY_INFORMATION (
 CREATE VIEW combined_public_repository_table AS
 SELECT
   "public"."public_repository_information"."id" AS "id",
-  "public"."public_repository_information"."isolate_id" AS "isolate_id",
-  "public"."public_repository_information"."sample_id" AS "sample_id",
+  "public"."public_repository_information"."sequencing_id" AS "sequencing_id",
   "public"."public_repository_information"."contact_information" AS "contact_information",
   "public"."public_repository_information"."sequence_submitted_by" AS "sequence_submitted_by",
   "public"."public_repository_information"."publication_id" AS "publication_id",
@@ -1074,6 +1087,7 @@ LEFT JOIN "public"."antimicrobial_phenotypes" AS "Antimicrobial Phenotypes" ON "
 
 CREATE TABLE AMR_GENES_PROFILES(
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    SEQUENCING_ID INTEGER REFERENCES SEQUENCING(id),
     SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
     ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
     CUT_OFF TEXT,

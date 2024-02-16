@@ -14,9 +14,28 @@ import copy
 
 
 
-def create_dict_of_samples(xls, ontology_terms_and_values,antimicrobian_agent_names_ids):
+def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agent_names_ids):
     def isNaN(string):
         return string != string
+    
+    
+    
+    
+    fields = pd.read_excel(xls,na_values=[datetime.time(0, 0),"1900-01-00","Missing","missing","Not Applicable [GENEPIO:0001619]"],keep_default_na=False, header=1)
+    #print (fields[19])
+    fields.fillna(0, inplace = True)
+    sample_id = ""
+    sample_flagged_list =[]
+    for index, row in fields.iterrows():
+        for i in row.index:
+                        
+            if (row[i] != 0 and not isNaN(row[i]) and row[i] ):
+
+                key = i.strip()
+                print(key)
+        sys.exit()
+
+    sys.exit()
     def reading_file(sheet):
         fields = pd.read_excel(xls,sheet_name=sheet,na_values=[datetime.time(0, 0),"1900-01-00","Missing","missing","Not Applicable [GENEPIO:0001619]"],keep_default_na=False, header=1)
         #fields_sheet_filtered = fields_sheet[fields_sheet["Ontology ID"].str.contains("GENEPIO")==True]
