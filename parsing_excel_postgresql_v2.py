@@ -35,6 +35,7 @@ def main():
     parser.add_argument("-d", "--drop_off_table_add_sql", help="Drop off tables and re-add sql", default="F")
     parser.add_argument("-i", "--input_file", help="Input File to upload.", type=str)
     parser.add_argument("-o", "--one", help="input file is one sheet", default="F")
+    parser.add_argument("-m", "--mode", help="For input sheet is metagenomics or wgs", default=str)
     args = parser.parse_args()
 
     
@@ -71,30 +72,35 @@ END $$;
         valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_dict(xls_file)
         xls_file2 = args.input_file
         print("uploading file ", xls_file2)
+        dict_of_samples = {}
+        new_ont_terms = {}
+        terms_accepting_multiple_values = []
+        sample_flagged_list = []
         if (args.one == "F"):
             dict_of_samples,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list = create_dict_of_samples(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids)
-            response = input("Report Finished. Do you want to proceed with a script? (yes/no): ")
-            if response.lower() == "yes":
-                print("Continuing with the script...")
-                print ("starting to feed vmr")
-                feed_vmr_table(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list)
-            elif response.lower() == "no":
-                print("Exiting the script.")
-            else:
-                print("Invalid response. Please enter 'yes' or 'no'.")
-                exit()
+            
+            
         else:
             dict_of_samples,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list = create_dict_of_samples_one(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids)
-            if response.lower() == "yes":
-                print("Continuing with the script...")
-                print ("starting to feed vmr")
-                feed_vmr_table(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list)
-            elif response.lower() == "no":
-                print("Exiting the script.")
-            else:
-                print("Invalid response. Please enter 'yes' or 'no'.")
-   
-                exit()
+            
+        mode =""
+        if (args.mode == "wgs"):
+            mode = 1
+        elif (args.mode == "metagenomics"):
+            mode = 2
+        else:
+            print ("Invalid response. Please enter 'wgs' or 'metagenomics'.")
+            exit()
+        response = input("Report Finished. Do you want to proceed with a script? (yes/no): ")
+        if response.lower() == "yes":
+            print("Continuing with the script...")
+            print ("starting to feed vmr")
+            feed_vmr_table(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list,mode)
+        elif response.lower() == "no":
+            print("Exiting the script.")
+        else:
+            print("Invalid response. Please enter 'yes' or 'no'.")
+            exit()
         
         
 
