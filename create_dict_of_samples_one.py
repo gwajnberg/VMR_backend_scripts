@@ -88,7 +88,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
 
                     if isinstance(cell,str):
                         cell=cell.strip()
-                #print("Here_",cell)
+                print("Here_",cell)
                 if key2 == "sample_collector_sample_ID" :
                     sample_id = cell 
                 if key2 in ontology_terms_and_values.keys():
