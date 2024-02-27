@@ -1,6 +1,11 @@
+#!/usr/bin/env python
+# This takes the Field and Term reference guide, and adds the complete description, id etc. to the DB
+
 import psycopg2
 import pandas as pd
 import sys
+
+
 
 
 def fill_ontology_fields(conn,cursor,xls):

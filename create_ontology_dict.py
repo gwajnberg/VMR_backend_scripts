@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+
+# This file uses the empty template to build the dictionary
+# 1. Create a dictionary of allowable fields and terms (this file)
+# 2. Read the user input and compare to 1. (This happens in create_dict_of_samples, or create_dict_of_samples_one)
+
 """
     Create a dictionary of the ontology terms.
     Looking at having the terms defined here, with possible sets of values.
@@ -9,8 +15,6 @@ import pandas as pd
 import sys
 import datetime
 import re
-
-
 
 
 def create_ontology_dict(xls):
@@ -38,11 +42,7 @@ def create_ontology_dict(xls):
     antiT_terms=amrTotal_terms[9:]
 
     amrT_terms=amrTotal_terms[:9]
-    
-    
-    
-            
-    
+
     vocab_sheet = pd.read_excel(xls,keep_default_na=False,converters={column: lambda x: x.strip() for column in list(range(20))}, sheet_name="Vocabulary", header=1)
     
     ontology_dict = vocab_sheet.to_dict(orient='list')

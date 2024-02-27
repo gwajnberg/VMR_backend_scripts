@@ -1,4 +1,7 @@
-
+# Creates a dictionary of user-input, compared against the allowable fields and terms
+# checks duplicated rows, dates, etc. as well
+# Prints out error where things don't match
+# A validated dictionary to insert into DB
 
 """
     Create a dictionary of samples from the Harmonized Data "Merged Sheet".
