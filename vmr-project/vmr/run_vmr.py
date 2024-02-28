@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from collections import defaultdict
+
 import pandas as pd
 # import VMR modules
 import command_line_parser
