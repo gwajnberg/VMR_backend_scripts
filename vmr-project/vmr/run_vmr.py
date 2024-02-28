@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 from collections import defaultdict
 import pandas as pd
+# import VMR modules
 import command_line_parser
+import logger
+
+LOG = logger.create_logger()
 
 
 def create_ontology_dict(ref_file):
@@ -69,12 +73,13 @@ def main():
 
     args = command_line_parser.parse_command_line()
     ontology_dict = create_ontology_dict(args.reference)
-    print(ontology_dict)
+
+    LOG.debug(ontology_dict)
 
 
 if __name__ == '__main__':
     try:
         main()
-        print('Program finished')
+        LOG.info('Program finished')
     except Exception as e:
-        print('Error : {}'.format(e))
+        LOG.error('Error : {}'.format(e))
