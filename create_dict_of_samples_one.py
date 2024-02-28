@@ -88,11 +88,11 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
 
                     if isinstance(cell,str):
                         cell=cell.strip()
-                print("Here_",cell)
+                #print("Here_",cell)
                 if key2 == "sample_collector_sample_ID" :
                     sample_id = cell 
                 if key2 in ontology_terms_and_values.keys():
-                 #   print(key2, "ta aqui provavel")
+                    #print(key2, "ta aqui provavel")
                     if "terms" in ontology_terms_and_values[key2].keys():
                         if key2 in terms_accepting_multiple_values:
                             for index,cell_sub in enumerate(cell):
@@ -104,9 +104,9 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                     cell_sub = wanted[0]
                                     pseudoid = wanted[1]
                                 elif (":" in cell and "[" in cell):
-                                  #  print (cell)
-                                    if ( re.match("(.+)\s+\[(\w+\:\d+)\]",cell)):
-                                        result_match = re.match("(.+)\s+\[(\w+\:\d+)\]",cell)
+                                    #print (cell,"problema aqui")
+                                    if ( re.match("(.+)\s+\[(\w+\:\w+)\]",cell)):
+                                        result_match = re.match("(.+)\s+\[(\w+\:\w+)\]",cell)
                                         cell = result_match.groups()[0]
                                         realid = result_match.groups()[1]
                                     else:
@@ -167,11 +167,24 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                 pseudoid = wanted[1]
                             elif (":" in cell and "[" in cell):
                               #  print (cell)
-                                result_match = re.match("(.+)\s+\[(\w+\:\d+)\]",cell)
+                                if ( re.match("(.+)\s+\[(\w+\:\w+)\]",cell)):
+                                    result_match = re.match("(.+)\s+\[(\w+\:\w+)\]",cell)
                                 #print(result_match.groups())
-                                cell = result_match.groups()[0]
-                                realid = result_match.groups()[1]
-                                
+                                    cell = result_match.groups()[0]
+                                    realid = result_match.groups()[1]
+                                else:
+                                    if ( cell_sub in terms_to_fix.keys()):
+                                          #  print ("entrou nesse if")
+                                        #    print ("aqui:",terms_to_fix[cell_sub].keys())
+                                        if (key in terms_to_fix[cell_sub].keys()):
+                                            # print ("entrou nesse if2")        
+                                            terms_to_fix[cell_sub][key] += 1
+                                            #  print ("adicionou")
+                                    else:
+                                        #print ("foi no else")
+                                        terms_to_fix[cell_sub] = {}
+                                        terms_to_fix[cell_sub] [key] = 1
+                            
                                 #sys.exit()
 
                         # print(ontology_terms_and_values[key]["terms"])
