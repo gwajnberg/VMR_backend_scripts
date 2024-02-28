@@ -7,7 +7,9 @@ import command_line_parser
 
 def create_ontology_dict(ref_file):
     """
-
+    Take in the Reference Guide Field and Term sheets.
+    Create a dictionary of allowable fields and terms.
+    Return the dictionary.
     """
 
     # We only need Columns B:D, A is the Parent Class
@@ -20,7 +22,7 @@ def create_ontology_dict(ref_file):
                             skiprows=[1,2,3,4,5])
     # Skip all the blank fields due to the way the sheet is formatted
     field_ref = field_ref[field_ref.index.notnull()]
-    
+
     print(field_ref)
     print(field_ref.loc['antimicrobial_measurement'])
 
