@@ -94,7 +94,7 @@ END $$;
         response = input("Report Finished. Do you want to proceed with a script? (yes/no): ")
         if response.lower() == "yes":
             print("Continuing with the script...")
-            print ("starting to feed vmr")
+            print ("starting to feed vmr-project")
             feed_vmr_table(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list,mode)
         elif response.lower() == "no":
             print("Exiting the script.")
