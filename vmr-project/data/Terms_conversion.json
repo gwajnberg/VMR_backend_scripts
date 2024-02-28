@@ -1,0 +1,12 @@
+{
+    "geo_loc (country)": "geo_loc_name (country)",
+    "geo_loc (state/province/region)": "geo_loc_name (state/province/region)",
+    "sample_processing": "specimen_processing",
+    "AMR_laboratory_typing_method": "antimicrobial_laboratory_typing_method",
+    "production_stream": "food_product_production_stream",
+    "nalidixic_acid": "nalidixic acid",
+    "oxolinic-acid": "oxolinic acid"
+    
+ }
+
+
