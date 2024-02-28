@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from collections import defaultdict
+
 import pandas as pd
 # import VMR modules
 from modules import command_line_parser, create_ontology_dict, create_dict_of_samples, logger
