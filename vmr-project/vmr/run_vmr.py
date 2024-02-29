@@ -28,7 +28,7 @@ def main():
     ontology_dict = create_ontology_dict.create_ontology_dict(args.reference)
     
     
-    #LOG.debug(ontology_dict)
+    #LOG.debug(ontology_dict["antimicrobial_agent_name"])
     samples_dict = create_dict_of_samples.create_dict_of_samples(args.input, ontology_dict)
 
 if __name__ == '__main__':
