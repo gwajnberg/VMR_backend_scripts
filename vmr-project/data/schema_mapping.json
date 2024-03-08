@@ -1,0 +1,223 @@
+{
+    "samples":[
+        {
+        "alternative_sample_ids":[
+            {
+            "sample_id":"samples(id)"
+            }
+        ],
+        
+        "collection_information":[
+        {
+        "sample_id": "samples(id)",
+        "contact_information": "contact_information(id)",
+        "sample_collected_by": "agencies(id)",
+        "sample_collection_date_precision": "sample_collection_date_precision(id)",
+        "specimen_processing": "specimen_processing(id)",
+        "collection_device": "collection_devices(id)",
+        "collection_method": "collection_methods(id)",
+        "sample_purpose":[
+            {
+                "collection_information": "collection_information(id)",
+                "purpose_of_sampling": "purposes(id)"
+            }
+    
+            ],
+        "sample_activity":[
+            {
+                "collection_information": "collection_information(id)",
+                "presampling_activity": "activities(id)"
+            }
+        ]
+        }
+        ],
+        
+        "geo_loc":[
+
+            {
+                "sample_id":"samples(id)",
+                "geo_loc_name_country": "countries(id)",
+                "geo_loc_name_state_province_region": "state_province_regions(id)",
+                "geo_loc_name_site": "geo_loc_name_sites(id)"
+            }
+        ],
+        "food_data":[
+            {
+                "sample_id": "samples(id)",
+                "food_product_production_stream": "food_product_production_stream(id)",
+                "food_product_origin_country": "countries(id)",
+                "food_data_product":[
+                    {
+                        "food_data": "food_data(id)",
+                        "food_product": "food_products(id)"
+                    }
+                ],
+                "food_data_product_property":[
+                    {
+                        "food_data": "food_data(id)",
+                        "food_product_property": "food_product_properties(id)"
+                    }
+                ],
+                "food_data_packaging":[
+                    {
+                        "food_data": "food_data(id)",
+                        "food_packaging": "food_packaging(id)"
+                    }
+                ]
+
+            }
+        ],
+        "anatomical_data": [
+            {
+                "sample_id": "samples(id)",
+                "anatomical_region": "anatomical_regions(id)",
+                "anatomical_data_body": [
+                    {
+                        "anatomical_data": "anatomical_data(id)",
+                        "body_product": "body_products(id)"
+                    }
+                ],
+                "anatomical_data_part": [
+                    {
+                        "anatomical_data": "anatomical_data(id)",
+                        "anatomical_part": "anatomical_parts(id)"
+                    }
+                ],
+                "anatomical_data_material": [
+                    {
+                        "anatomical_data": "anatomical_data(id)",
+                        "anatomical_material": "anatomical_material(id)"
+                    }
+                ]
+            }
+        ],
+        "environmental_data": [
+            {
+                "sample_id": "samples(id)",
+                "environmental_data_material":[
+                    {
+                        "environmental_data": "environmental_data(id)",
+                        "environmental_material": "environmental_materials(id)"
+                    }
+                ], 
+                "environment_data_site":[
+                    {
+                        "environmental_data": "environmental_data(id)",
+                        "environmental_site": "environment_sites(id)"
+                    }
+                ],
+                "environment_data_weather_type":[
+                    {
+                        "environmental_data": "environmental_data(id)",
+                        "weather_type": "weather_types(id)"
+                    }
+                ],
+                "environment_data_available_data_type":[
+                    {
+                        "environmental_data": "environmental_data(id)",
+                        "available_data_type": "available_data_types(id)"
+                    }
+                ],
+                "environment_data_animal_plant":[
+                    {
+                        "environmental_data": "environmental_data(id)",
+                        "animal_or_plant_population": "animal_or_plant_population(id)"
+                    }
+                ] 
+            }
+        ],
+        "hosts":[
+            {
+                "sample_id": "samples(id)",
+                "host_common_name": "host_common_names(id)",
+                "host_breed": "host_breeds(id)",
+                "host_disease": "host_diseases(id)",
+                "host_age_bin": "host_age_bin(id)",
+                "host_origin_geo_loc_name_country": "countries"
+            }
+        ],
+        "isolates": [
+            {
+                "sample_id": "samples(id)",
+                "strain": "strains(id)",
+                "alternative_isolate_id":[
+                    {
+                        "isolate_id": "isolates(id)"
+                    }
+
+                ],
+                "isolated_by": "agencies(id)",
+                "contact_information": "contact_information(id)",
+                "organism": "organisms(id)",
+                "taxonomic_identification_process": "taxonomic_identification_processes(id)",
+                "amr_info":[
+                    {
+                        "isolate_id": "isolates(id)",
+                        "amr_testing_by": "agencies(id)",
+                        "contact_information": "contact_information(id)"
+                    }
+                ],
+                "amr_antibiotics_profile":[
+                    {
+                        "isolate_id": "isolates(id)",
+                        "antimicrobial_agent": "antimicrobial_agents(id)",
+                        "antimicrobial_phenotype": "antimicrobial_phenotypes(id)",
+                        "measurement_units": "measurement_units(id)",
+                        "measurement_sign": "measurement_sign(id)",
+                        "laboratory_typing_method": "laboratory_typing_methods(id)",
+                        "laboratory_typing_platform": "laboratory_typing_platforms(id)",
+                        "testing_standard": "testing_standard(id)",
+                        "vendor_name": "vendor_names(id)"
+                    }
+                ]
+
+            }
+
+        ]
+
+
+    }
+    ],
+    "sequencing": [
+        {
+        "contact_information": "contact_information(id)",
+        "sequencing_platform": "sequencing_platforms(id)",
+        "sequencing_instrument": "sequencing_instruments(id)",
+        "assemby_filename": "assembly_filenames(id)",
+        "public_repository_information": [
+            {
+                "sequencing_id": "sequencing(id)",
+                "contact_information": "contact_information(id)",
+                "sequence_submitted_by": "agencies(id)",
+                "attribute_package": "attribute_packages(id)"
+            }
+        ]
+        }
+    ],
+    "metagenomics": [
+        {
+            "sample_id": "samples(id)",
+            "sequencing_id": "sequencing(id)"
+        }
+    ],
+    "wholegenomesequencing":[
+        {
+            "isolate_id": "isolates(id)",
+            "sequencing_id": "sequencing(id)"
+        }
+    ],
+    "risk_assessment":[
+        {
+            "prevalence_metrics": "prevalence_metrics(id)",
+            "stage_of_production": "stage_of_production(id)",
+            "risk_activity":[
+                {
+                    "risk_id": "risk_assessment(id)",
+                    "experimental_intervention": "activities(id)"
+                }
+            ]
+        }
+    ]
+
+}
+    
