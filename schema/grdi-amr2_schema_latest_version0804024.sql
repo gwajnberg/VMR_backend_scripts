@@ -191,6 +191,7 @@ CREATE TABLE SAMPLES(
 );
 
 
+
 CREATE TABLE ALTERNATIVE_SAMPLE_IDS(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
@@ -215,6 +216,58 @@ CREATE TABLE COLLECTION_INFORMATION(
     COLLECTION_METHOD INTEGER REFERENCES COLLECTION_METHODS(id)
 );
 
+/* New table that was forgotten*/
+CREATE TABLE SAMPLE_PLAN(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
+    SAMPLE_PLAN_ID TEXT,
+    SAMPLE_PLAN_NAME TEXT
+);
+/* New table EXTRACTION INFORMATION PLUS PICK LIST TABLES*/
+CREATE TABLE EXPERIMENTAL_SPECIMEN_ROLE_TYPES(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    EXPERIMENTAL_SPECIMEN_ROLE_TYPE TEXT NOT NULL,
+    ONTOLOGY_ID TEXT,
+    DESCRIPTION TEXT
+
+);
+CREATE TABLE VOLUME_MEASUREMENT_UNITS(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    VOLUME_MEASUREMENT_UNIT TEXT NOT NULL,
+    ONTOLOGY_ID TEXT,
+    DESCRIPTION TEXT
+);
+CREATE TABLE RESIDUAL_SAMPLE_STATUS(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    RESIDUAL_SAMPLE_STATUS TEXT NOT NULL,
+    ONTOLOGY_ID TEXT,
+    DESCRIPTION TEXT
+);
+
+CREATE TABLE DURATION_UNITS(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    DURATION_UNIT TEXT NOT NULL,
+    ONTOLOGY_ID TEXT,
+    DESCRIPTION TEXT
+);
+
+
+CREATE TABLE EXTRACTION_INFORMATION(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
+    EXPERIMENTAL_PROTOCOL_FIELD TEXT,
+    EXPRIMENTAL_SPECIMEN_ROLE_TYPE INTEGER REFERENCES EXPERIMENTAL_SPECIMEN_ROLE_TYPES(id),
+    NUCLEIC_ACID_EXTRACTION_METHOD TEXT,
+    NUCLEIC_ACID_EXTRACTION_KIT TEXT,
+    SAMPLE_VOLUME_MEASUREMENT_VALUE FLOAT,
+    SAMPLE_VOLUME_MEASUREMENT_UNIT INTEGER REFERENCES VOLUME_MEASUREMENT_UNITS(id),
+    RESIDUAL_SAMPLE_STATUS INTEGER REFERENCES RESIDUAL_SAMPLE_STATUS(id),
+    SAMPLE_STORAGE_DURATION_VALUE FLOAT,
+    SAMPLE_STORAGE_DURATION_UNIT INTEGER REFERENCES DURATION_UNITS(id),
+    NUCLEIC_ACID_STORAGE_DURATION_VALUE FLOAT,
+    NUCLEIC_ACID_STORAGE_DURATION_UNIT INTEGER REFERENCES DURATION_UNITS(id)
+
+);
 
 CREATE TABLE SAMPLE_PURPOSE(
     COLLECTION_INFORMATION integer REFERENCES COLLECTION_INFORMATION(id),
@@ -362,8 +415,23 @@ SELECT
   "Collection Information"."collection_method" AS "Collection Information__collection_method",
   "Alternative Sample Ids"."sample_id" AS "Alternative Sample Ids__sample_id",
   "Alternative Sample Ids"."alternative_sample_id" AS "Alternative Sample Ids_alternative__sample_id",
+  "Sample Plan"."id" AS "Sample Plan__id",
+  "Sample Plan"."sample_plan_id" AS "Sample Plan__sample_plan_id",
+  "Sample Plan"."sample_plan_name" AS "Sample Plan__sample_plan_name",
   "Sample Purpose"."collection_information" AS "Sample Purpose__collection_information",
   "Sample Purpose"."purpose_of_sampling" AS "Sample Purpose__purpose_of_sampling",
+  "Extraction Information"."id" AS "Extraction Information__id",
+  "Extraction Information"."experimental_protocol_field" AS "Extraction Information__experimental_protocol_field",
+  "Extraction Information"."exprimental_specimen_role_type" AS "Extraction Information__exprimental_specimen_role_type",
+  "Extraction Information"."nucleic_acid_extraction_method" AS "Extraction Information__nucleic_acid_extraction_method",
+  "Extraction Information"."nucleic_acid_extraction_kit" AS "Extraction Information__nucleic_acid_extraction_kit",
+  "Extraction Information"."sample_volume_measurement_value" AS "Extraction Information__sample_volume_measurement_value",
+  "Extraction Information"."sample_volume_measurement_unit" AS "Extraction Information__sample_volume_measurement_unit",
+  "Extraction Information"."residual_sample_status" AS "Extraction Information__residual_sample_status",
+  "Extraction Information"."sample_storage_duration_value" AS "Extraction Information__sample_storage_duration_value",
+  "Extraction Information"."sample_storage_duration_unit" AS "Extraction Information__sample_storage_duration_unit",
+  "Extraction Information"."nucleic_acid_storage_duration_value" AS "Extraction Information__nucleic_acid_storage_duration_value",
+  "Extraction Information"."nucleic_acid_storage_duration_unit" AS "Extraction Information__nucleic_acid_storage_duration_unit",
   "Purposes - Purpose Of Sampling"."id" AS "Purposes - Purpose Of Sampling__id",
   "Purposes - Purpose Of Sampling"."purpose" AS "Purposes - Purpose Of Sampling__purpose",
   "Sample Activity"."collection_information" AS "Sample Activity__collection_information",
@@ -473,6 +541,8 @@ FROM
 LEFT JOIN "public"."collection_information" AS "Collection Information" ON "public"."samples"."id" = "Collection Information"."sample_id"
   LEFT JOIN "public"."sample_purpose" AS "Sample Purpose" ON "Collection Information"."id" = "Sample Purpose"."collection_information"
   LEFT JOIN "public"."purposes" AS "Purposes - Purpose Of Sampling" ON "Sample Purpose"."purpose_of_sampling" = "Purposes - Purpose Of Sampling"."id"
+  LEFT JOIN "public"."sample_plan" AS "Sample Plan" ON "public"."samples"."id" = "Sample Plan"."sample_id"
+  LEFT JOIN "public"."extraction_information" AS "Extraction Information" ON "public"."samples"."id" = "Extraction Information"."sample_id"
   LEFT JOIN "public"."sample_activity" AS "Sample Activity" ON "Collection Information"."id" = "Sample Activity"."collection_information"
   LEFT JOIN "public"."activities" AS "Activities - Presampling Activity" ON "Sample Activity"."presampling_activity" = "Activities - Presampling Activity"."id"
   LEFT JOIN "public"."contact_information" AS "Contact Information - Contact Information" ON "Collection Information"."contact_information" = "Contact Information - Contact Information"."id"
