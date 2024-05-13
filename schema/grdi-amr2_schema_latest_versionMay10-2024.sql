@@ -786,10 +786,6 @@ CREATE TABLE SEQUENCING_ASSAY_TYPES (
     DESCRIPTION TEXT
 );
 
-CREATE TABLE ASSEMBLY_FILENAMES(
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    ASSEMBLY_FILENAME TEXT
-);
 
 --New controlled table
 CREATE TABLE GENOMIC_TARGET_ENRICHMENT_METHODS(
@@ -822,7 +818,7 @@ CREATE TABLE SEQUENCING (
     R1_FASTQ_FILENAME TEXT,
     R2_FASTQ_FILENAME TEXT,
     FAST5_FILENAME TEXT,
-    ASSEMBLY_FILENAME INTEGER REFERENCES ASSEMBLY_FILENAMES(id)
+    ASSEMBLY_FILENAME TEXT
     
 
 
@@ -922,11 +918,7 @@ CREATE TABLE SEQUENCE_ASSEMBLY_SOFTWARE(
     SEQUENCE_ASSEMBLY_SOFTWARE TEXT NOT NULL
 
 );
-CREATE TABLE CONSENSUS_GENOMES(
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    CONSENSUS_GENOME TEXT NOT NULL
 
-);
 CREATE TABLE REFERENCE_GENOME_ACCESSIONS(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     REFERENCE_GENOME_ACCESSION TEXT NOT NULL
@@ -962,7 +954,7 @@ CREATE TABLE BIOINFORMATICS_ANALISYS(
     N50 FLOAT,
     PERCENT_READ_CONTAMINATION FLOAT,
     SEQUENCE_ASSEMBLY_LENGTH INTEGER,
-    CONSENSUS_GENOME INTEGER REFERENCES CONSENSUS_GENOMES(id),
+    CONSENSUS_GENOME_LENGTH INTEGER,
     REFERENCE_GENOME_ACCESSION INTEGER REFERENCES REFERENCE_GENOME_ACCESSIONS(id),
     DEDUPLICATION_METHOD TEXT,
     BIOINFORMATICS_PROTOCOL TEXT,
@@ -995,9 +987,9 @@ SELECT
     "Bioinformatics Analysis"."number_of_contigs" AS "number_of_contigs",
     "Bioinformatics Analysis"."ns_per_100_kbp" AS "ns_per_100_kbp",
     "Bioinformatics Analysis"."n50" AS "n50",
+     "Bioinformatics Analysis"."consensus_genome_length" AS "consensus_genome_length",
     "Bioinformatics Analysis"."percent_read_contamination" AS "percent_read_contamination",
     "Bioinformatics Analysis"."sequence_assembly_length" AS "sequence_assembly_length",
-    "Consensus Genomes"."consensus_genome" AS "consensus_genome",
     "Reference Genome Accessions"."reference_genome_accession" AS "reference_genome_accession",
     "Bioinformatics Analysis"."deduplication_method" AS "deduplication_method",
     "Bioinformatics Analysis"."bioinformatics_protocol" AS "bioinformatics_protocol",
@@ -1008,7 +1000,6 @@ FROM
 LEFT JOIN "Quality Control Determinations" ON "Bioinformatics Analysis"."quality_control_determination" = "Quality Control Determinations"."id"
 LEFT JOIN "Quality Control Issues" ON "Bioinformatics Analysis"."quality_control_issues" = "Quality Control Issues"."id"
 LEFT JOIN "Sequence Assembly Software" ON "Bioinformatics Analysis"."sequence_assembly_software" = "Sequence Assembly Software"."id"
-LEFT JOIN "Consensus Genomes" ON "Bioinformatics Analysis"."consensus_genome" = "Consensus Genomes"."id"
 LEFT JOIN "Reference Genome Accessions" ON "Bioinformatics Analysis"."reference_genome_accession" = "Reference Genome Accessions"."id"
 LEFT JOIN "Read Mapping Software Names" ON "Bioinformatics Analysis"."read_mapping_software_name" = "Read Mapping Software Names"."id"
 ;
