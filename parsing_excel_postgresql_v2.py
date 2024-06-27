@@ -17,8 +17,14 @@ from feed_vmr_table import feed_vmr_table
 
 def connect_db():
     conn = psycopg2.connect(
-       database="metabaseappdb", user='gabriel', password='gaba1984', host='10.139.14.109', port= '5433'
+       #server
+       #database="metabaseappdb", user='gabriel', password='gaba1984', host='10.139.14.109', port= '5433'
+        #local
+        database="metabaseappdb", user='gwajnberg', password='gaba1984', host='localhost', port= '5432'
     )
+    
+    
+    print("Connection to PostgreSQL established successfully")
     cursor = conn.cursor()
     return(conn,cursor)
 
@@ -43,8 +49,8 @@ def main():
     conn,cursor = connect_db()    
     
     #sys.exit()
-    xls_file = "GRDI_Harmonization-Template_v8.9.9.xlsm"
-    reference_file ="GRDI_Master-Reference-Guide_v8.9.9.xlsx"
+    xls_file = "GRDI_Harmonization-Template_v11.1.1.xlsm"
+    reference_file ="GRDI_Master-Reference-Guide_v11.1.1.xlsx"
     #valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_as_dict(xls_file)
     if args.drop_off_table_add_sql == "T":
         drop_all_tables_query = sql.SQL("""
@@ -61,7 +67,7 @@ END $$;
             # Execute the dynamic query
         cursor.execute(drop_all_tables_query)
         conn.commit()
-        schema_file_path = Path("schema/grdi-amr2_schema_latest_version01302024.sql")
+        schema_file_path = Path("schema/grdi-amr2_schema_latest_versionMay10-2024.sql")
         with open(schema_file_path, 'r') as file:
             sql_script = file.read()
             cursor.execute(sql_script)
@@ -69,7 +75,7 @@ END $$;
     if args.fill_with_terms == "T":
         fill_ontology_fields(conn,cursor,reference_file)
     if (args.input_file):
-        valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_dict(xls_file)
+        valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,environmental_conditions_terms,bioinformatics_terms,taxonomic_information_terms = create_ontology_dict(xls_file)
         xls_file2 = args.input_file
         print("uploading file ", xls_file2)
         dict_of_samples = {}
@@ -81,7 +87,7 @@ END $$;
             
             
         else:
-            dict_of_samples,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list = create_dict_of_samples_one(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms)
+            dict_of_samples,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list = create_dict_of_samples_one(xls_file2, valid_ontology_terms_and_values, antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,environmental_conditions_terms,bioinformatics_terms,taxonomic_information_terms)
             
         mode =""
         if (args.mode == "wgs"):
@@ -95,7 +101,7 @@ END $$;
         if response.lower() == "yes":
             print("Continuing with the script...")
             print ("starting to feed vmr")
-            feed_vmr_table(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list,mode)
+            feed_vmr_table(dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,environmental_conditions_terms,bioinformatics_terms,taxonomic_information_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list,mode)
         elif response.lower() == "no":
             print("Exiting the script.")
         else:

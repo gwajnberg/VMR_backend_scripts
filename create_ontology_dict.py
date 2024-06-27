@@ -28,14 +28,24 @@ def create_ontology_dict(xls):
             array_terms.append(terms)
         return(array_terms)
     
+    
     sampleT_terms = reading_file("Sample Collection & Processing")
+    
     isolateT_terms = reading_file("Strain and Isolate Information")
     hostT_terms = reading_file("Host Information")
     sequenceT_terms = reading_file("Sequence Information")
     repositoryT_terms = reading_file("Public Repository Information")
     riskT_terms = reading_file("Risk Assessment")
     amrTotal_terms= reading_file("AMR Phenotypic Test Information")
+    environmental_conditions_terms = reading_file("Environmental conditions")
+    bioinformatics_terms = reading_file("Bioinformatics and QC")
+    taxonomic_information_terms = reading_file("Taxonomic Information")
+
+
+    
+
     antiT_terms=amrTotal_terms[9:]
+    
 
     amrT_terms=amrTotal_terms[:9]
     
@@ -49,29 +59,28 @@ def create_ontology_dict(xls):
     fields_sheet = pd.read_excel(xls,keep_default_na=False, sheet_name="Reference Guide", header=4)
     #fields_sheet_filtered = fields_sheet[fields_sheet["Ontology ID"].str.contains("GENEPIO")==True]
     fields_sheet_filtered = fields_sheet[(fields_sheet["Ontology ID"].str.contains("GENEPIO")) | (fields_sheet.iloc[:, 0].str.startswith("antimicrobial"))]
+    
     dict_fields={}
     for index, row in fields_sheet_filtered.iterrows():
         sample_key = row["Sample collection and processing"]
         dict_fields[sample_key] = {}
     new_merged_ontology_dict = {}
-    #print(dict_fields)
-    #sys.exit()
+    
     for key in dict_fields:
-        #print ("general",key)
+        
         keypr = ""
         if (key == "antimicrobial_resistance_phenotype"):
             keypr = "antimicrobial_phenotype"
         else:
             keypr = key
         if keypr in ontology_dict.keys():
+            
             str_list = list(filter(None, ontology_dict[keypr]))
-            #print("in hash", key)
-            #if("urement_units" in key):
-            #    print (str_list)
-             #   sys.exit()
+            
             temp_list=[];
             for i in str_list:
                 newstr = i.strip()
+                
                 if re.match(".+\[\w",newstr):
                     
                     substrL= re.match("(.+)\s+\[(\S+)\]",newstr)
@@ -80,24 +89,15 @@ def create_ontology_dict(xls):
                     temp_list.append({newstr:{"term":substrL.groups()[0],"term_id":substrL.groups()[1]}})
                    
 
-                        #sys.exit()
-                    #print("append",newstr)
+                        
                 else:
-                 #   print("append",newstr)
+                 
                     temp_list.append(newstr)
-                    #print (newstr)
-            #if("measurement_units" in key):
-                #print (str_list)
-              #  sys.exit()
-            #print(temp_list)
+                   
             new_merged_ontology_dict [key] = {"field_id":key,"terms":temp_list}
                     
         else:
-            #if (key == "food_product_origin geo_loc_name (country)"):
-                #food_product_origin geo_loc_name (country)
-                #food_product_origin geo_loc (country)
-                #print (ontology_dict.keys())
-                #sys.exit()
+        
             new_merged_ontology_dict [key] = {"field_id":key}
     antimicrobian_agent_names_ids = {}
     for elements in new_merged_ontology_dict["antimicrobial_agent_name"]["terms"]:
@@ -113,6 +113,6 @@ def create_ontology_dict(xls):
     
    
     #sys.exit()
-    #print(new_merged_ontology_dict)
+    #rint(new_merged_ontology_dict)
     #sys.exit()
-    return (new_merged_ontology_dict,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms)   
+    return (new_merged_ontology_dict,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,environmental_conditions_terms,bioinformatics_terms,taxonomic_information_terms)   

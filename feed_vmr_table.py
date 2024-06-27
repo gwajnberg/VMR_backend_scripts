@@ -5,7 +5,7 @@ from psycopg2 import sql
 
 
 
-def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list,mode):
+def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,environmental_conditions_terms,bioinformatics_terms,taxonomic_information_terms,conn,cursor,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list,mode):
     def fix(fields):
         fields = fields.replace("\n", "")
         fields = fields.replace(" ", "_")
@@ -67,23 +67,23 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
     def check_exists_id(term,field,table):
         result=""
         if (isinstance(term, list)):
-         #   print ("here before",term)
+            print ("here before LIST",term)
 
             term1 = term[0]
             
             
             term2 = getTermAndId(term[1])
-         #   print ("here ",term1,term2)
+            print ("here ",term1,term2)
             sql_query = """
                      SELECT *
                      FROM """ + table + """ 
                      WHERE """+field[0]+""" = %s
                     AND """+field[1]+""" = (SELECT id from """+field[2]+""" where """+field[3].upper()+""" = %s);
                     """
-         #   print (sql_query,(term1,term2))
+            print (sql_query,(term1,term2))
             cursor.execute(sql_query, (term1, term2))
             result = cursor.fetchall()
-           # print(result,"come on")
+            print(result,"come on")
             if (result):
                 result = "yes"
             else:
@@ -172,9 +172,10 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                 #field = fix(field)
                # print(fields)
                 column_ins = columnIns(column_ins,fields[field],count,length)
-
+                print (field, controlled_fields, 'COMPARACAO')
                 if controlled_fields:
                     if field in controlled_fields.keys():
+                        print (field,'controlled')
                         
                         list_terms.append(terms)
                         check_controlled_term(terms,id,controlled_fields[field][0],controlled_fields[field][1])
@@ -182,6 +183,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                         if (count +1 != length):
                             values += ","
                     else:
+                        print (field,'not controlled')
                         
                         list_terms.append(valuesIns(terms))
                         values += "%s"
@@ -221,6 +223,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             
             cursor.execute(insert, list_terms)
             conn.commit()
+            print('inserted with success')
         else:
             insert = "INSERT INTO "+table_name.upper()+column_ins+" VALUES "+values+" RETURNING id"
             print (insert,list_terms)
@@ -229,6 +232,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             #print(cursor)
             last_created_id = cursor.fetchone()
             conn.commit()
+            print('inserted with success')
         return(last_created_id)
     
     def multi (row,sfield,parent_field,parent_id,tfield,table_field,table_multi):
@@ -241,6 +245,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
               if id  != "yes":
                 print ("doesnt exists")
                 create_insert({parent_field:parent_id,tfield:term},{parent_field:parent_field,tfield:tfield},{tfield:[table_field,tfield]},table_multi,2)
+                #print ('DONE???HERE')
               else:
                 print (parent_field,"exists and ",term," exists.")
 
@@ -250,6 +255,29 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
     #sys.exit()
     for index in dict_of_samples['sample']:
         print(dict_of_samples['sample'][index].keys())
+        #print(dict_of_samples['sample'][index])
+        #sys.exit()
+
+
+
+        if "sample_plan_name" in dict_of_samples['sample'][index].keys() or "sample_plan_ID" in dict_of_samples['sample'][index].keys():
+            sample_plan_table_id =""
+            #sample_plan_fields = {};
+            
+            if "sample_plan_name" in dict_of_samples['sample'][index].keys():
+
+                sample_plan_table_id = check_exists_id(dict_of_samples['sample'][index]["sample_plan_name"],"sample_plan_name",'sample_plan')
+                #sample_plan_fields['sample_plan_name'] = dict_of_samples['sample'][index]["sample_plan_name"]
+            else:
+                sample_plan_table_id = check_exists_id(dict_of_samples['sample'][index]["sample_plan_ID"],"sample_plan_ID",'sample_plan')
+               # sample_plan_fields['sample_plan_ID'] = dict_of_samples['sample'][index]["sample_plan_ID"]
+            if not sample_plan_table_id:
+               print("doesnt exist")
+               sample_plan_table_id =create_insert(dict_of_samples['sample'][index],{'sample_plan_name':'sample_plan_name','sample_plan_ID':'sample_plan_id'},"","sample_plan",2)
+
+            dict_of_samples['sample'][index]['sample_plan_table_id'] = sample_plan_table_id[0]
+            
+        
         dict_sample_table = dict_of_samples['sample'][index]
         sample_table_fields = {"sample_collector_sample_id":dict_of_samples['sample'][index]["sample_collector_sample_ID"]}
                 
@@ -257,6 +285,8 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             sample_table_fields["validation_status"]= "flagged"
         else:
             sample_table_fields["validation_status"]= "curated"
+        if 'sample_plan_table_id' in dict_of_samples['sample'][index].keys():
+            sample_table_fields["sample_plan_table_id"]=dict_of_samples['sample'][index]["sample_plan_table_id"]
         #sample_table_fields[keys]=keys
         print ("here")
         sample_id = check_exists_id(dict_of_samples['sample'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
@@ -264,10 +294,8 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             print ("doesnt exists")
             print (dict_sample_table)
             print (sample_table_fields)
-            sample_id =create_insert(sample_table_fields,{"sample_collector_sample_id":"sample_collector_sample_id","validation_status":"validation_status"},"","samples",2) 
-        else:
-            #print (contact_info_id,"exists")
-            sample_id = sample_id
+            sample_id =create_insert(sample_table_fields,{"sample_collector_sample_id":"sample_collector_sample_id","validation_status":"validation_status","sample_plan_table_id":"sample_plan"},"","samples",3) 
+        
         sample_id = sample_id[0]
         dict_of_samples['sample'][index]["sample_id"] = sample_id
         #print ( 'inicio',sample_id,dict_of_samples['sample'][index]["sample_id"])
@@ -277,7 +305,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         #sys.exit()
         #alt_id =""
         if ("alternative_sample_ID") in dict_of_samples['sample'][index].keys():
-            
+            dict_of_samples['sample'][index]["alternative_sample_ID"] = str(dict_of_samples['sample'][index]["alternative_sample_ID"])
             list_alt_ids =[]
             if ("|" in dict_of_samples['sample'][index]["alternative_sample_ID"]):
                 list_alt = re.split("|",dict_of_samples['sample'][index]["alternative_sample_ID"])
@@ -323,7 +351,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                 print (contact_info_id,"exists")
                 
             contact_info_id = contact_info_id[0]
-            
+        print ("done alternative_ids")    
            
         if contact_info_id:
             dict_of_samples['sample'][index]["contact_information"] = contact_info_id
@@ -347,6 +375,34 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         print (collection_id[0],"ready")
         collection_id = collection_id[0]
         dict_of_samples['sample'][index]["collection_information"] = collection_id
+
+        extraction_id = check_exists_id(dict_of_samples['sample'][index]["sample_id"],"sample_id","extraction_information")
+        extraction_fields = {
+            "sample_id":"sample_id", 
+            'experimental_protocol_field':'experimental_protocol_field',
+            'experimental_specimen_role_type':'experimental_specimen_role_type',
+            "nucleic_acid_extraction_method":"nucleic_acid_extraction_method",
+            "nucleic_acid_extraction_kit":"nucleic_acid_extraction_kit",
+            "sample_volume_measurement_value":"sample_volume_measurement_value",
+            "sample_volume_measurement_unit":"sample_volume_measurement_unit",
+            "residual_sample_status":"residual_sample_status",
+            "sample_storage_duration_value":"sample_storage_duration_value",
+            "sample_storage_duration_unit":"sample_storage_duration_unit",
+            "nucleic_acid_storage_duration_value":"nucleic_acid_storage_duration_value",
+            "nucleic_acid_storage_duration_unit":"nucleic_acid_storage_duration_unit"
+            }
+        extraction_controlled_fields = {
+            'experimental_specimen_role_type':['experimental_specimen_role_types','experimental_specimen_role_type'],
+            'sample_volume_meaturement_unit':['volume_measurement_units','volume_measurement_unit'],
+            'residual_sample_status':['residual_sample_status','residual_sample_status'],
+            'sample_storage_duration_unit':['duration_units','duration_unit'],
+            'nucleic_acid_storage_duration_unit':['duration_units','duration_unit']
+        }
+        if not extraction_id:
+            print ("doesnt exists")
+            extraction_id =create_insert(dict_of_samples['sample'][index],extraction_fields,extraction_controlled_fields,"extraction_information",len(extraction_fields))
+        else:
+            print (collection_id,"exists")
 
         if "purpose_of_sampling" in dict_of_samples['sample'][index].keys():
             print ("trying to check")
@@ -396,6 +452,8 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         else:
             print (geo_loc_id,"exists")
         
+
+  
         
         
     
@@ -434,6 +492,14 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
 
         environmental_data_fields = {"sample_id":"sample_id","air_temperature":"air_temperature","sediment_depth":"sediment_depth","water_depth":"water_depth","water_temperature":"water_temperature"}
         #environmental_controlled = {}
+        if (dict_of_samples['environment']):
+            for indexes in dict_of_samples['environment']:
+                if dict_of_samples['environment'][indexes]['sample_collector_sample_ID'] == dict_of_samples['sample'][index]['sample_collector_sample_ID']:
+                    for fields_env in dict_of_samples['environment'][indexes]:
+                        if fields_env != dict_of_samples['sample'][index].keys():
+                            dict_of_samples['sample'][index][fields_env] = dict_of_samples['environment'][indexes][fields_env]
+
+        
         environmental_data_id = check_exists_id(dict_of_samples['sample'][index]["sample_id"],"sample_id","environmental_data")
         if not environmental_data_id:
             print ("doesnt exists")
@@ -442,16 +508,23 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             print (environmental_data_id,"exists")
         
         environmental_data_id= environmental_data_id[0]
+        multi(dict_of_samples['sample'][index],"weather_type","environmental_data",environmental_data_id,"weather_type","weather_types","environment_data_weather_type")
         
         multi(dict_of_samples['sample'][index],"envrionmental_material","environmental_data",environmental_data_id,"envrionmental_material","envrionmental_materials","environment_data_material")
         multi(dict_of_samples['sample'][index],"environmental_site","environmental_data",environmental_data_id,"environmental_site","environmental_sites","environment_data_site")
-        multi(dict_of_samples['sample'][index],"weather_type","environmental_data",environmental_data_id,"weather_type","weather_types","environment_data_weather_type")
+        
         multi(dict_of_samples['sample'][index],"available_data_types","environmental_data",environmental_data_id,"available_data_type","available_data_types","environment_data_available_data_type")
+        print("DONE???")
         multi(dict_of_samples['sample'][index],"animal_or_plant_population","environmental_data",environmental_data_id,"animal_or_plant_population","animal_or_plant_populations","environment_data_animal_plant")
+        print ('DONE_POPULATION')
         if "host_origin geo_loc (country)" in dict_of_samples['sample'][index].keys():
-            host_country[sample_id] = dict_of_samples['sample'][index]["host_origin geo_loc (country)"]
+            print ("STARTING HOSTCOUNTYR")
+            host_country[dict_of_samples['sample'][index][sample_id]] = dict_of_samples['sample'][index]["host_origin geo_loc (country)"]
+            print ("DONE HCOUNTRY")
                 
         
+    print ("FINISHED SAMPLE KEY")
+    print (dict_of_samples['host'])
     for index in dict_of_samples['host']: 
         print  (dict_of_samples['host'][index])  
         if "host (breed)" in dict_of_samples['host'][index].keys():
@@ -474,11 +547,15 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             dict_of_samples['host'][index]["host_disease_id"] = host_disease_id[0]
         else:
              dict_of_samples['host'][index]["geo_loc_name_site_id"] = None
+        print('failed_here?')
         sample_id = check_exists_id(dict_of_samples['sample'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
+        print ('maybe_not')
         sample_id = sample_id[0]
+        #print (host_country)
+        #if host_country:
         if sample_id in host_country.keys():
             dict_of_samples['sample'][index]["host_origin geo_loc (country)"] = host_country[sample_id]
-        dict_of_samples['sample'][index]["sample_id"] = sample_id
+        dict_of_samples['host'][index]["sample_id"] = sample_id
 
         host_fields = {"sample_id":"sample_id","host (common name)":"host_common_name","host (scientific name)":"host_scientific_name","host (food production name)":"host_food_production_name","host_origin geo_loc (country)":"host_origin_geo_loc_name_country","host (ecotype)":"host_ecotype","host_disease_id":"host_disease","host_breed_id":"host_breed","host_age_bin":"host_age_bin"}
         host_controlled = {"host (common name)":["host_common_names","host_common_name"],"host (scientific name)":["host_scientific_names","host_scientific_name"],"host (food production name)":["host_food_production_names","host_food_production_name"],"host_origin geo_loc (country)":["countries","country"]}  
@@ -511,7 +588,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
     PHAGETYPE TEXT
 );
         """
-    
+    print ("FINISHED HOST")
     for index in dict_of_samples['isolate']:
         print (dict_of_samples['isolate'][index])    
         isolate_id = ""
@@ -568,6 +645,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             if ("alternative_isolate_ID") in dict_of_samples['isolate'][index].keys():
             
                 list_alt_ids =[]
+                dict_of_samples['isolate'][index]["alternative_isolate_ID"] = str(dict_of_samples['isolate'][index]["alternative_isolate_ID"])
                 if ("|" in dict_of_samples['isolate'][index]["alternative_isolate_ID"]):
                     list_alt = dict_of_samples['isolate'][index]["alternative_isolate_ID"].split("|")
                     print (list_alt)
@@ -606,120 +684,235 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
     
     
     ##sequneces
+    
     for index in dict_of_samples['sequence']:
-        print (dict_of_samples['sequence'][index])
+        #print (dict_of_samples['sequence'][index])
         #sys.exit()
         print("died sequence")
+        flag_continue =0 
         if (mode == 1):
-            isolate_id = check_exists_id(dict_of_samples['sequence'][index]["isolate_ID"],"isolate_id","isolates")
-            isolate_id = isolate_id[0]
-            dict_of_samples['sequence'][index]["isolate_id"] = isolate_id
+            if 'isolate_ID' in dict_of_samples['sequence'][index].keys():
+                isolate_id = check_exists_id(dict_of_samples['sequence'][index]["isolate_ID"],"isolate_id","isolates")
+                isolate_id = isolate_id[0]
+                dict_of_samples['sequence'][index]["isolate_id"] = isolate_id
+                flag_continue=1
         else:
-            sample_id = check_exists_id(dict_of_samples['sequence'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
-            sample_id = sample_id[0]
-            dict_of_samples['sequence'][index]["sample_id"] = sample_id
+            if 'sample_collector_sample_ID' in dict_of_samples['sequence'][index].keys():
+                sample_id = check_exists_id(dict_of_samples['sequence'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
+                sample_id = sample_id[0]
+                dict_of_samples['sequence'][index]["sample_id"] = sample_id
+                flag_continue = 1
             
 
         
         contact_info_id =""
-            
-        if "sequenced_by_contact_name" in dict_of_samples['sequence'][index].keys(): 
-                contact_info_id = check_exists_id(dict_of_samples['sequence'][index]["sequenced_by_contact_name"],"contact_name","contact_information")
-                print ("done checking")
-                if not contact_info_id:
-                    print ("doesnt exists")
-                    contact_info_id =create_insert(dict_of_samples['sequence'][index],{"sequenced_by_contact_name":"contact_name","sequenced_by_laboratory_name":"laboratory_name","sequenced_by_contact_email":"contact_email"},"","contact_information",3)
-                else:
-                    print (contact_info_id,"exists")
-                    
-                contact_info_id = contact_info_id[0]
-            
-                if contact_info_id:
-                    dict_of_samples['sequence'][index]["contact_information"] = contact_info_id
-                    print (contact_info_id, " contact info")
-                else:
-                    dict_of_samples['sequence'][index]["contact_information"] = None
-        """CREATE TABLE SEQUENCING (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
-    ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
-    LIBRARY_ID TEXT,
-    CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
-    SEQUENCED_BY INTEGER REFERENCES AGENCIES(id),
-    SEQUENCING_PROJECT_NAME TEXT,
-    SEQUENCING_PLATFORM INTEGER REFERENCES SEQUENCING_PLATFORMS(id),
-    SEQUENCING_INSTRUMENT INTEGER REFERENCES SEQUENCING_INSTRUMENTS(id),
-    LIBRARY_PREPARATION_KIT TEXT,
-    SEQUENCING_PROTOCOL TEXT,
-    R1_FASTQ_FILENAME TEXT,
-    R2_FASTQ_FILENAME TEXT,
-    FAST5_FILENAME TEXT,
-    ASSEMBLY_FILENAME TEXT
-    
-
-
-"""     
-        if "assembly_filename" in dict_of_samples['sequence'][index].keys():
-            assembly_filename_id = check_exists_id(dict_of_samples['sequence'][index]["assembly_filename"],"assembly_filename","assembly_filenames")
-            if not assembly_filename_id:
-                    print ("doesnt exists")
-                    assembly_filename_id =create_insert(dict_of_samples['sequence'][index],{"assembly_filename":"assembly_filename" },"","assembly_filenames",1)
-            else:
-                print (assembly_filename_id,"exists")
-                dict_of_samples['isolate'][index]["assembly_filename_id"] = assembly_filename_id[0]
-        else:
-            dict_of_samples['sequence'][index]["assembly_filename_id"] = None
-        sequence_fields = {"sequenced_by":"sequenced_by","contact_information":"contact_information","library_ID":"library_id","sequencing_project_name":"sequencing_project_name","sequencing_platform":"sequencing_platform","sequencing_instrument":"sequencing_instrument","library_preparation_kit":"library_preparation_kit","sequencing_protocol":"sequencing_protocol","r1_fastq_filename":"r1_fastq_filename","r2_fastq_filename":"r2_fastq_filename","fast5_filename":"fast5_filename","assembly_filename_id":"assembly_filename"}
-        sequence_controlled = {"sequenced_by":["agencies","agency"],"sequencing_platform":["sequencing_platforms","sequencing_platform"],"sequencing_instrument":["sequencing_instruments","sequencing_instrument"]}  
         
-        sequence_id=""
-        if (mode == 1):
-            sequence_id = check_exists_id(dict_of_samples['sequence'][index]["isolate_id"],"isolate_id","wholegenomesequencing")
-        else:
-            sequence_id = check_exists_id(dict_of_samples['sequence'][index]["sample_id"],"sample_id","metagenomics")
-            
-        if not sequence_id:
-                print ("doesnt exists")
-                sequence_id =create_insert(dict_of_samples['sequence'][index],sequence_fields,sequence_controlled,"sequencing",len(sequence_fields))
-        else:
-                print (sequence_id,"exists")
-        sequence_id = sequence_id[0]
-        if "purpose_of_sequencing" in dict_of_samples['sequence'][index].keys():
-            print ("trying to check")
-            spurposes = dict_of_samples['sequence'][index]["purpose_of_sequencing"]
-           # print (spurposes)
-            
-            for purpose in spurposes:
-              purpose_of_sequencing_id = check_exists_id([sequence_id,purpose],["collection_information","purpose_of_sampling","purposes","purpose"],"sample_purpose")
-              if purpose_of_sequencing_id != "yes":
-                print ("doesnt exists")
-                purpose_of_sequencing_id =create_insert({"sequencing_id":sequence_id,"purpose_of_sequencing":purpose},{"sequencing_id":"sequencing_id","purpose_of_sequencing":"purpose_of_sequencing"},{"purpose_of_sequencing":["purposes","purpose"]},"sequencing_purpose",2)
-              else:
-                print (purpose_of_sequencing_id,"exists")
-        if (mode == 1):
-            wgs_id = check_exists_id2([sequence_id,dict_of_samples['sequence'][index]["isolate_id"]],["isolate_id","sequencing_id"],"wholegenomesequencing")
-            print (wgs_id, "HERE ID ")
-            if wgs_id != "yes":
-                create_insert({"sequencing_id":sequence_id,"isolate_id":dict_of_samples['sequence'][index]["isolate_id"]},{"sequencing_id":"sequencing_id","isolate_id":"isolate_id"},"","wholegenomesequencing",2)
-            
-        else:
-            metagenomics_id = check_exists_id2([sequence_id,dict_of_samples['sequence'][index]["sample_id"]],["sample_id","sequencing_id"],"metagenomics")
-            if metagenomics_id != "yes":
-                create_insert({"sequencing_id":sequence_id,"isolate_id":dict_of_samples['sequence'][index]["sample_id"]},{"sequencing_id":"sequencing_id","sample_id":"sample_id"},"","metagenomics",2)
-                print (metagenomics_id,"exists")
-        #sys.exit()
+        if flag_continue == 1:    
+            if "sequenced_by_contact_name" in dict_of_samples['sequence'][index].keys(): 
+                    contact_info_id = check_exists_id(dict_of_samples['sequence'][index]["sequenced_by_contact_name"],"contact_name","contact_information")
+                    print ("done checking")
+                    if not contact_info_id:
+                        print ("doesnt exists")
+                        contact_info_id =create_insert(dict_of_samples['sequence'][index],{"sequenced_by_contact_name":"contact_name","sequenced_by_laboratory_name":"laboratory_name","sequenced_by_contact_email":"contact_email"},"","contact_information",3)
+                    else:
+                        print (contact_info_id,"exists")
+                        
+                    contact_info_id = contact_info_id[0]
+                
+                    if contact_info_id:
+                        dict_of_samples['sequence'][index]["contact_information"] = contact_info_id
+                        print (contact_info_id, " contact info")
+                    else:
+                        dict_of_samples['sequence'][index]["contact_information"] = None
+            """CREATE TABLE SEQUENCING (
+        id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        SAMPLE_ID INTEGER REFERENCES SAMPLES(id), 
+        ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
+        LIBRARY_ID TEXT,
+        CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
+        SEQUENCED_BY INTEGER REFERENCES AGENCIES(id),
+        SEQUENCING_PROJECT_NAME TEXT,
+        SEQUENCING_PLATFORM INTEGER REFERENCES SEQUENCING_PLATFORMS(id),
+        SEQUENCING_INSTRUMENT INTEGER REFERENCES SEQUENCING_INSTRUMENTS(id),
+        LIBRARY_PREPARATION_KIT TEXT,
+        SEQUENCING_PROTOCOL TEXT,
+        R1_FASTQ_FILENAME TEXT,
+        R2_FASTQ_FILENAME TEXT,
+        FAST5_FILENAME TEXT,
+        ASSEMBLY_FILENAME TEXT
+        
 
-    for index in dict_of_samples['publicRep']:
+
+    """     
+            
+            sequence_fields = {"sequenced_by":"sequenced_by","contact_information":"contact_information","library_ID":"library_id","sequencing_project_name":"sequencing_project_name","assembly_filename":"assembly_filename","sequencing_platform":"sequencing_platform","sequencing_instrument":"sequencing_instrument",
+                            "library_preparation_kit":"library_preparation_kit","sequencing_protocol":"sequencing_protocol","r1_fastq_filename":"r1_fastq_filename","r2_fastq_filename":"r2_fastq_filename","fast5_filename":"fast5_filename","sequencing_assay_type":"sequencing_assay_type","dna_fragment_length":"dna_fragment_length",
+                                "genomic_target_enrichment_method":"genomic_target_enrichment_method",
+                                "genomic_target_enrichment_method_details":"genomic_target_enrichment_method_details",
+                                "amplicon_pcr_primer_scheme":"amplicon_pcr_primer_scheme",
+                                "amplicon_size":"amplicon_size",
+                                "sequencing_flow_cell":"sequencing_flow_cell"}
+            
+            sequence_controlled = {"sequenced_by":["agencies","agency"],
+                                "sequencing_platform":["sequencing_platforms","sequencing_platform"],
+                                "sequencing_instrument":["sequencing_instruments","sequencing_instrument"],
+                                "sequencing_assay_type" :["sequencing_assay_types","sequencing_assay_type"],
+                                    "genomic_target_enrichment_method":["genomic_target_enrichment_methods","genomic_target_enrichment_method"]
+                                }  
+            
+            sequence_id=""
+            print ('PASSED HERE FIRST CHEQUING SEQUENCE')
             if (mode == 1):
+                sequence_id = check_exists_id(dict_of_samples['sequence'][index]["isolate_id"],"isolate_id","wholegenomesequencing")
+            else:
+                sequence_id = check_exists_id(dict_of_samples['sequence'][index]["sample_id"],"sample_id","metagenomics")
+                
+            if not sequence_id:
+                    print ("doesnt exists")
+                    sequence_id =create_insert(dict_of_samples['sequence'][index],sequence_fields,sequence_controlled,"sequencing",len(sequence_fields))
+            else:
+                    print (sequence_id,"exists")
+            sequence_id = sequence_id[0]
+            if "purpose_of_sequencing" in dict_of_samples['sequence'][index].keys():
+                print ("trying to check")
+                spurposes = dict_of_samples['sequence'][index]["purpose_of_sequencing"]
+            # print (spurposes)
+                
+                for purpose in spurposes:
+                    purpose_of_sequencing_id = check_exists_id([sequence_id,purpose],["sequencing_id","purpose_of_sequencing","purposes","purpose"],"sequencing_purpose")
+                    print (purpose_of_sequencing_id)
+                    if purpose_of_sequencing_id != "yes":
+                        print ("doesnt exists")
+                        purpose_of_sequencing_id =create_insert({"sequencing_id":sequence_id,"purpose_of_sequencing":purpose},{"sequencing_id":"sequencing_id","purpose_of_sequencing":"purpose_of_sequencing"},{"purpose_of_sequencing":["purposes","purpose"]},"sequencing_purpose",2)
+                    else:
+                        print (purpose_of_sequencing_id,"exists")
+            print ('ADDING TO WGS OR METAGENOMICS TABLE')
+            if (mode == 1):
+                print (  ' ADDING ',dict_of_samples['sequence'][index]["isolate_ID"],dict_of_samples['sequence'][index]["isolate_id"])
+                wgs_id = check_exists_id2([sequence_id,dict_of_samples['sequence'][index]["isolate_id"]],["isolate_id","sequencing_id"],"wholegenomesequencing")
+                print (wgs_id, "HERE ID ")
+                if wgs_id != "yes":
+                    create_insert({"sequencing_id":sequence_id,"isolate_id":dict_of_samples['sequence'][index]["isolate_id"]},{"sequencing_id":"sequencing_id","isolate_id":"isolate_id"},"","wholegenomesequencing",2)
+                    print (  ' ADDED ',dict_of_samples['sequence'][index]["isolate_ID"],dict_of_samples['sequence'][index]["isolate_id"])
+                else:
+                    print (  ' NOT ADDEDD ',dict_of_samples['sequence'][index]["isolate_ID"],dict_of_samples['sequence'][index]["isolate_id"])
+                
+            else:
+                metagenomics_id = check_exists_id2([sequence_id,dict_of_samples['sequence'][index]["sample_id"]],["sample_id","sequencing_id"],"metagenomics")
+                if metagenomics_id != "yes":
+                    create_insert({"sequencing_id":sequence_id,"isolate_id":dict_of_samples['sequence'][index]["sample_id"]},{"sequencing_id":"sequencing_id","sample_id":"sample_id"},"","metagenomics",2)
+                    print (metagenomics_id,"exists")
+                #sys.exit()
+                    
+    for index in dict_of_samples['bioinformatics']:
+        if (mode == 1):
                 isolate_id = check_exists_id(dict_of_samples['sequence'][index]["isolate_ID"],"isolate_id","isolates")
                 isolate_id = isolate_id[0]
+                dict_of_samples['bioinformatics'][index]["isolate_id"] = isolate_id
+                sequence_id = check_exists_id(dict_of_samples['bioinformatics'][index]["isolate_id"],"isolate_id","wholegenomesequencing")
+                dict_of_samples['bioinformatics'][index]["sequencing_id"] = sequence_id[0]
+        else:
+            sample_id = check_exists_id(dict_of_samples['sequence'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
+            sample_id = sample_id[0]
+            dict_of_samples['bioinformatics'][index]["sample_id"] = sample_id
+            sequence_id = check_exists_id(dict_of_samples['bioinformatics'][index]["sample_id"],"sample_id","metagenomics")
+            dict_of_samples['bioinformatics'][index]["sequencing_id"] = sequence_id[0]
+        bioinformatics_fields = {
+                                "sequencing_id":"sequencing_id",
+                                "quality_control_method_name":"quality_control_method_name",
+                                "quality_control_method_version":"quality_control_method_version",
+                                "quality_control_determination":"quality_control_determination",
+                                "quality_control_issues":"quality_control_issues",
+                                "quality_control_details":"quality_control_details",
+                                "raw_sequence_data_processing_method":"raw_sequence_data_processing_method",
+                                "dehosting_method":"dehosting_method",
+                                "sequence_assembly_software":"sequence_assembly_software",
+                                "sequence_assembly_software_versiont":"sequence_assembly_software_versiont",
+                                "breadth_of_coverage_value":"breadth_of_coverage_value",
+                                "depth_of_coverage_value":"depth_of_coverage_value",
+                                "depth_of_coverage_threshold":"depth_of_coverage_threshold",
+                                "genome_completness":"genome_completness",
+                                "number_of_base_pairs_sequenced":"number_of_base_pairs_sequenced",
+                                "number_of_totalreads":"number_of_totalreads",
+                                "number_of_unique_reads":"number_of_unique_reads",
+                                "minimum_post_trimming_read_length":"minimum_post_trimming_read_length",
+                                "number_of_contigs":"number_of_contigs",
+                                "ns_per_100_kbp":"ns_per_100_kbp",
+                                "n50":"n50",
+                                "percent_read_contamination":"percent_read_contamination",
+                                "sequence_assembly_length":"sequence_assembly_length",
+                                "consensus_genome_length":"consensus_genome_length",
+                                "reference_genome_accession":"reference_genome_accession",
+                                "deduplication_method":"deduplication_method",
+                                "bioinformatics_protocol":"bioinformatics_protocol",
+                                "read_mapping_software_name":"read_mapping_software_name",
+                                "read_mapping_software_version":"read_mapping_software_version"
+
+
+
+                                }
+        bioinformatics_controlled = {
+                                    "quality_control_determination":["quality_control_determinations","quality_control_determination"],
+                                    "quality_control_issues":["quality_control_issues","quality_control_issues"],
+                                    "sequence_assembly_software":["sequence_assembly_software","sequence_assembly_software"],
+                                    "reference_genome_accession":["reference_genome_accessions","reference_genome_accession"],
+                                    "read_mapping_software_name":["read_mapping_software_names","read_mapping_software_name"]
+
+
+                                    }
+        bioinformatics_id = check_exists_id(dict_of_samples['bioinformatics'][index]["sequencing_id"],"sequencing_id","bioinformatics_analysis")
+        if not bioinformatics_id:
+            print ("doesnt exists")
+            publicRep_id =create_insert(dict_of_samples['bioinformatics'][index],bioinformatics_fields,bioinformatics_controlled,"bioinformatics_analysis",len(bioinformatics_fields))
+        else:
+            print (bioinformatics_id,"exists")
+    for index in dict_of_samples['taxonomics']:
+        if (mode == 1):
+                isolate_id = check_exists_id(dict_of_samples['sequence'][index]["isolate_ID"],"isolate_id","isolates")
+                isolate_id = isolate_id[0]
+                dict_of_samples['taxonomics'][index]["isolate_id"] = isolate_id
+                sequence_id = check_exists_id(dict_of_samples['taxonomics'][index]["isolate_id"],"isolate_id","wholegenomesequencing")
+                dict_of_samples['taxonomics'][index]["sequencing_id"] = sequence_id[0]
+        else:
+            sample_id = check_exists_id(dict_of_samples['sequence'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
+            sample_id = sample_id[0]
+            dict_of_samples['taxonomics'][index]["sample_id"] = sample_id
+            sequence_id = check_exists_id(dict_of_samples['taxonomics'][index]["sample_id"],"sample_id","metagenomics")
+        taxonomics_fields = {
+            "sequencing_id":"sequencing_id",
+            "taxonomic_reference_database_name":"taxonomic_reference_database_name",
+            "taxonomic_reference_database_version":"taxonomic_reference_database_version",
+            "taxonomic_analysis_report_filename":"taxonomic_analysis_report_filename",
+            "read_mapping_criteria":"read_mapping_criteria"
+        }
+        taxonomics_id = check_exists_id(dict_of_samples['taxonomics'][index]["sequencing_id"],"sequencing_id","taxonomic_information")
+        if not taxonomics_id:
+            print ("doesnt exists")
+            taxonomics_id =create_insert(dict_of_samples['taxonomics'][index],taxonomics_fields,"","taxonomic_information",len(taxonomics_fields))
+        else:
+            print (taxonomics_id,"exists")
+    print ('ADDING PLBLIC_REP')
+    for index in dict_of_samples['publicRep']:
+            print (dict_of_samples['publicRep'][index])
+            if (mode == 1):
+                print ("MODE1",index)
+                #print (dict_of_samples['sequence'])
+                isolate_id = check_exists_id(dict_of_samples['sequence'][index]["isolate_ID"],"isolate_id","isolates")
+                
+
+                isolate_id = isolate_id[0]
+                print ("isolate_id")
                 dict_of_samples['publicRep'][index]["isolate_id"] = isolate_id
+                sequence_id = check_exists_id(dict_of_samples['publicRep'][index]["isolate_id"],"isolate_id","wholegenomesequencing")
+                dict_of_samples['publicRep'][index]["sequencing_id"] = sequence_id[0]
             else:
                 sample_id = check_exists_id(dict_of_samples['sequence'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
                 sample_id = sample_id[0]
                 dict_of_samples['publicRep'][index]["sample_id"] = sample_id
+                sequence_id = check_exists_id(dict_of_samples['publicRep'][index]["sample_id"],"sample_id","metagenomics")
+                dict_of_samples['publicRep'][index]["sequencing_id"] = sequence_id[0]
             
-
+            print ("it is here")
             contact_info_id =""
             
             if "sequence_submitted_by_contact_name" in dict_of_samples['publicRep'][index].keys(): 
@@ -740,15 +933,9 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                     dict_of_samples['publicRep'][index]["contact_information"] = None
                 
         
-      
+    
             
-            if (mode == 1):
-                sequence_id = check_exists_id(dict_of_samples['publicRep'][index]["isolate_id"],"isolate_id","wholegenomesequencing")
-                dict_of_samples['publicRep'][index]["sequencing_id"] = sequence_id[0]
-            else:
-                sequence_id = check_exists_id(dict_of_samples['publicRep'][index]["sample_id"],"sample_id","metagenomics")
-                dict_of_samples['publicRep'][index]["sequencing_id"] = sequence_id[0]
-            
+                        
             publicRep_fields = {"sequencing_id":"sequencing_id","sequence_submitted_by":"sequence_submitted_by","contact_information":"contact_information","publication_ID":"publication_id","bioproject_accession":"bioproject_accession","biosample_accession":"biosample_accession","sra_accession":"SRA_accession","GenBank_accession":"genbank_accession","attribute_package":"attribute_package"}
             publicRep_controlled = {"sequence_submitted_by":["agencies","agency"],"attribute_package":["attribute_packages","attribute_package"]}  
             publicRep_id = check_exists_id(dict_of_samples['publicRep'][index]["sequencing_id"],"sequencing_id","public_repository_information")
@@ -757,190 +944,177 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                 publicRep_id =create_insert(dict_of_samples['publicRep'][index],publicRep_fields,publicRep_controlled,"public_repository_information",len(publicRep_fields))
             else:
                 print (publicRep_id,"exists")
-           
-
-    """    CREATE TABLE RISK_ASSESSMENT (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
-    SAMPLE_ID INTEGER REFERENCES SAMPLES(id),
-    SEQUENCE_ID TEXT,
-    PREVALENCE_METRICS INTEGER REFERENCES PREVALENCE_METRICS(id),
-    PREVALENCE_METRICS_DETAILS TEXT,
-    STAGE_OF_PRODUCTION INTEGER REFERENCES STAGE_OF_PRODUCTION(id),
-    EXPERIMENTAL_INTERVENTION_DETAILS TEXT
-    
-
-);
-CREATE TABLE RISK_ACTIVITY(
-    RISK_ID integer REFERENCES RISK_ASSESSMENT(id),
-    EXPERIMENTAL_INTERVENTION integer REFERENCES ACTIVITIES(id),
-    CONSTRAINT Risk_ExperimentalIntervation_pk PRIMARY KEY (RISK_ID, EXPERIMENTAL_INTERVENTION)
-);"""
-
-     
-    for index in dict_of_samples['risk']:
-            print("died risk")
-            sample_id = check_exists_id(dict_of_samples['risk'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
-            sample_id = sample_id[0]
-            dict_of_samples['risk'][index]["sample_id"] = sample_id
-            isolate_id= None
-            risk_id=""
-            if ("isolate_ID" in dict_of_samples['risk'][index].keys() ):
-                isolate_id = check_exists_id(dict_of_samples['risk'][index]["isolate_ID"],"isolate_id","isolates")
-                isolate_id = isolate_id[0]
-                dict_of_samples['risk'][index]["isolate_id"] = isolate_id
-                risk_id=check_exists_id(dict_of_samples['risk'][index]["isolate_id"],"isolate_id","risk_assessment")
-            else:
-                risk_id=check_exists_id(dict_of_samples['risk'][index]["sample_id"],"sample_id","risk_assessment")
         
-            risk_fields = {"sample_id":"sample_id","isolate_id":"isolate_id","sequence_ID":"sequence_id","prevalence_metrics":"prevalence_metrics","prevalence_metrics_details":"prevalence_metrics_details","stage_of_production":"stage_of_production","experimental_intervention_details":"experimental_intervention_details"}
-            risk_controlled = {"prevalence_metrics":["prevalence_metrics","prevalence_metrics"],"stage_of_production":["stage_of_production","stage_of_production"]}  
-            #risk_id = check_exists_id(dict_of_samples['publicRep'][index]["sample_id"],"sample_id","public_repository_information]")
+
+
+    print ("done REP PUBLIC")
+    if (dict_of_samples['risk']): 
+        for index in dict_of_samples['risk']:
+                print("died risk")
+                sample_id = check_exists_id(dict_of_samples['risk'][index]["sample_collector_sample_ID"],"sample_collector_sample_id","samples")
+                sample_id = sample_id[0]
+                dict_of_samples['risk'][index]["sample_id"] = sample_id
+                isolate_id= None
+                risk_id=""
+                if ("isolate_ID" in dict_of_samples['risk'][index].keys() ):
+                    isolate_id = check_exists_id(dict_of_samples['risk'][index]["isolate_ID"],"isolate_id","isolates")
+                    isolate_id = isolate_id[0]
+                    dict_of_samples['risk'][index]["isolate_id"] = isolate_id
+                    risk_id=check_exists_id(dict_of_samples['risk'][index]["isolate_id"],"isolate_id","risk_assessment")
+                else:
+                    risk_id=check_exists_id(dict_of_samples['risk'][index]["sample_id"],"sample_id","risk_assessment")
             
-            if not risk_id:
-                    print ("doesnt exists")
-                    risk_id =create_insert(dict_of_samples['risk'][index],risk_fields,risk_controlled,"risk_assessment",len(risk_fields))
-            else:
-                    print (risk_id,"exists")
-            
-            
-            if "experimental_intervention" in dict_of_samples['risk'][index].keys():
-                print ("trying to check")
-                sactivities = dict_of_samples['risk'][index]["experimental_intervention"]
-            # print (spurposes)
+                risk_fields = {"sample_id":"sample_id","isolate_id":"isolate_id","sequence_ID":"sequence_id","prevalence_metrics":"prevalence_metrics","prevalence_metrics_details":"prevalence_metrics_details","stage_of_production":"stage_of_production","experimental_intervention_details":"experimental_intervention_details"}
+                risk_controlled = {"prevalence_metrics":["prevalence_metrics","prevalence_metrics"],"stage_of_production":["stage_of_production","stage_of_production"]}  
+                #risk_id = check_exists_id(dict_of_samples['publicRep'][index]["sample_id"],"sample_id","public_repository_information]")
                 
-                for activity in sactivities:
-                    psampling_activity_id = check_exists_id([risk_id,activity],["risk_id","experimental_intervention","activities","activity"],"risk_activity")
-                    if psampling_activity_id != "yes":
+                if not risk_id:
                         print ("doesnt exists")
-                        psampling_activity_id =create_insert({"risk_id":risk_id,"experimental_intervention":activity},{"risk_id":"risk_id","experimental_intervention":"experimental_intervention"},{"experimental_intervention":["activities","activity"]},"risk_activity",2)
-                    else:
-                        print (psampling_activity_id,"exists")
-        
-        #print(dict_of_samples['AMR'][0])
-        
-       # print (len(dict_of_samples['AMR']),"tamanho total")
-        #sys.exit()
-    for index in dict_of_samples['AMR']:
-            #if dict_of_samples['AMR'][index]["isolate_ID"] == "CJ-MBS0172R":
-
-
-            isolate_id = check_exists_id(dict_of_samples['AMR'][index]["isolate_ID"],"isolate_id","isolates")
-            
-
-            isolate_id = isolate_id[0]
-            dict_of_samples['AMR'][index]["isolate_id"] = isolate_id
-            """
-            CREATE TABLE AMR_INFO(
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
-    AMR_TESTED_BY INTEGER REFERENCES AGENCIES(id),
-    CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
-    AMR_TESTING_DATE DATE
-
-
-);
-"""
-            contact_info_id =""
-            
-            if "AMR_testing_by_contact_name" in dict_of_samples['AMR'][index].keys(): 
-                contact_info_id = check_exists_id(dict_of_samples['AMR'][index]["AMR_testing_by_contact_name"],"contact_name","contact_information")
-                print ("done checking")
-                if not contact_info_id:
-                    print ("doesnt exists")
-                    contact_info_id =create_insert(dict_of_samples['AMR'][index],{"AMR_testing_by_contact_name":"contact_name","AMR_testing_by_laboratory_name":"laboratory_name","AMR_testing_by_contact_email":"contact_email"},"","contact_information",3)
+                        risk_id =create_insert(dict_of_samples['risk'][index],risk_fields,risk_controlled,"risk_assessment",len(risk_fields))
                 else:
-                    print (contact_info_id,"exists")
+                        print (risk_id,"exists")
+                
+                
+                if "experimental_intervention" in dict_of_samples['risk'][index].keys():
+                    print ("trying to check")
+                    sactivities = dict_of_samples['risk'][index]["experimental_intervention"]
+                # print (spurposes)
                     
-                contact_info_id = contact_info_id[0]
+                    for activity in sactivities:
+                        psampling_activity_id = check_exists_id([risk_id,activity],["risk_id","experimental_intervention","activities","activity"],"risk_activity")
+                        if psampling_activity_id != "yes":
+                            print ("doesnt exists")
+                            psampling_activity_id =create_insert({"risk_id":risk_id,"experimental_intervention":activity},{"risk_id":"risk_id","experimental_intervention":"experimental_intervention"},{"experimental_intervention":["activities","activity"]},"risk_activity",2)
+                        else:
+                            print (psampling_activity_id,"exists")
             
-                if contact_info_id:
-                    dict_of_samples['AMR'][index]["contact_information"] = contact_info_id
-                    print (contact_info_id, " contact info")
-                else:
-                    dict_of_samples['AMR'][index]["contact_information"] = None
+            #print(dict_of_samples['AMR'][0])
             
-
-            AMR_fields = {"isolate_id":"isolate_id","AMR_testing_by":"AMR_testing_by","contact_information":"contact_information","AMR_testing_date":"amr_testing_date"}
-            AMR_controlled = {"AMR_testing_by":["agencies","agency"]}  
-            AMR_id = check_exists_id(dict_of_samples['AMR'][index]["isolate_id"],"isolate_id","amr_info")
-            if not AMR_id:
-                    print ("doesnt exists")
-                    AMR_id =create_insert(dict_of_samples['AMR'][index],AMR_fields,AMR_controlled,"amr_info",len(AMR_fields))
-            else:
-                    print (AMR_id,"exists")
-            
-            #amr_antibiotics_terms=['resistance_phenotype','measurement','measurement_units','measurement_sign','laboratory_typing_method','laboratory_typing_platform','laboratory_typing_platform_version','vendor_name','testing_standard','testing_standard_version','testing_standard_details','testing_susceptible_breakpoint','testing_intermediate_breakpoint','testing_resistance_breakpoint']
-           # print(dict_of_samples['AMR'][index])
-            #print(antimicrobian_agent_names_ids)
+        # print (len(dict_of_samples['AMR']),"tamanho total")
             #sys.exit()
-            for antibiotics in antimicrobian_agent_names_ids:
-                res = [val for key, val in dict_of_samples['AMR'][index].items() if antibiotics in key]
+        print ("DONE RISK")
+    if dict_of_samples['AMR']:
+        for index in dict_of_samples['AMR']:
+                #if dict_of_samples['AMR'][index]["isolate_ID"] == "CJ-MBS0172R":
 
-                if (res):
-                    print(antibiotics,res)
-                    #print(dict_of_samples['AMR'][index])
-                    #sys.exit()
-                    """
-                    CREATE TABLE AMR_ANTIBIOTICS_PROFILE(
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
-    ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
-    ANTIMICROBIAL_AGENT INTEGER REFERENCES ANTIMICROBIAL_AGENTS(id),
-    ANTIMICROBIAL_PHENOTYPE INTEGER REFERENCES ANTIMICROBIAL_PHENOTYPES(id),
-    MEASUREMENT FLOAT(4),
-    MEASUREMENT_UNITS INTEGER REFERENCES MEASUREMENT_UNITS(id),
-    MEASUREMENT_SIGN INTEGER REFERENCES MEASUREMENT_SIGN(id),
-    LABORATORY_TYPING_METHOD INTEGER REFERENCES LABORATORY_TYPING_METHODS(id),
-    LABORATORY_TYPING_PLATFORM INTEGER REFERENCES LABORATORY_TYPING_PLATFORMS(id),
-    LABORATORY_TYPING_PLATFORM_VERSION TEXT,
-    TESTING_SUSCEPTIBLE_BREAKPOINT FLOAT(4),
-    TESTING_INTERMEDIATE_BREAKPOINT FLOAT(4),
-    TESTING_RESISTANCE_BREAKPOINT FLOAT(4),
-    TESTING_STANDARD INTEGER REFERENCES TESTING_STANDARD(id),
-    TESTING_STANDARD_VERSION TEXT,
-    TESTING_STANDARD_DETAILS TEXT,
-    VENDOR_NAME INTEGER REFERENCES VENDOR_NAMES(id)  
-    
-    
 
-);
-                    """
-                    
-                    
-            dict_of_samples['AMR'][index]['antimicrobial_agent']= antibiotics.capitalize()
-                    
-            AMR_afields = ""
-            AMR_acontrolled =""
+                isolate_id = check_exists_id(dict_of_samples['AMR'][index]["isolate_ID"],"isolate_id","isolates")
+                
 
-            if "AMR_measurement_units" in dict_of_samples['AMR'][index] or "AMR_laboratory_typing_platform" in dict_of_samples['AMR'][index]:                                                                                                                               
-                AMR_afields = {"isolate_id":"isolate_id","antimicrobial_agent":"antimicrobial_agent",antibiotics+"_resistance_phenotype":"antimicrobial_phenotype",antibiotics+"_measurement":"measurement","AMR_measurement_units":"measurement_units",antibiotics+'_measurement_sign':"measurement_sign",'AMR_laboratory_typing_method':"laboratory_typing_method",
-                                    'AMR_laboratory_typing_platform': "laboratory_typing_platform",'AMR_laboratory_typing_platform_version': "laboratory_typing_platform_version",antibiotics+'_vendor_name':"vendor_name",antibiotics+'_testing_standard':'testing_standard',antibiotics+'_testing_standard_version':'testing_standard_version',antibiotics+'_testing_standard_details':'testing_standard_details'
-                                    ,antibiotics+'_testing_susceptible_breakpoint':'testing_susceptible_breakpoint',antibiotics+'_testing_intermediate_breakpoint':'testing_intermediate_breakpoint',antibiotics+'_testing_resistance_breakpoint':'testing_resistance_breakpoint'}
-                AMR_acontrolled = {"antimicrobial_agent":["antimicrobial_agents","antimicrobial_agent"],antibiotics+"_resistance_phenotype":["antimicrobial_phenotypes","antimicrobial_phenotype"],"AMR_measurement_units":["measurement_units","measurement_units"],antibiotics+'_measurement_sign':["measurement_sign","measurement_sign"],'AMR_laboratory_typing_method':["laboratory_typing_methods","laboratory_typing_method"],
-                                        'AMR_laboratory_typing_platform':["laboratory_typing_platforms","laboratory_typing_platform"], antibiotics+'_testing_standard':["testing_standard","testing_standard"],antibiotics+'_vendor_name':["vendor_names","vendor_name"]}  
-            else:
-                AMR_afields = {"isolate_id":"isolate_id","antimicrobial_agent":"antimicrobial_agent",antibiotics+"_resistance_phenotype":"antimicrobial_phenotype",antibiotics+"_measurement":"measurement",antibiotics+"_measurement_units":"measurement_units",antibiotics+'_measurement_sign':"measurement_sign",antibiotics+'_laboratory_typing_method':"laboratory_typing_method",
-                                    antibiotics+'_laboratory_typing_platform': "laboratory_typing_platform",antibiotics+'_laboratory_typing_platform_version': "laboratory_typing_platform_version",antibiotics+'_vendor_name':"vendor_name",antibiotics+'_testing_standard':'testing_standard',antibiotics+'_testing_standard_version':'testing_standard_version',antibiotics+'_testing_standard_details':'testing_standard_details'
-                                    ,antibiotics+'_testing_susceptible_breakpoint':'testing_susceptible_breakpoint',antibiotics+'_testing_intermediate_breakpoint':'testing_intermediate_breakpoint',antibiotics+'testing_resistance_breakpoint':'testing_resistance_breakpoint'}
-                AMR_acontrolled = {"antimicrobial_agent":["antimicrobial_agents","antimicrobial_agent"],antibiotics+"_resistance_phetnotype":["antimicrobial_phenotypes","antimicrobial_phenotype"],antibiotics+"_measurement_units":["measurement_units","measurement_units"],antibiotics+'_measurement_sign':["measurement_sign","measurement_sign"],antibiotics+'_laboratory_typing_method':["laboratory_typing_methods","laboratory_typing_method"],
-                                        antibiotics+'_laboratory_typing_platform':["laboratory_typing_platforms","laboratory_typing_platform"], antibiotics+'_testing_standard':["testing_standard","testing_standard"],antibiotics+'_vendor_name':["vendor_names","vendor_name"]}  
-                AMR_aid = ""
-                    
-            command = "SELECT id from AMR_ANTIBIOTICS_PROFILE where ISOLATE_ID = %s AND ANTIMICROBIAL_AGENT = (SELECT id from ANTIMICROBIAL_AGENTS where ANTIMICROBIAL_AGENT = %s)"
-            print (command,(dict_of_samples['AMR'][index]["isolate_id"],antibiotics))
-            cursor.execute(command,(dict_of_samples['AMR'][index]["isolate_id"],antibiotics.capitalize()))
-            AMR_aid = cursor.fetchone()
-                    
-            conn.commit()
-            if not AMR_aid:
-                print ("doesnt exists")
-                AMR_aid =create_insert(dict_of_samples['AMR'][index],AMR_afields,AMR_acontrolled,"amr_antibiotics_profile",len(AMR_afields))
-            else:
-                print (AMR_aid,"exists")
-           # sys.exit()        
+                isolate_id = isolate_id[0]
+                dict_of_samples['AMR'][index]["isolate_id"] = isolate_id
+                """
+                CREATE TABLE AMR_INFO(
+        id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
+        AMR_TESTED_BY INTEGER REFERENCES AGENCIES(id),
+        CONTACT_INFORMATION INTEGER REFERENCES CONTACT_INFORMATION(id),
+        AMR_TESTING_DATE DATE
+
+
+    );
+    """
+                contact_info_id =""
+                
+                if "AMR_testing_by_contact_name" in dict_of_samples['AMR'][index].keys(): 
+                    contact_info_id = check_exists_id(dict_of_samples['AMR'][index]["AMR_testing_by_contact_name"],"contact_name","contact_information")
+                    print ("done checking")
+                    if not contact_info_id:
+                        print ("doesnt exists")
+                        contact_info_id =create_insert(dict_of_samples['AMR'][index],{"AMR_testing_by_contact_name":"contact_name","AMR_testing_by_laboratory_name":"laboratory_name","AMR_testing_by_contact_email":"contact_email"},"","contact_information",3)
+                    else:
+                        print (contact_info_id,"exists")
+                        
+                    contact_info_id = contact_info_id[0]
+                
+                    if contact_info_id:
+                        dict_of_samples['AMR'][index]["contact_information"] = contact_info_id
+                        print (contact_info_id, " contact info")
+                    else:
+                        dict_of_samples['AMR'][index]["contact_information"] = None
+                
+
+                AMR_fields = {"isolate_id":"isolate_id","AMR_testing_by":"AMR_testing_by","contact_information":"contact_information","AMR_testing_date":"amr_testing_date"}
+                AMR_controlled = {"AMR_testing_by":["agencies","agency"]}  
+                AMR_id = check_exists_id(dict_of_samples['AMR'][index]["isolate_id"],"isolate_id","amr_info")
+                if not AMR_id:
+                        print ("doesnt exists")
+                        AMR_id =create_insert(dict_of_samples['AMR'][index],AMR_fields,AMR_controlled,"amr_info",len(AMR_fields))
+                else:
+                        print (AMR_id,"exists")
+                
+                #amr_antibiotics_terms=['resistance_phenotype','measurement','measurement_units','measurement_sign','laboratory_typing_method','laboratory_typing_platform','laboratory_typing_platform_version','vendor_name','testing_standard','testing_standard_version','testing_standard_details','testing_susceptible_breakpoint','testing_intermediate_breakpoint','testing_resistance_breakpoint']
+            # print(dict_of_samples['AMR'][index])
+                #print(antimicrobian_agent_names_ids)
+                #sys.exit()
+                for antibiotics in antimicrobian_agent_names_ids:
+                    res = [val for key, val in dict_of_samples['AMR'][index].items() if antibiotics in key]
+
+                    if (res):
+                        print(antibiotics,res)
+                        #print(dict_of_samples['AMR'][index])
+                        #sys.exit()
+                        """
+                        CREATE TABLE AMR_ANTIBIOTICS_PROFILE(
+        id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+        ISOLATE_ID INTEGER REFERENCES ISOLATES(id),
+        ANTIMICROBIAL_AGENT INTEGER REFERENCES ANTIMICROBIAL_AGENTS(id),
+        ANTIMICROBIAL_PHENOTYPE INTEGER REFERENCES ANTIMICROBIAL_PHENOTYPES(id),
+        MEASUREMENT FLOAT(4),
+        MEASUREMENT_UNITS INTEGER REFERENCES MEASUREMENT_UNITS(id),
+        MEASUREMENT_SIGN INTEGER REFERENCES MEASUREMENT_SIGN(id),
+        LABORATORY_TYPING_METHOD INTEGER REFERENCES LABORATORY_TYPING_METHODS(id),
+        LABORATORY_TYPING_PLATFORM INTEGER REFERENCES LABORATORY_TYPING_PLATFORMS(id),
+        LABORATORY_TYPING_PLATFORM_VERSION TEXT,
+        TESTING_SUSCEPTIBLE_BREAKPOINT FLOAT(4),
+        TESTING_INTERMEDIATE_BREAKPOINT FLOAT(4),
+        TESTING_RESISTANCE_BREAKPOINT FLOAT(4),
+        TESTING_STANDARD INTEGER REFERENCES TESTING_STANDARD(id),
+        TESTING_STANDARD_VERSION TEXT,
+        TESTING_STANDARD_DETAILS TEXT,
+        VENDOR_NAME INTEGER REFERENCES VENDOR_NAMES(id)  
+        
         
 
-                    #sys.exit()
+    );
+                        """
+                        
+                        
+                        dict_of_samples['AMR'][index]['antimicrobial_agent']= antibiotics.capitalize()
+                                
+                        AMR_afields = ""
+                        AMR_acontrolled =""
+
+                        if "AMR_measurement_units" in dict_of_samples['AMR'][index] or "AMR_laboratory_typing_platform" in dict_of_samples['AMR'][index]:                                                                                                                               
+                            AMR_afields = {"isolate_id":"isolate_id","antimicrobial_agent":"antimicrobial_agent",antibiotics+"_resistance_phenotype":"antimicrobial_phenotype",antibiotics+"_measurement":"measurement","AMR_measurement_units":"measurement_units",antibiotics+'_measurement_sign':"measurement_sign",'AMR_laboratory_typing_method':"laboratory_typing_method",
+                                                'AMR_laboratory_typing_platform': "laboratory_typing_platform",'AMR_laboratory_typing_platform_version': "laboratory_typing_platform_version",antibiotics+'_vendor_name':"vendor_name",antibiotics+'_testing_standard':'testing_standard',antibiotics+'_testing_standard_version':'testing_standard_version',antibiotics+'_testing_standard_details':'testing_standard_details'
+                                                ,antibiotics+'_testing_susceptible_breakpoint':'testing_susceptible_breakpoint',antibiotics+'_testing_intermediate_breakpoint':'testing_intermediate_breakpoint',antibiotics+'_testing_resistance_breakpoint':'testing_resistance_breakpoint'}
+                            AMR_acontrolled = {"antimicrobial_agent":["antimicrobial_agents","antimicrobial_agent"],antibiotics+"_resistance_phenotype":["antimicrobial_phenotypes","antimicrobial_phenotype"],"AMR_measurement_units":["measurement_units","measurement_units"],antibiotics+'_measurement_sign':["measurement_sign","measurement_sign"],'AMR_laboratory_typing_method':["laboratory_typing_methods","laboratory_typing_method"],
+                                                    'AMR_laboratory_typing_platform':["laboratory_typing_platforms","laboratory_typing_platform"], antibiotics+'_testing_standard':["testing_standard","testing_standard"],antibiotics+'_vendor_name':["vendor_names","vendor_name"]}  
+                        else:
+                            AMR_afields = {"isolate_id":"isolate_id","antimicrobial_agent":"antimicrobial_agent",antibiotics+"_resistance_phenotype":"antimicrobial_phenotype",antibiotics+"_measurement":"measurement",antibiotics+"_measurement_units":"measurement_units",antibiotics+'_measurement_sign':"measurement_sign",antibiotics+'_laboratory_typing_method':"laboratory_typing_method",
+                                                antibiotics+'_laboratory_typing_platform': "laboratory_typing_platform",antibiotics+'_laboratory_typing_platform_version': "laboratory_typing_platform_version",antibiotics+'_vendor_name':"vendor_name",antibiotics+'_testing_standard':'testing_standard',antibiotics+'_testing_standard_version':'testing_standard_version',antibiotics+'_testing_standard_details':'testing_standard_details'
+                                                ,antibiotics+'_testing_susceptible_breakpoint':'testing_susceptible_breakpoint',antibiotics+'_testing_intermediate_breakpoint':'testing_intermediate_breakpoint',antibiotics+'testing_resistance_breakpoint':'testing_resistance_breakpoint'}
+                            AMR_acontrolled = {"antimicrobial_agent":["antimicrobial_agents","antimicrobial_agent"],antibiotics+"_resistance_phenotype":["antimicrobial_phenotypes","antimicrobial_phenotype"],antibiotics+"_measurement_units":["measurement_units","measurement_units"],antibiotics+'_measurement_sign':["measurement_sign","measurement_sign"],antibiotics+'_laboratory_typing_method':["laboratory_typing_methods","laboratory_typing_method"],
+                                                    antibiotics+'_laboratory_typing_platform':["laboratory_typing_platforms","laboratory_typing_platform"], antibiotics+'_testing_standard':["testing_standard","testing_standard"],antibiotics+'_vendor_name':["vendor_names","vendor_name"]}  
+                            AMR_aid = ""
+                                
+                        command = "SELECT id from AMR_ANTIBIOTICS_PROFILE where ISOLATE_ID = %s AND ANTIMICROBIAL_AGENT = (SELECT id from ANTIMICROBIAL_AGENTS where ANTIMICROBIAL_AGENT = %s)"
+                        print (command,(dict_of_samples['AMR'][index]["isolate_id"],antibiotics))
+                        cursor.execute(command,(dict_of_samples['AMR'][index]["isolate_id"],antibiotics.capitalize()))
+                        AMR_aid = cursor.fetchone()
+                                
+                        conn.commit()
+                        if not AMR_aid:
+                            print ("doesnt exists")
+                            print(dict_of_samples['AMR'][index])
+                            AMR_aid =create_insert(dict_of_samples['AMR'][index],AMR_afields,AMR_acontrolled,"amr_antibiotics_profile",len(AMR_afields))
+                        else:
+                            print (AMR_aid,"exists")
+                    # sys.exit()        
+            
+
+                        #sys.exit()
 
         
     

@@ -58,6 +58,18 @@ def fill_ontology_fields(conn,cursor,xls):
             elif "geo_loc_name (site)" in row['Field']:
                 term = row['Term'].strip()
                 term_insertion ("GEO_LOC_NAME_SITES","GEO_LOC_NAME_SITE",term,row['Ontology Identifier'], row['Definition'])
+            elif "temperature_units" in row['Field']:
+                term = row['Term'].strip()
+                term_insertion ("TEMPERATURE_UNITS","TEMPERATURE_UNIT",term,row['Ontology Identifier'], row['Definition'])
+            elif "volume_measurement_unit" in row['Field']:
+                term = row['Term'].strip()
+                term_insertion ("VOLUME_MEASUREMENT_UNITS","VOLUME_MEASUREMENT_UNIT",term,row['Ontology Identifier'], row['Definition'])
+            elif "quality_control_issues" in row['Field']:
+                term = row['Term'].strip()
+                term_insertion ("QUALITY_CONTROL_ISSUES","QUALITY_CONTROL_ISSUE",term,row['Ontology Identifier'], row['Definition'])
+            elif "duration_unit" in row['Field']:
+                term = row['Term'].strip()
+                term_insertion ("DURATION_UNITS","DURATION_UNIT",term,row['Ontology Identifier'], row['Definition'])
             elif "host (common name)" in row['Field']:
                 term = row['Term'].strip()
                 term_insertion ("HOST_COMMON_NAMES","HOST_COMMON_NAME",term,row['Ontology Identifier'], row['Definition'])
@@ -73,7 +85,7 @@ def fill_ontology_fields(conn,cursor,xls):
             elif "production_stream" in row ['Field']:
                 term = row['Term'].strip()
                 term_insertion ("FOOD_PRODUCT_PRODUCTION_STREAM","FOOD_PRODUCT_PRODUCTION_STREAM",term,row['Ontology Identifier'], row['Definition'])
-            elif "site" in row['Field'] or "population" in row['Field'] or "material" in row['Field'] or "product" in row['Field']or "part" in row['Field'] or "region" in row['Field'] or "device" in row['Field'] or "method" in row['Field'] or "organism" in row['Field'] or "platform" in row['Field'] or "instrument" in row['Field'] or "package" in row['Field']:
+            elif "site" in row['Field'] or "population" in row['Field'] or "material" in row['Field'] or "product" in row['Field']or "part" in row['Field'] or "region" in row['Field'] or "device" in row['Field'] or "quality_control_determination" in row['Field'] or "method" in row['Field'] or "organism" in row['Field'] or "platform" in row['Field'] or "instrument" in row['Field'] or "experimental_specimen_role_type" in row['Field']or "sequencing_assay_type" in row['Field'] or "package" in row['Field']:
                 term = row['Term'].strip()
                 if (row['Field'] == "food_product_properties"):
                     field = row['Field']
@@ -103,6 +115,7 @@ def fill_ontology_fields(conn,cursor,xls):
                 if "phenotype" in row['Field']:
                     field = row['Field'] + "s"
                     term_insertion (field,row['Field'],term,row['Ontology Identifier'], row['Definition'])
+                
                 elif "vendor_name" in field:
                     #print("DAMN HERE")
                     field1 = field + "s"

@@ -1,0 +1,146 @@
+{
+    "sample_name": {
+        "sample_collector_sample_ID": "samples",
+        "isolate_ID": "isolates"
+    },
+    "bioproject_accession": {
+        "bioproject_accession": "public_repository_information",
+        "controlled":{},
+        "key": "sequencing_id"
+    },
+    "strain": {
+        "strain": "isolates",
+        "controlled":{"table":"strains","field":"strain"},
+        "ont_id":"no",
+        "key": "sample_id"
+    },
+    "isolate_name_alias": {
+        "isolate_ID": "isolates",
+        "controlled":{},
+        "key": "sample_id"
+    },
+    "organism": {
+        "organism": "isolates",
+        "controlled":{"table":"organisms","field":"organism"},
+        "ont_id":"no",
+        "key": "sample_id"
+    },
+    "collected_by": {
+        "sample_collected_by": "collection_information",
+        "controlled":{"table":"agencies","field":"agency"},
+        "ont_id":"yes",
+        "key": "sample_id"
+    },
+    "collection_date": {
+        "sample_collection_date": "collection_information",
+        "controlled":{},
+        "key": "sample_id"
+    },
+    "geo_loc_name": {
+        "geo_loc_name_country": {"parent_table":"geo_loc","child_table":"countries","field":"country","ont_id":"yes"},
+        "geo_loc_name_state_province_region": {"parent_table":"geo_loc","child_table":"STATE_PROVINCE_REGIONS","field":"GEO_LOC_STATE_PROVINCE_REGION","ont_id":"yes"}
+    },
+    "isolation_source": {
+        "food": {
+            "food_product": {"parent_table":"food_data_product","child_table":"food_products","field":"food_product","ont_id":"yes"},
+            "food_product_property": {"parent_table":"food_data_product_property","child_table":"food_product_properties","field":"food_product_property","ont_id":"yes"}
+        },
+        "environmental": {
+            "environmental_site": "environment_data_site",
+            "environmental_material": "environment_data_material"
+        }
+    },
+    "purpose_of_sampling": {
+        "purpose_of_sampling": "sample_purpose",
+        "controlled":{"table":"purposes","field":"purpose"},
+        "ont_id":"yes",
+        "key": "collection_information"
+    },
+    "project_name": {
+        "sample_plan_name": "sample_plan",
+        "controlled":{},
+        "key": "sample_plan_id"
+    },
+    "serovar": {
+        "serovar": "isolates",
+        "controlled":{},
+        "key": "sample_id"
+
+    },
+    "sequenced_by": {
+        "sequenced_by": "sequencing",
+        "controlled":{"table":"agencies","field":"agency"},
+        "ont_id":"yes",
+        "key": "sequencing_id"
+    },
+    "specific_data": {
+        "food": {
+            "food_source": {
+                "food_product": "food_data_product",
+                "controlled":{"table":"food_products","field":"food_product"},
+                "ont_id":"yes",
+                "key":"food_data"
+            },
+            "food_processing_method": {
+                "food_product_property": "food_data_product_property",
+                "controlled":{"table":"food_product_properties","field":"food_product_property"},
+                "ont_id":"yes",
+                "key":"food_data",
+                "type":{
+                    "Food (canned) [FOODON:00002418]":0,
+                    "Food (cooked) [FOODON:00001181]":0,
+                    "Food (cut) [FOODON:00004291]":0,
+                    "Food (chopped) [FOODON:00002777]":0,
+                    "Food (chunks) [FOODON:00004555]":0,
+                    "Food (cubed) [FOODON:00004278]":0,
+                    "Food (diced) [FOODON:00004549]":0,
+                    "Food (grated) [FOODON:00004552]":0,
+                    "Food (sliced) [FOODON:00002455]":0,
+                    "Food (shredded) [FOODON:00004553]":0,
+                    "Food (fresh) [FOODON:00002457]":0,
+                    "Food (pulped) [FOODON:00004554]":0,
+                    "Food (raw) [FOODON:03311126]":0,
+                    "Food (unseasoned) [FOODON:00004287]":0,
+                    "Italian-style food product [FOODON:00004321]":0,
+                    "Meat (boneless) [FOODON:00003467]":0,
+                    "Meat (skinless) [FOODON:00003468]":0,
+                    "Meat (with bone) [FOODON:02010116]":0,
+                    "Meat (with skin) [FOODON:02010111]":0,
+                    "Organic food claim or use [FOODON:03510128]":0,
+                    "Ready-to-eat (RTE) [FOODON:03316636]":0
+
+
+
+                }
+            },
+            "food_preserv_proc": {
+                "food_product_property": "food_data_product_property",
+                "controlled":{"table":"food_product_properties","field":"food_product_property"},
+                "ont_id":"yes",
+                "key":"food_data",
+                "type":{
+                    "Food (dried) [FOODON:03307539]":0,
+                    "Food (frozen) [FOODON:03302148]":0
+                }
+            },
+            "food_product_type": {
+                "food_product": {"parent_table":"food_data_product","child_table":"food_products","field":"food_product","ont_id":"yes"},
+                "food_product_property": {"parent_table":"food_data_product_property","child_table":"food_product_properties","field":"food_product_property","ont_id":"yes"}
+            },
+            "food_contain_wrap":{
+                "food_packaging":"food_data_packaging",
+                "controlled":{"table":"food_packaging","field":"food_packaging"},
+                "ont_id":"yes",
+                "key": "food_data"
+            }
+        },
+        "environmental": {
+            "env_broad_scale": {
+                "environmental_site": "environment_data_site"
+            },
+            "env_local_scale": {
+                "environmental_material": "environment_data_material"
+            }
+        }
+    }
+}

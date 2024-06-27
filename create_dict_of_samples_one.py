@@ -14,17 +14,19 @@ import copy
 
 
 
-def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms):
+def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,environmental_conditions_terms,bioinformatics_terms,taxonomic_information_terms):
     def isNaN(string):
         return string != string
     
     
     
-    #print(sampleT_terms)
+    #print('here')
     #sys.exit()
     fields = pd.read_excel(xls,na_values=[datetime.time(0, 0),"1900-01-00","Missing","missing","Not Applicable [GENEPIO:0001619]"],keep_default_na=False, header=1)
     #print (fields[19])
     fields.fillna(0, inplace = True)
+    #print(fields)
+    #sys.exit()
     sample_id = ""
     sample_flagged_list =[]
     terms_accepting_multiple_values =["environmental_site","weather_type","available_data_types","animal_or_plant_population",
@@ -34,15 +36,16 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
     temp_dict={}
     terms_to_fix={}
     new_ont_terms = copy.deepcopy(ontology_terms_and_values)
-    dict_terms_file={'sample':{},'host':{},'isolate':{},'sequence':{},'publicRep':{},'AMR':{},'risk':{}}
+    dict_terms_file={'sample':{},'host':{},'isolate':{},'sequence':{},'publicRep':{},'AMR':{},'risk':{},'environment':{},'bioinformatics':{},'taxonomics':{}}
     amr_antibiotics_terms=['resistance_phenotype','measurement','measurement_units','measurement_sign','laboratory_typing_method','laboratory_typing_platform','laboratory_typing_platform_version','vendor_name','testing_standard','testing_standard_version','testing_standard_details','susceptible_breakpoint','intermediate_breakpoint','resistant_breakpoint']
     for index, row in fields.iterrows():
-        print (row)
+        print ("Checking INDEX", index)
         for i in row.index:
         
                         
             if (row[i] != 0 and not isNaN(row[i]) and row[i] ):
 
+                #print(i)
                 key = i.strip()
                 key2 = key
                 print ("begin with",key2," and ", row[i])
@@ -71,7 +74,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                 if (key == 'production_stream'):
                     key2 ="food_product_production_stream"
                 cell=""
-                #print ("NOW HERE",key2)
+                print ("NOW HERE",key2)
                 if key2 in terms_accepting_multiple_values:
                    # print(row[i],"ready to split")
                     cell_prov=row[i].split(";")
@@ -83,7 +86,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                             cell.append(cell_sub)
 
                 else:
-                    #print ("UPDATE",row[i])
+                   # print ("UPDATE",row[i])
                     cell = row[i]
 
                     if isinstance(cell,str):
@@ -92,10 +95,11 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                 if key2 == "sample_collector_sample_ID" :
                     sample_id = cell 
                 if key2 in ontology_terms_and_values.keys():
-                 #   print(key2, "ta aqui provavel")
+                    print(key2, "ta aqui provavel")
                     if "terms" in ontology_terms_and_values[key2].keys():
+                        print(ontology_terms_and_values[key2])
                         if key2 in terms_accepting_multiple_values:
-                            for index,cell_sub in enumerate(cell):
+                            for index3,cell_sub in enumerate(cell):
                                 flag = 0;
                                 pseudoid=""
                                 realid=""
@@ -104,9 +108,9 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                     cell_sub = wanted[0]
                                     pseudoid = wanted[1]
                                 elif (":" in cell and "[" in cell):
-                                  #  print (cell)
+                                    print (cell,":[]")
                                     if ( re.match("(.+)\s+\[(\w+\:\d+)\]",cell)):
-                                        result_match = re.match("(.+)\s+\[(\w+\:\d+)\]",cell)
+                                        result_match = re.match("(.+)\s+\[(\w+\:\w+)\]",cell)
                                         cell = result_match.groups()[0]
                                         realid = result_match.groups()[1]
                                     else:
@@ -133,7 +137,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                             if cell_sub in keyI:
                                                         # print(cell,keyI)
                                                 flag+=1;
-                                                cell[index]= item[keyI]["term"]+"//"+item[keyI]["term_id"]
+                                                cell[index3]= item[keyI]["term"]+"//"+item[keyI]["term_id"]
                               #  print ("passou por aqui")
                                 if flag == 0:
                                                 #print("diferent term: ",cell," with id: ",pseudoid," in field:",key)
@@ -155,7 +159,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                             new_ont_terms[key2]['terms'].append({cell_sub+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
                                                     #print(cell,ontology_terms_and_values[key])
                                                     
-                                            cell[index]= cell_sub+"//"+pseudoid
+                                            cell[index3]= cell_sub+"//"+pseudoid
                                 #print ("foi multiple")
                         else:
                             flag = 0;
@@ -166,8 +170,8 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                 cell = wanted[0]
                                 pseudoid = wanted[1]
                             elif (":" in cell and "[" in cell):
-                              #  print (cell)
-                                result_match = re.match("(.+)\s+\[(\w+\:\d+)\]",cell)
+                                print (cell,":[] not multiple")
+                                result_match = re.match("(.+)\s+\[(\w+\:\w+)\]",cell)
                                 #print(result_match.groups())
                                 cell = result_match.groups()[0]
                                 realid = result_match.groups()[1]
@@ -302,61 +306,28 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
        # print ("Done Sample......")
         #adding host terms
         host_temp={}
-        for host_terms in hostT_terms:
-            if host_terms in temp_dict.keys():
-                host_temp[host_terms] = temp_dict[host_terms]
-        #print (host_temp)
-        for index2 in dict_terms_file['host']:
-            # print (index2,dict_terms_file['sample'][index2])
-            # print(temp_dict)
-            if dict_terms_file['host'][index2]['sample_collector_sample_ID'] == temp_dict['sample_collector_sample_ID']:
-               # print ("host table duplicated:","in row:",index2,"term:",dict_terms_file['host'][index2]['sample_collector_sample_ID']," and ","in row:",index,"term:",temp_dict['sample_collector_sample_ID'])
-                flag_dup =1
-        # print("come on:",flag_dup)
-        if (flag_dup == 0 ):
-            # print ("chegou aqui")
-            dict_terms_file['host'][index]=host_temp
-        print ("Done Host......")
-        if ("isolate_ID" in temp_dict.keys()):
-            isolate_temp={}
-            for isolate_terms in isolateT_terms:
-                if isolate_terms in temp_dict.keys():
-                    isolate_temp[isolate_terms] = temp_dict[isolate_terms]
-            #print (isolate_temp)
-
-            for index2 in dict_terms_file['isolate']:
-                if dict_terms_file['isolate'][index2]['isolate_ID'] == temp_dict['isolate_ID']:
-                    print ("isolate table duplicated:","in row:",index2,"term:",dict_terms_file['isolate'][index2]['isolate_ID']," and ","in row:",index,"term:",temp_dict['isolate_ID'])
-                    flag_dup =1
-            if (flag_dup == 0 ):
-                dict_terms_file['isolate'][index]=isolate_temp
-        print ("Done Isolates......")
-        #adding sequencing terms
-        sequencing_temp={}
-        for sequencing_terms in sequenceT_terms:
-            if sequencing_terms in temp_dict.keys():
-                sequencing_temp[sequencing_terms] = temp_dict[sequencing_terms]
-        print (sequencing_temp)
-        if (len(sequencing_temp) > 3):
+        for terms in hostT_terms:
+            if terms in temp_dict.keys():
+                host_temp[terms] = temp_dict[terms]
+        
+        print (host_temp)
+        flag_empty =0
+        for key_temp in host_temp.keys():
+            if 'sample_ID' not in key_temp and 'isolate_ID' not in key_temp:
+                flag_empty =1
+        if (flag_empty == 1):
             subflag_dup =0
             index_save = "y"
-            for index2 in dict_terms_file['sequence']:
-                if ("isolate_ID" in temp_dict.keys()):
-                    if dict_terms_file['sequence'][index2]['isolate_ID'] == temp_dict['isolate_ID'] :
-                        for keys_temp in sequencing_temp:
-                            if sequencing_temp[keys_temp] != dict_terms_file['sequence'][index2][keys_temp]:
+            for index2 in dict_terms_file['host']:
+                if ("sample_collector_sample_ID" in temp_dict.keys()):
+                    if dict_terms_file['host'][index2]['sample_collector_sample_ID'] == temp_dict['sample_collector_sample_ID'] :
+                        for keys_temp in host_temp:
+                            if host_temp[keys_temp] != dict_terms_file['host'][index2][keys_temp]:
                                 subflag_dup = 1
                             else:
                                 flag_dup = 1
                                 index_save = index2
-                else:
-                    if dict_terms_file['sequence'][index2]['sample_collector_sample_ID'] == temp_dict['sample_collector_sample_ID'] :
-                        for keys_temp in sequencing_temp:
-                            if sequencing_temp[keys_temp] != dict_terms_file['sequence'][index2][keys_temp]:
-                                subflag_dup = 1
-                            else:
-                                flag_dup = 1
-                                index_save = index2
+                
 
             #print("cabou o flagging e ai ???")
             if subflag_dup == 1:
@@ -365,42 +336,163 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                 #if (index_save != "y"): 
                 # print ("sequence table duplication:","in row:",index_save,"term:",dict_terms_file['sequence'][index_save]['isolate_ID']," and ","in row:",index,"term:",temp_dict['isolate_ID'])
             if flag_dup ==0:
-                dict_terms_file['sequence'][index]=sequencing_temp
+                dict_terms_file['host'][index]=host_temp
+        print ("Done Host......")
+        if ("isolate_ID" in temp_dict.keys()):
+            isolate_temp={}
+            for isolate_terms in isolateT_terms:
+                if isolate_terms in temp_dict.keys():
+                    isolate_temp[isolate_terms] = temp_dict[isolate_terms]
+            #print (isolate_temp)
+
+            dict_terms_file['isolate'][index]=isolate_temp
+        print ("Done Isolates......")
+        #adding sequencing terms
+        sequencing_temp={}
+        for sequencing_terms in sequenceT_terms:
+            if sequencing_terms in temp_dict.keys():
+                sequencing_temp[sequencing_terms] = temp_dict[sequencing_terms]
+        print (sequencing_temp)
+        
+        subflag_dup =0
+        index_save = "y"
+        dict_terms_file['sequence'][index]=sequencing_temp
         
         print ("Done Sequencing......")
+        #adding environmental
+        environmental_temp={}
+        for environmental_terms in environmental_conditions_terms:
+            if environmental_terms in temp_dict.keys():
+                environmental_temp[environmental_terms] = temp_dict[environmental_terms]
+        
+        print (environmental_temp)
+        flag_empty =0
+        for key_temp in environmental_temp.keys():
+            if 'sample_ID' not in key_temp and 'isolate_ID' not in key_temp:
+                flag_empty =1
+        if (flag_empty == 1):
+            subflag_dup =0
+            index_save = "y"
+            for index2 in dict_terms_file['environment']:
+                if ("sample_collector_sample_ID" in temp_dict.keys()):
+                    if dict_terms_file['environment'][index2]['sample_collector_sample_ID'] == temp_dict['sample_collector_sample_ID'] :
+                        for keys_temp in environmental_temp:
+                            if environmental_temp[keys_temp] != dict_terms_file['environment'][index2][keys_temp]:
+                                subflag_dup = 1
+                            else:
+                                flag_dup = 1
+                                index_save = index2
+                
+
+            #print("cabou o flagging e ai ???")
+            if subflag_dup == 1:
+                flag_dup =0
+            #else:
+                #if (index_save != "y"): 
+                # print ("sequence table duplication:","in row:",index_save,"term:",dict_terms_file['sequence'][index_save]['isolate_ID']," and ","in row:",index,"term:",temp_dict['isolate_ID'])
+            if flag_dup ==0:
+                dict_terms_file['environment'][index]=environmental_temp
+
+        print ("Done Environment......")
+        #adding bioinformatics
+        bioinformatics_temp={}
+
+        for terms in bioinformatics_terms:
+            if terms in temp_dict.keys():
+                bioinformatics_temp[terms] = temp_dict[terms]
+        
+        print (bioinformatics_temp)
+        flag_empty =0
+        for key_temp in bioinformatics_temp.keys():
+            if 'sample_ID' not in key_temp and 'isolate_ID' not in key_temp:
+                flag_empty =1
+        if (flag_empty == 1):
+            subflag_dup =0
+            index_save = "y"
+            for index2 in dict_terms_file['bioinformatics']:
+                if ("isolate_ID" in temp_dict.keys()):
+                    if dict_terms_file['bioinformatics'][index2]['isolate_ID'] == temp_dict['isolate_ID'] :
+                        for keys_temp in bioinformatics_temp:
+                            if bioinformatics_temp[keys_temp] != dict_terms_file['bioinformatics'][index2][keys_temp]:
+                                subflag_dup = 1
+                            else:
+                                flag_dup = 1
+                                index_save = index2
+                else:
+                    if dict_terms_file['bioinformatics'][index2]['sample_collector_sample_ID'] == temp_dict['sample_collector_sample_ID'] :
+                        for keys_temp in bioinformatics_temp:
+                            if bioinformatics_temp[keys_temp] != dict_terms_file['bioinformatics'][index2][keys_temp]:
+                                subflag_dup = 1
+                            else:
+                                flag_dup = 1
+                                index_save = index2
+                
+
+            #print("cabou o flagging e ai ???")
+            if subflag_dup == 1:
+                flag_dup =0
+            #else:
+                #if (index_save != "y"): 
+                # print ("sequence table duplication:","in row:",index_save,"term:",dict_terms_file['sequence'][index_save]['isolate_ID']," and ","in row:",index,"term:",temp_dict['isolate_ID'])
+            if flag_dup ==0:
+                dict_terms_file['bioinformatics'][index]=bioinformatics_temp
+        print ("Done Bioinformatics......")
+        #adding taxonomics
+        taxonomics_temp={}
+        for terms in taxonomic_information_terms:
+            if terms in temp_dict.keys():
+                taxonomics_temp[terms] = temp_dict[terms]
+        
+        print (taxonomics_temp)
+        flag_empty =0
+        for key_temp in taxonomics_temp.keys():
+            if 'sample_ID' not in key_temp and 'isolate_ID' not in key_temp:
+                flag_empty =1
+        if (flag_empty == 1):
+            subflag_dup =0
+            index_save = "y"
+            for index2 in dict_terms_file['taxonomics']:
+                if ("isolate_ID" in temp_dict.keys()):
+                    if dict_terms_file['taxonomics'][index2]['isolate_ID'] == temp_dict['isolate_ID'] :
+                        for keys_temp in taxonomics_temp:
+                            if taxonomics_temp[keys_temp] != dict_terms_file['taxonomics'][index2][keys_temp]:
+                                subflag_dup = 1
+                            else:
+                                flag_dup = 1
+                                index_save = index2
+                else:
+                    if dict_terms_file['taxonomics'][index2]['sample_collector_sample_ID'] == temp_dict['sample_collector_sample_ID'] :
+                        for keys_temp in taxonomics_temp:
+                            if taxonomics_temp[keys_temp] != dict_terms_file['taxonomics'][index2][keys_temp]:
+                                subflag_dup = 1
+                            else:
+                                flag_dup = 1
+                                index_save = index2
+                
+
+            #print("cabou o flagging e ai ???")
+            if subflag_dup == 1:
+                flag_dup =0
+            #else:
+                #if (index_save != "y"): 
+                # print ("sequence table duplication:","in row:",index_save,"term:",dict_terms_file['sequence'][index_save]['isolate_ID']," and ","in row:",index,"term:",temp_dict['isolate_ID'])
+            if flag_dup ==0:
+                dict_terms_file['taxonomics'][index]=taxonomics_temp
+        print ("Done Taxonomics......")
         #adding public rep
         public_rep_temp={}
         for public_rep_terms in repositoryT_terms:
             if public_rep_terms in temp_dict.keys():
                 public_rep_temp[public_rep_terms] = temp_dict[public_rep_terms]
         print (public_rep_temp)
-        if len(public_rep_temp) > 4: 
-            subflag_dup =0
-            index_save = "y"
-            for index2 in dict_terms_file['publicRep']:
-                if ("isolate_ID" in temp_dict.keys()):
-                    if dict_terms_file['publicRep'][index2]['isolate_ID'] == temp_dict['isolate_ID'] :
-                        for keys_temp in public_rep_terms:
-                            if public_rep_terms[keys_temp] != dict_terms_file['publicRep'][index2][keys_temp]:
-                                subflag_dup = 1
-                            else:
-                                flag_dup = 1
-                                index_save = index2
-                    else:
-                       if dict_terms_file['publicRep'][index2]['sample_collector_sample_ID'] == temp_dict['sample_collector_sample_ID'] :
-                        for keys_temp in public_rep_terms:
-                            if public_rep_terms[keys_temp] != dict_terms_file['publicRep'][index2][keys_temp]:
-                                subflag_dup = 1
-                            else:
-                                flag_dup = 1
-                                index_save = index2 
-            if subflag_dup == 1:
-                flag_dup =0
-           # else:
-                #if (index_save != "y"): 
-                #    print ("public rep table duplication:","in row:",index_save,"term:",dict_terms_file['publicRep'][index_save]['isolate_ID']," and ","in row:",index,"term:",temp_dict['isolate_ID'])
-            if flag_dup ==0:
-                dict_terms_file['publicRep'][index]=public_rep_temp
+        flag_empty =0
+        for key_temp in public_rep_temp.keys():
+            if 'sample_ID' not in key_temp and 'isolate_ID' not in key_temp:
+                flag_empty =1
+        print ("checking")
+        if (flag_empty == 1):
+        
+            dict_terms_file['publicRep'][index]=public_rep_temp
         print ("Done Repository......")
         #adding risk terms
         risk_temp = {}
@@ -408,7 +500,11 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
         for risk_terms in riskT_terms:
             if risk_terms in temp_dict.keys():
                 risk_temp[risk_terms] = temp_dict[risk_terms]
-        if len(risk_temp) > 2: 
+        flag_empty =0
+        for key_temp in risk_temp.keys():
+            if 'sample_ID' not in key_temp and 'isolate_ID' not in key_temp:
+                flag_empty =1
+        if (flag_empty == 1):
             subflag_dup =0
             index_save = "y"
             for index2 in dict_terms_file['risk']:
@@ -447,7 +543,11 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
             for anti_terms in antiT_terms:
                 if anti_terms in amr_keys:
                     amr_temp[amr_keys] = temp_dict[amr_keys]
-        if len(risk_temp) > 2:             
+        flag_empty =0
+        for key_temp in amr_temp.keys():
+            if 'sample_ID' not in key_temp and 'isolate_ID' not in key_temp:
+                flag_empty =1
+        if (flag_empty == 1):            
             subflag_dup =0
             index_save = "y"
             for index2 in dict_terms_file['AMR']:
@@ -467,7 +567,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
             if flag_dup ==0:
                 dict_terms_file['AMR'][index]=amr_temp
         
-        #print(dict_terms_file)
+        print(temp_dict)
         temp_dict ={}
         print ("Done AMR......")  
     print ("starting counting")                
@@ -482,8 +582,8 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
     #print(dict_terms_file)
     #sys.exit()
     
-    #print(dict_terms_file['sample'])
-    sys.exit()
+    #print(dict_terms_file['AMR'])
+    #sys.exit()
     
     return(dict_terms_file,new_ont_terms,terms_accepting_multiple_values,sample_flagged_list)                                  
         
