@@ -40,15 +40,35 @@ def create_ontology_dict(xls):
     environmental_conditions_terms = reading_file("Environmental conditions")
     bioinformatics_terms = reading_file("Bioinformatics and QC")
     taxonomic_information_terms = reading_file("Taxonomic Information")
+    #print(sampleT_terms)
+    extractionT_terms = []
 
+    # Add the first item of `sampleT_terms` to `extractionT_terms`
+    extractionT_terms.append(sampleT_terms[0])
 
+    # Add "isolate_ID" to `extractionT_terms`
+    extractionT_terms.append("isolate_ID")
+
+    # Patterns to search for
+    patterns = ['experimental', 'nucleic_acid', 'sample_volume', 'residual_sample', 'sample_storage']
+
+    # Add terms that start with any of the specified patterns to `extractionT_terms`
+    # and remove them from `sampleT_terms`
+    extractionT_terms.extend([term for term in sampleT_terms if any(term.startswith(pattern) for pattern in patterns)])
+    sampleT_terms = [term for term in sampleT_terms if not any(term.startswith(pattern) for pattern in patterns)]
+    
+    #print(sampleT_terms)
+    #print(extractionT_terms)
+    #sys.exit()
     
 
+    
+    
     antiT_terms=amrTotal_terms[9:]
     
 
     amrT_terms=amrTotal_terms[:9]
-    
+    print ("done elements")
     
     
             
@@ -56,6 +76,7 @@ def create_ontology_dict(xls):
     vocab_sheet = pd.read_excel(xls,keep_default_na=False,converters={column: lambda x: x.strip() for column in list(range(20))}, sheet_name="Vocabulary", header=1)
     
     ontology_dict = vocab_sheet.to_dict(orient='list')
+    ontology_dict = {key.strip(): value for key, value in ontology_dict.items()}
     fields_sheet = pd.read_excel(xls,keep_default_na=False, sheet_name="Reference Guide", header=4)
     #fields_sheet_filtered = fields_sheet[fields_sheet["Ontology ID"].str.contains("GENEPIO")==True]
     fields_sheet_filtered = fields_sheet[(fields_sheet["Ontology ID"].str.contains("GENEPIO")) | (fields_sheet.iloc[:, 0].str.startswith("antimicrobial"))]
@@ -80,14 +101,15 @@ def create_ontology_dict(xls):
             temp_list=[];
             for i in str_list:
                 newstr = i.strip()
+                #print (newstr)
                 
                 if re.match(".+\[\w",newstr):
-                    
+                    #print("HERE")
                     substrL= re.match("(.+)\s+\[(\S+)\]",newstr)
                     
-                    
+                    #print("NOW",substrL)
                     temp_list.append({newstr:{"term":substrL.groups()[0],"term_id":substrL.groups()[1]}})
-                   
+                    #print("AFTER")
 
                         
                 else:
@@ -97,6 +119,7 @@ def create_ontology_dict(xls):
             new_merged_ontology_dict [key] = {"field_id":key,"terms":temp_list}
                     
         else:
+                         
         
             new_merged_ontology_dict [key] = {"field_id":key}
     antimicrobian_agent_names_ids = {}
@@ -113,6 +136,7 @@ def create_ontology_dict(xls):
     
    
     #sys.exit()
-    #rint(new_merged_ontology_dict)
-    #sys.exit()
-    return (new_merged_ontology_dict,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,environmental_conditions_terms,bioinformatics_terms,taxonomic_information_terms)   
+    #taxonomic_identification_process
+    
+    return (new_merged_ontology_dict,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,environmental_conditions_terms,bioinformatics_terms,taxonomic_information_terms,extractionT_terms)   
+ 
