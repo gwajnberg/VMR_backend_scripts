@@ -152,7 +152,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
 
         output_file = "formatted_sql_command.txt"
         with open(output_file, "a") as file:  # 'a' mode opens the file for appending
-            file.write(formatted_insert + "\n")    
+            file.write(formatted_insert + ";\n")    
     def check_controlled_term(term,id,table,field):
         print (term,table,field,id)
         sql_query = """
