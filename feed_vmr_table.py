@@ -198,16 +198,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
   
         #print("Formatted SQL command:", formatted_insert)
 
-    def check_ontology_id(term,table):
-        sql_query = """
-                     SELECT ontology_id
-                     FROM """ + table + """ 
-                     WHERE en_term = %s;
-                    """
-        cursor.execute(sql_query, (term,))
-        result = cursor.fetchone()
-        print(result)
-        sys.exit()
+    
 
     def create_insert (row,fields,controlled_fields,table_name,length):
         print (row,fields,controlled_fields, "in create Insert")
@@ -235,8 +226,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                     if field in controlled_fields.keys():
                         print (field,'controlled')
                         
-                        if (field == "antimicrobial_agent"):
-                            id = check_ontology_id(terms,"ontology_terms")
+                        
                         list_terms.append(id)
 
                         check_controlled_term(terms,id,controlled_fields[field][0],controlled_fields[field][1])
@@ -1207,7 +1197,9 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                         """
                         
                         
-                        dict_of_samples['AMR'][index]['antimicrobial_agent']= antibiotics.capitalize()
+                        dict_of_samples['AMR'][index]['antimicrobial_agent']= antibiotics.capitalize()+"//"+antimicrobian_agent_names_ids[antibiotics]
+                        #print(dict_of_samples['AMR'][index]['antimicrobial_agent'])
+                        #sys.exit()
                                 
                         AMR_afields = ""
                         AMR_acontrolled =""
@@ -1233,20 +1225,24 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                                                     antibiotics+'_vendor_name':["ontology_terms","ontology_id"]}  
                             AMR_aid = ""
 
-                        if  "_acid" in antibiotics:
-                            antibiotics = antibiotics.replace("_acid"," acid")       
-                        command = "SELECT id from AMR_ANTIBIOTICS_PROFILE where TEST_ID = %s AND ANTIMICROBIAL_AGENT = (SELECT id from ONTOLOGY_TERMS where EN_TERM = %s)"
-                        print (command,(dict_of_samples['AMR'][index]["test_id"],antibiotics))
-                        cursor.execute(command,(dict_of_samples['AMR'][index]["test_id"],antibiotics.capitalize()))
-                        AMR_aid = cursor.fetchone()
+
+
+                        check_exists_id([collection_id,purpose],["id","term_id","ontology_terms","ontology_id"],"sample_purposes")
+                        AMR_aid = check_exists_id([dict_of_samples['AMR'][index]["test_id"],dict_of_samples['AMR'][index]['antimicrobial_agent']],["test_id","antimicrobial_agent","ontology_terms","ontology_id"],"amr_antibiotics_profile")
+                        #if  "_acid" in antibiotics:
+                        #    antibiotics = antibiotics.replace("_acid"," acid")       
+                        #command = "SELECT id from AMR_ANTIBIOTICS_PROFILE where TEST_ID = %s AND ANTIMICROBIAL_AGENT = (SELECT id from ONTOLOGY_TERMS where EN_TERM = %s)"
+                        #print (command,(dict_of_samples['AMR'][index]["test_id"],antibiotics))
+                        #ursor.execute(command,(dict_of_samples['AMR'][index]["test_id"],antibiotics.capitalize()))
+                        #AMR_aid = cursor.fetchone()
                                 
-                        conn.commit()
+                        #conn.commit()
                         if not AMR_aid:
                             print ("doesnt exists")
                             print(dict_of_samples['AMR'][index])
                             AMR_aid =create_insert(dict_of_samples['AMR'][index],AMR_afields,AMR_acontrolled,"amr_antibiotics_profile",len(AMR_afields))
                         else:
-                            print (AMR_aid,"exists")
+                            print (AMR_aid[0],"exists")
                     # sys.exit()        
             
 

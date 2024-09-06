@@ -92,6 +92,8 @@ def create_ontology_dict(xls):
         keypr = ""
         if (key == "antimicrobial_resistance_phenotype"):
             keypr = "antimicrobial_phenotype"
+        elif (key == "food_product_origin geo_loc_name (country)"):
+            keypr = "food_product_origin geo_loc (country)"
         else:
             keypr = key
         if keypr in ontology_dict.keys():
@@ -134,7 +136,8 @@ def create_ontology_dict(xls):
     antimicrobian_agent_names_ids ['amikacin']= 'CHEBI:2637'
     antimicrobian_agent_names_ids ['kanamycin']= 'CHEBI:6104'
     
-   
+    #print(new_merged_ontology_dict['food_product_origin geo_loc_name (country)'])
+    #sys.exit()
     #sys.exit()
     #taxonomic_identification_process
     

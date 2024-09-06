@@ -73,6 +73,8 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                     key2 = "antimicrobial_laboratory_typing_method"
                 if (key == 'production_stream'):
                     key2 ="food_product_production_stream"
+                if (key == 'food_product_origin geo_loc (country)'):
+                    key2 = "food_product_origin geo_loc_name (country)"
                 cell=""
                 print ("NOW HERE",key2)
                 if key2 in terms_accepting_multiple_values:
@@ -91,17 +93,19 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
 
                     if isinstance(cell,str):
                         cell=cell.strip()
-                print("Here_",cell)
+                print("Here_",cell,key)
                 if key2 == "sample_collector_sample_ID" :
                     sample_id = cell 
                 
                 if key2 in ontology_terms_and_values.keys():
                     print(key2, "ta aqui provavel")
+                    
                     if "terms" in ontology_terms_and_values[key2].keys():
                         
                         #print(ontology_terms_and_values[key2])
                         #sys.exit()
                         if key2 in terms_accepting_multiple_values:
+                            print ("entrou no multiple!")
                             for index3,cell_sub in enumerate(cell):
                                 flag = 0;
                                 pseudoid=""
@@ -168,6 +172,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                             cell[index3]= cell_sub+"//"+pseudoid
                                 #print ("foi multiple")
                         else:
+                            print(cell, "caiu no else hein")
                             flag = 0;
                             pseudoid=""
                             realid=""
@@ -179,7 +184,9 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                 
                             elif (":" in cell and "[" in cell):
                                 
-                                
+                                #if "India" in cell:
+                                   # print (cell)
+                                    #sys.exit()
                                 print (cell,":[] not multiple")
                                 result_match = re.match("(.+)\s+\[(\w+\:\w+)\]",cell)
                                 
@@ -287,7 +294,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                         else:
                             
                             if ( cell in terms_to_fix.keys()):
-                            # print( "ëntrou nesse if aqui a")
+                            # print( "ëntrou nesse if aqui a")g
                                 if (key in terms_to_fix[cell].keys()):
                                     terms_to_fix[cell][key] += 1
                             else:
@@ -297,10 +304,19 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                     
                         cell = currentDateWithoutTime
                         #print('after',cell)
+                if key.endswith('measurement'):
+                    if "/" in str(cell):
+                         # Split the string by "/" and take the first part (before the "/")
+                        cell = cell.split("/")[0]
                 #print ("temp_creating",key,cell)
+                #if ("India" in cell):
+                    #print (cell,key2)
+                    #print(ontology_terms_and_values.keys())
+                    #sys.exit()
                 temp_dict[key]=cell    
                     #checking duplications
         flag_dup =0
+        #sys.exit()
         print(temp_dict)
 
        # print ("Starting checking each category......")
@@ -548,7 +564,11 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
         #print(amrT_terms)
         print ("Done Risk......")
         #adding amr terms
+        #print(antimicrobian_agent_names_ids)
+        #sys.exit()
         amr_temp = {}
+        #print(amrT_terms)
+        #sys.exit()
         for amr_terms in amrT_terms:
             if amr_terms in temp_dict.keys():
                 amr_temp[amr_terms] = temp_dict[amr_terms]
@@ -557,6 +577,8 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                 if anti_terms in amr_keys:
                     amr_temp[amr_keys] = temp_dict[amr_keys]
         flag_empty =0
+        #print (amr_temp)
+        #sys.exit()
         for key_temp in amr_temp.keys():
             if 'sample_ID' not in key_temp and 'isolate_ID' not in key_temp:
                 flag_empty =1
