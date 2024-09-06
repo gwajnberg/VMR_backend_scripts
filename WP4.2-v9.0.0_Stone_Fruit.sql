@@ -1,3 +1,6 @@
+//update necessary to insert the data
+UPDATE ontology_terms SET en_term = 'Amoxicillin-clavulanic acid' WHERE en_term = 'Amoxicillin-clavulanic';
+//collection of inserts
 INSERT INTO PROJECTS(SAMPLE_PLAN_NAME,PROJECT_NAME,SAMPLE_PLAN_ID) VALUES ('WP4.2_Frozen stone fruit',NULL,'WP4.2_2023')
 INSERT INTO SAMPLES(SAMPLE_COLLECTOR_SAMPLE_ID,VALIDATION_STATUS,PROJECT_ID) VALUES ('CFIA-AMR-2023-0160','flagged','1')
 INSERT INTO CONTACT_INFORMATION(CONTACT_NAME,LABORATORY_NAME,CONTACT_EMAIL,NOTE) VALUES ('Catherine Carrillo','Research & Development, OLC','Catherine.Carrillo@inspection.gc.ca',NULL)
