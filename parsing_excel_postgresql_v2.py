@@ -11,6 +11,7 @@ from fill_ontology_fields import fill_ontology_fields
 from create_ontology_dict import create_ontology_dict
 from create_dict_of_samples import create_dict_of_samples
 from create_dict_of_samples_one import create_dict_of_samples_one
+from gene_mode import parse, insert_data
 from feed_vmr_table import feed_vmr_table
 
 #function to check Nan strings
@@ -42,11 +43,20 @@ def main():
     parser.add_argument("-i", "--input_file", help="Input File to upload.", type=str)
     parser.add_argument("-o", "--one", help="input file is one sheet", default="F")
     parser.add_argument("-m", "--mode", help="For input sheet is metagenomics or wgs", default=str)
+    parser.add_argument("-g", "--gene_mode",help= "Add rgi/mob_suite output file to the VMR", default="F")
+
     args = parser.parse_args()
 
     
     
-    conn,cursor = connect_db()    
+    conn,cursor = connect_db()
+    if args.gene_mode == "T":
+        xls_file2 = args.input_file
+        print("uploading file ", xls_file2)
+        parsed_dict = parse(xls_file2)
+        insert_data(parsed_dict,conn,cursor,args.mode )
+
+        sys.exit()    
     
     #sys.exit()
     xls_file = "GRDI_Harmonization-Template_v13.3.3.xlsm"
