@@ -163,10 +163,11 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
 
         print("SQL Query:", sql_query)  # Print the query for debugging
         print("Parameter:", (id,))  # Print the parameters for debugging
+        
 
         cursor.execute(sql_query, (id,))
         result = cursor.fetchone()
-
+        
         if result is not None:
             print("Result ID:", result[0], "Input ID:", id)
         else:
@@ -183,7 +184,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                 conn.commit()
                 
             else:
-                sql = "INSERT INTO "+str(table.upper())+"(EN_TERMS,"+str(field.upper())+",EN_DESCRIPTION,FR_TERM,FR_DESCRIPTION,CURATED) VALUES (%s,%s,%s,%s,%s,%s)"
+                sql = "INSERT INTO "+str(table.upper())+"(EN_TERM,"+str(field.upper())+",EN_DESCRIPTION,FR_TERM,FR_DESCRIPTION,CURATED) VALUES (%s,%s,%s,%s,%s,%s)"
                 description = "Term still not in the vocabulary, added temporary untill solving the problem"
                 print_inserts(sql,(term,id,description))
                 print(sql,(term,id,description,'NULL','NULL','false'))
@@ -205,18 +206,19 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         #print(length)
         #sys.exit()
         #AMR_aid =create_insert(dict_of_samples['AMR'][index],AMR_afields,AMR_acontrolled,"amr_antibiotics_profile",len(AMR_afields))
+        #create_insert({"id":parent_id,"term_id":term},{"id":"id","term_id":"term_id"},{"term_id":["ontology_terms","ontology_id"]},table_multi,2)
         column_ins = "("
         count=0
         values ="("
         list_terms = []
         
         for field in fields.keys():
-            
+            print('lets go first with ', field)
             if field in row.keys():
                 print (row[field],"AQUI TERM O DOIDO VE AQUI!")
                 
                 terms,id = getTermAndId2(row[field])
-                print('here passed',terms,id)
+               
               
                 #field = fix(field)
                # print(fields)
@@ -228,6 +230,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                         
                         
                         list_terms.append(id)
+                        
 
                         check_controlled_term(terms,id,controlled_fields[field][0],controlled_fields[field][1])
                         values += "(SELECT id from "+controlled_fields[field][0]+" where "+controlled_fields[field][1].upper()+" = %s)"
@@ -262,6 +265,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                 #print(column_ins)
             count += 1
         #conn.commit()
+        
         column_ins += ")"
         values += ")"
         print (column_ins)
@@ -275,8 +279,10 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             print (insert,list_terms)
             print_inserts(insert,list_terms)
             
+                
             cursor.execute(insert, list_terms)
             conn.commit()
+            
             print('inserted with success')
         else:
             insert = "INSERT INTO "+table_name.upper()+column_ins+" VALUES "+values+" RETURNING id"
@@ -296,16 +302,26 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
     def multi (row,sfield,parent_field,parent_id,table_multi):
                                           #x              x                      x              term_id         
        ###multi(dict_of_samples['sample'][index],"food_product","food_data",food_data_id,"food_product","food_products","food_data_product")
+       print (row,sfield,parent_field,parent_id,table_multi)
+       print ('sfield:',sfield)
+       print ('spield:',parent_field)
+       print('ddddddddd',parent_id)
+       
        if sfield in row.keys():
             terms = row[sfield]
+            if (sfield == 'food_product_properties'):
+                print (terms)
+                
            # print (spurposes)
             
             for term in terms:
               #purpose_sampling_id = check_exists_id([collection_id,purpose],["id","term_id","ontology_terms","ontology_id"],"sample_purposes")
               id = check_exists_id([parent_id,term],["id","term_id","ontology_terms","ontology_id"],table_multi)
+              
               if id  != "yes":
                 print ("doesnt exists")
                 #purpose_sampling_id =create_insert({"id":collection_id,"term_id":purpose},{"id":"id","term_id":"term_id"},{"term_id":["ontology_terms","ontology_id"]},"sample_purposes",2)
+                
                 create_insert({"id":parent_id,"term_id":term},{"id":"id","term_id":"term_id"},{"term_id":["ontology_terms","ontology_id"]},table_multi,2)
                 #print ('DONE???HERE')
               else:
@@ -544,6 +560,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             print (food_data_id,"exists")
 
         food_data_id = food_data_id[0]
+        
         #sys.exit()
         
         
@@ -699,7 +716,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                 print (contact_info_id, " contact info")
             else:
                 dict_of_samples['isolate'][index]["contact_information"] = None
-            isolate_fields = {"sample_id":"sample_id","isolate_ID":"isolate_id","strain_id":"strain","microbiological_method":"microbiological_method","progeny_isolate_id":"progeny_isolate_id","isolated_by":"isolated_by","contact_information":"contact_information","isolation_date":"isolation_date","isolate_received_date":"isolate_received_date","organism":"organism","taxonomic_identification_process":"taxonomic_identification_process","serovar":"serovar","serotyping_method":"serotyping_method","phagetype":"phagetype"}
+            isolate_fields = {"sample_id":"sample_id","isolate_ID":"isolate_id","strain_id":"strain","microbiological_method":"microbiological_method","progeny_isolate_id":"progeny_isolate_id","IRIDA_isolate_ID":"irida_sample_id","IRIDA_project_ID":"irida_project_id","biosample_accession":"biosample_id","bioproject_accession":"bioproject_id","isolated_by":"isolated_by","contact_information":"contact_information","isolation_date":"isolation_date","isolate_received_date":"isolate_received_date","organism":"organism","taxonomic_identification_process":"taxonomic_identification_process","serovar":"serovar","serotyping_method":"serotyping_method","phagetype":"phagetype"}
             isolate_controlled = {"isolated_by":["ontology_terms","ontology_id"],"organism":["microbes","ontology_id"],"taxonomic_identification_process":["ontology_terms","ontology_id"]}  
             isolate_id = check_exists_id(dict_of_samples['isolate'][index]["isolate_ID"],"isolate_id","isolates")
             if not isolate_id:
@@ -893,8 +910,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
             dict_of_samples['sequence'][index]["extraction_id"]= extraction_id[0]
             #print ("talvez aqui?")
             sequence_fields = {"extraction_id":"extraction_id","sequenced_by":"sequenced_by","contact_information":"contact_information","library_ID":"library_id","sequencing_project_name":"sequencing_project_name",
-                               "assembly_filename":"assembly_filename","sequencing_platform":"sequencing_platform","sequencing_instrument":"sequencing_instrument",
-                               "irida_isolate_ID":"IRIDA_isolate_id","IRIDA_project_ID":"irida_project_id",
+                               "assembly_filename":"assembly_filename","sequencing_platform":"sequencing_platform","sequencing_instrument":"sequencing_instrument",                               
                             "library_preparation_kit":"library_preparation_kit","sequencing_protocol":"sequencing_protocol","r1_fastq_filename":"r1_fastq_filename","r2_fastq_filename":"r2_fastq_filename",
                             "fast5_filename":"fast5_filename","sequencing_assay_type":"sequencing_assay_type","dna_fragment_length":"dna_fragment_length",
                                 "genomic_target_enrichment_method":"genomic_target_enrichment_method",

@@ -32,9 +32,19 @@ def create_ontology_dict(xls):
     sampleT_terms = reading_file("Sample Collection & Processing")
     
     isolateT_terms = reading_file("Strain and Isolate Information")
+    
+    ##adding moved isolate terms
+    isolateT_terms.extend(['biosample_accession', 'bioproject_accession'])
+ 
+    
     hostT_terms = reading_file("Host Information")
     sequenceT_terms = reading_file("Sequence Information")
+    
     repositoryT_terms = reading_file("Public Repository Information")
+    #removing from repository_T
+
+    #repositoryT_terms.remove('biosample_accession')
+    #repositoryT_terms.remove('bioproject_accession')
     riskT_terms = reading_file("Risk Assessment")
     amrTotal_terms= reading_file("AMR Phenotypic Test Information")
     environmental_conditions_terms = reading_file("Environmental conditions")

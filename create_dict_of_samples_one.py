@@ -21,7 +21,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
     
     
     
-    fields = pd.read_excel(xls,na_values=[datetime.time(0, 0),"1900-01-00","Missing","missing","Not Applicable [GENEPIO:0001619]"],keep_default_na=False, header=1)
+    fields = pd.read_excel(xls,na_values=[datetime.time(0, 0),"1900-01-00","Missing","missing","Missing [GENEPIO:0001618]","Not Applicable [GENEPIO:0001619]"],keep_default_na=False, header=1)
     #print (fields[19])
     fields.fillna(0, inplace = True)
     #print(fields)
@@ -46,7 +46,11 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
             if (row[i] != 0 and not isNaN(row[i]) and row[i] ):
 
                 #print(i)
+                #print("is here??")
+                print (i)
                 key = i.strip()
+                #print("done here")
+               
                 key2 = key
                 print ("begin with",key2," and ", row[i])
                 key_ab=""
@@ -84,7 +88,9 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                     cell=[]
                     for sub in cell_prov:
                         if isinstance(sub,str):
+                            
                             cell_sub=sub.strip()
+                            
                             cell.append(cell_sub)
 
                 else:
@@ -92,7 +98,9 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                     cell = row[i]
 
                     if isinstance(cell,str):
+                        
                         cell=cell.strip()
+                        
                 print("Here_",cell,key)
                 if key2 == "sample_collector_sample_ID" :
                     sample_id = cell 
@@ -100,28 +108,47 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                 if key2 in ontology_terms_and_values.keys():
                     print(key2, "ta aqui provavel")
                     
+                    
                     if "terms" in ontology_terms_and_values[key2].keys():
                         
                         #print(ontology_terms_and_values[key2])
                         #sys.exit()
                         if key2 in terms_accepting_multiple_values:
                             print ("entrou no multiple!")
+                            
                             for index3,cell_sub in enumerate(cell):
                                 flag = 0;
                                 pseudoid=""
                                 realid=""
+                                print(cell,cell_sub)
+                                
+                                if ('sliced' in str(cell_sub)):
+                                        print ("hey",cell_sub)
+                                        
+                                
                                 if(":" in cell_sub and "[" not in cell_sub):
+                                    if ("[FOODON:03430145]" in cell_sub):
+                                        print("AHM??")
+                                        sys.exit()
                                     wanted = cell_sub.split(":")
                                     cell_sub = wanted[0]
                                     pseudoid = wanted[1]
-                                elif (":" in cell and "[" in cell):
-                                    print (cell,":[]")
+                                    
+                                elif (":" in cell_sub and "[" in cell_sub):
+                                    
+                                    
                                     #sys.exit()
-                                    if ( re.match("(.+)\s+\[(\w+\:\d+)\]",cell)):
-                                        result_match = re.match("(.+)\s+\[(\w+\:\w+)\]",cell)
-                                        cell = result_match.groups()[0]
-                                        realid = result_match.groups()[1]
+                                    
+                                    
+                                    if ( re.match("(.+)\s+\[(\w+\:\d+)\]",cell_sub)):
+                                        print ("re.match")
+                                        
+                                        result_match = re.match("(.+)\s+\[(\w+\:\w+)\]",cell_sub)
+                                        cell_sub = result_match.groups()[0]
+                                        pseudoid = result_match.groups()[1]
+                                        
                                     else:
+                                        print ("re.match FIX" )
                                         if ( cell_sub in terms_to_fix.keys()):
                                           #  print ("entrou nesse if")
                                         #    print ("aqui:",terms_to_fix[cell_sub].keys())
@@ -135,7 +162,9 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                             terms_to_fix[cell_sub] [key] = 1
                                     #print(result_match.groups())
                                 
+                                
                                 for item in ontology_terms_and_values[key2]["terms"]:
+                                    i
                                   #  print(item, "to achando que o problema é aqui")
                                     if type(item) != dict:
                                         if cell_sub == item:
@@ -150,29 +179,36 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                                 cell[index3]= item[keyI]["term"]+"//"+item[keyI]["term_id"]
                               #  print ("passou por aqui")
                                 if flag == 0:
+                                    
                                                 #print("diferent term: ",cell," with id: ",pseudoid," in field:",key)
                                     if sample_id not in sample_flagged_list:
                                         sample_flagged_list.append(sample_id)
                                        # print ("adicionou ufa")
                                         if ( cell_sub in terms_to_fix.keys()):
-                                          #  print ("entrou nesse if")
+                                            cell[index3]= cell_sub+"//"+pseudoid
+                                           #  print ("entrou nesse if")
                                         #    print ("aqui:",terms_to_fix[cell_sub].keys())
                                             if (key in terms_to_fix[cell_sub].keys()):
                                                # print ("entrou nesse if2")        
                                                 terms_to_fix[cell_sub][key] += 1
                                               #  print ("adicionou")
                                         else:
+                                            
                                             #print ("foi no else")
                                             terms_to_fix[cell_sub] = {}
                                             terms_to_fix[cell_sub] [key] = 1
                                                     ##Provisory adding terms to the ontology_terms
-                                            new_ont_terms[key2]['terms'].append({cell_sub+"//"+pseudoid:{'term': cell, 'term_id': pseudoid}})
+                                            new_ont_terms[key2]['terms'].append({cell_sub+"//"+pseudoid:{'term': cell_sub, 'term_id': pseudoid}})
                                                     #print(cell,ontology_terms_and_values[key])
                                                     
                                             cell[index3]= cell_sub+"//"+pseudoid
-                                #print ("foi multiple")
+                                            
+                                
                         else:
                             print(cell, "caiu no else hein")
+                            if (cell == 'sliced [FOODON:03430137]'):
+                                        #print (result_match)
+                                        sys.exit()
                             flag = 0;
                             pseudoid=""
                             realid=""
@@ -188,8 +224,10 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                    # print (cell)
                                     #sys.exit()
                                 print (cell,":[] not multiple")
+                                
                                 result_match = re.match("(.+)\s+\[(\w+\:\w+)\]",cell)
                                 
+
                                 
                                 #print(result_match.groups())
                                 cell = result_match.groups()[0]
@@ -241,11 +279,12 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                 #check of date
                 
                 if 'date' in key:
+                    print(key)
                     last_part_of_key = key.split("_")[-1] 
                     if "date" in last_part_of_key:
                     
-                        #print (type(cell))
-                       # print(cell,"before if")
+                        print (type(cell))
+                        print(cell,"before if")
                         currentDateWithoutTime = ""
                         
                         if (isinstance(cell, int)):
@@ -582,18 +621,21 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
         for key_temp in amr_temp.keys():
             if 'sample_ID' not in key_temp and 'isolate_ID' not in key_temp:
                 flag_empty =1
+        
         if (flag_empty == 1):            
             subflag_dup =0
             index_save = "y"
             for index2 in dict_terms_file['AMR']:
-            # print (dict_terms_file['AMR'][index2], "checking")
+                #print (dict_terms_file['AMR'][index2], "checking")
                 if dict_terms_file['AMR'][index2]['isolate_ID'] == temp_dict['isolate_ID']:
                     for keys_temp in amr_temp:
-                        if amr_temp[keys_temp] != dict_terms_file['AMR'][index2][keys_temp]:
-                            subflag_dup = 1
-                        else:
-                            flag_dup = 1
-                            index_save = index2
+                        
+                        if keys_temp in dict_terms_file['AMR'][index2].keys():
+                            if amr_temp[keys_temp] != dict_terms_file['AMR'][index2][keys_temp]:
+                                subflag_dup = 1
+                            else:
+                                flag_dup = 1
+                                index_save = index2
             if subflag_dup == 1:
                 flag_dup =0
             #else:
