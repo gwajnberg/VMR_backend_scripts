@@ -7,11 +7,11 @@ LOG = logger.create_logger()
 
    
 def main():
-    file_cathy = "~/vmr_old_project/grdi-amr2/Sample_Metada_Frozem_Stonefruit_2024_WP4.2_EG.xlsx"
+    file_cathy = "~/vmr_back_end_grdi/VMR_backend_scripts/Sample_Metada_Frozem_Stonefruit_2024_WP4.2_EG.xlsx"
     dict_curated = reading_cathy_format.reading_cathy(file_cathy)
-    file_to_modify = "~/vmr_old_project/grdi-amr2/WP4.2_GRDI_Harmonization-Template_v9.0.0_GW.csv"
+    file_to_modify = "~/vmr_back_end_grdi/VMR_backend_scripts/WP4.2_GRDI_Harmonization-Template_v9.0.0_v31Oct2024_updated.csv"
     new_df = modifying_original_spreadsheet.modify(file_to_modify,dict_curated)
-    new_file = '~/vmr_old_project/grdi-amr2/WP4.2_GRDI_Harmonization-Template_v9.0.0_after_curation.xlsx'
+    new_file = '~/vmr_back_end_grdi/VMR_backend_scripts/WP4.2_GRDI_Harmonization-Template_v9.0.0_v31Oct2024_updated_curated.xlsx'
     new_df.to_excel(new_file, index=False, engine='openpyxl')
 
     print(f"Modified XLS saved to {new_file}")

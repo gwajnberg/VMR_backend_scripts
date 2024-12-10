@@ -12,7 +12,9 @@ def modify(file,dict_curated):
 
     # Iterate over the DataFrame rows
     for index, row in df.iterrows():
+        print ("here",row)
         sample_description = row['original_sample_description']
+        print("after")
         if sample_description in dict_curated.keys():
             for key in dict_curated[sample_description]:
                 #print (key)

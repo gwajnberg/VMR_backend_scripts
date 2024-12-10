@@ -44,6 +44,7 @@ def main():
     parser.add_argument("-o", "--one", help="input file is one sheet", default="F")
     parser.add_argument("-m", "--mode", help="For input sheet is metagenomics or wgs", default=str)
     parser.add_argument("-g", "--gene_mode",help= "Add rgi/mob_suite output file to the VMR", default="F")
+    parser.add_argument("-F", "--field_name",help= "field name used for irida naming.Default='Isolate_ID'", default="isolate_ID")
 
     args = parser.parse_args()
 
@@ -51,10 +52,10 @@ def main():
     
     conn,cursor = connect_db()
     if args.gene_mode == "T":
-        xls_file2 = args.input_file
-        print("uploading file ", xls_file2)
-        parsed_dict = parse(xls_file2)
-        insert_data(parsed_dict,conn,cursor,args.mode )
+        json_file = args.input_file
+        print("uploading file ", json_file)
+        data = parse(json_file)
+        insert_data(data,args.field_name,conn,cursor,args.mode )
 
         sys.exit()    
     
