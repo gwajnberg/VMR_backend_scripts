@@ -55,6 +55,7 @@ def main():
         json_file = args.input_file
         print("uploading file ", json_file)
         data = parse(json_file)
+        print ('done')
         insert_data(data,args.field_name,conn,cursor,args.mode )
 
         sys.exit()    

@@ -49,9 +49,11 @@ def insert_data(data,field_name,conn,cursor,mode):
         id_search = first_element.get('isolate_id', 'N/A')
     
         if (field_name == 'strain'):
+            
             cursor.execute("SELECT id FROM strains WHERE strain = %s", (id_search,))
             result = cursor.fetchone()
             id_search = result[0]
+        
         #  print(id_search)
         if first_element['staramr']['resfinder_genes']:
             resfinder_genes = first_element.get('staramr', {}).get('resfinder_genes', [])
@@ -72,12 +74,23 @@ def insert_data(data,field_name,conn,cursor,mode):
                         RETURNING id
 
                         """.format(table_ex,field_name)
+                
             # print ('here')
                 if isinstance(gene_resfinder['gene'], float) and math.isnan(gene_resfinder['gene']):  # Check for NaN
                     gene_resfinder['gene'] = None
+                gene_resf= gene_resfinder['gene'] 
             # print('ehre1')
-                print_inserts(insert,(id_search,gene_resfinder['gene'],))
-                cursor.execute(insert, (id_search,gene_resfinder['gene'],))
+                if gene_resf:
+                    if "''" in gene_resf:
+                        gene_resf = gene_resf.replace("''","''''")
+                        print (gene_resf,gene_resfinder['gene'])
+                    elif "'" in gene_resf:
+                        gene_resf = gene_resf.replace("'","''")
+                        print (gene_resf,gene_resfinder['gene'])
+                #print(insert,id_search,gene_resf)
+                #sys.exit()    
+                print_inserts(insert,(id_search,gene_resf,))
+                cursor.execute(insert, (id_search,gene_resf,))
                 
                 resfinder_id = cursor.fetchone()[0]
                 conn.commit()
@@ -88,6 +101,15 @@ def insert_data(data,field_name,conn,cursor,mode):
                                             INSERT INTO bioinf.resfinder_predicted_phenotypes (resfinder_id, predicted_phenotype)
                                             VALUES (%s, %s);
                                             """
+                    
+                    if phenotype:
+                        if "''" in phenotype:
+                            phenotype = phenotype.replace("''","''''")
+                            
+                        elif "'" in phenotype:
+                            phenotype = phenotype.replace("'","''")
+                    
+                        
                     print_inserts(insert_phenotype_query, (resfinder_id, phenotype,))
                     cursor.execute(insert_phenotype_query, (resfinder_id, phenotype,))
                     conn.commit()
@@ -117,10 +139,10 @@ def insert_data(data,field_name,conn,cursor,mode):
 
             
             plasmid_finder = first_element.get('staramr', {}).get('plasmid_finder', [])
-            print (plasmid_finder)
+            
             
             for plasmid_finder_gene in plasmid_finder:
-                print (plasmid_finder_gene)    
+                   
                 if not (isinstance(plasmid_finder_gene, (int, float)) and math.isnan(plasmid_finder_gene)) and isinstance(plasmid_finder_gene, str):
                     insert = """
                         WITH sequencing_info AS (
@@ -141,7 +163,7 @@ def insert_data(data,field_name,conn,cursor,mode):
                     print_inserts(insert,(id_search,plasmid_finder_gene,))
                     cursor.execute(insert, (id_search,plasmid_finder_gene,))
         print ('ABRICATE')
-        print(first_element['abricate'])
+        
         if first_element['abricate']:
             abricate_genes = first_element.get('abricate', [])
             for abricate_gene in abricate_genes:
@@ -159,10 +181,98 @@ def insert_data(data,field_name,conn,cursor,mode):
                         
 
                         """.format(table_ex,field_name)
+                
+                if (abricate_gene['gene']):
+                    if "''" in abricate_gene['gene']:
+                        abricate_gene['gene'] = abricate_gene['gene'].replace("''","''''")
+                            
+                    elif "'" in abricate_gene['gene']:
+                        abricate_gene['gene'] = abricate_gene['gene'].replace("'","''")
+                if (abricate_gene['product_resistance']):
+                    if "''" in abricate_gene['product_resistance']:
+                        abricate_gene['product_resistance'] = abricate_gene['product_resistance'].replace("''","''''")
+                            
+                    elif "'" in abricate_gene['product_resistance']:
+                        abricate_gene['product_resistance'] = abricate_gene['product_resistance'].replace("'","''")
                 print_inserts(insert,(id_search,abricate_gene['gene'],abricate_gene['product_resistance'],))
                 
                 cursor.execute(insert, (id_search,abricate_gene['gene'],abricate_gene['product_resistance'],))
-        print ('mob_rgi_results') 
+        print ('ectyper') 
+        if first_element['ectyper']:
+            ectyper = first_element.get('ectyper', [])
+            
+            insert = """
+                    WITH sequencing_info AS (
+                        SELECT s.id
+                        FROM sequencing s
+                        JOIN {} we ON s.extraction_id = we.extraction_id
+                        JOIN isolates i ON we.isolate_id = i.id
+                        WHERE i.{} = %s
+                    )
+                    INSERT INTO bioinf.ecoli_serotyping (SEQUENCING_ID, ecoli_serotype,htype,otype)
+                    SELECT id, %s, %s, %s
+                    FROM sequencing_info
+                    
+
+                    """.format(table_ex,field_name)
+            
+            if (ectyper['serotype']):
+                if "''" in ectyper['serotype']:
+                    ectyper['serotype'] = ectyper['serotype'].replace("''","''''")
+                        
+                elif "'" in ectyper['serotype']:
+                    ectyper['serotype'] = ectyper['serotype'].replace("'","''")
+            if (ectyper['htype']):
+                if "''" in ectyper['htype']:
+                    ectyper['htype'] = ectyper['htype'].replace("''","''''")
+                        
+                elif "'" in ectyper['htype']:
+                    ectyper['htype'] = ectyper['htype'].replace("'","''")
+            if (ectyper['otype']):
+                if "''" in ectyper['otype']:
+                    ectyper['otype'] = ectyper['otype'].replace("''","''''")
+                        
+                elif "'" in ectyper['otype']:
+                    ectyper['otype'] = ectyper['otype'].replace("'","''")
+            print_inserts(insert,(id_search,ectyper['serotype'],ectyper['htype'],ectyper['otype'],))
+            
+            cursor.execute(insert, (id_search,ectyper['serotype'],ectyper['htype'],ectyper['otype'],))
+        print ('virulence_vf')
+        if first_element['virulence_vf']:
+            virulence_genes = first_element.get('virulence_vf', [])
+            for vfgene in virulence_genes:
+                insert = """
+                        WITH sequencing_info AS (
+                            SELECT s.id
+                            FROM sequencing s
+                            JOIN {} we ON s.extraction_id = we.extraction_id
+                            JOIN isolates i ON we.isolate_id = i.id
+                            WHERE i.{} = %s
+                        )
+                        INSERT INTO bioinf.virulence_VF (SEQUENCING_ID, vf_gene,vf_protein_function)
+                        SELECT id, %s, %s
+                        FROM sequencing_info
+                        
+
+                        """.format(table_ex,field_name)
+                
+                if (vfgene['vf_gene']):
+                    if "''" in vfgene['vf_gene']:
+                        vfgene['vf_gene'] = vfgene['vf_gene'].replace("''","''''")
+                            
+                    elif "'" in vfgene['vf_gene']:
+                        vfgene['vf_gene'] = vfgene['vf_gene'].replace("'","''")
+                if (vfgene['vf_protein_function']):
+                    if "''" in vfgene['vf_protein_function']:
+                        vfgene['vf_protein_function'] = vfgene['vf_protein_function'].replace("''","''''")
+                            
+                    elif "'" in vfgene['vf_protein_function']:
+                        vfgene['vf_protein_function'] = vfgene['vf_protein_function'].replace("'","''")
+                
+                print_inserts(insert,(id_search,vfgene['vf_gene'],vfgene['vf_protein_function'],))
+                
+                cursor.execute(insert, (id_search,vfgene['vf_gene'],vfgene['vf_protein_function'],)) 
+        print ('mob_rgi_results')
         if first_element['mob_rgi_results']:
             mob_rgi_results = first_element.get('mob_rgi_results', [])
             #print (mob_rgi_results)
@@ -183,9 +293,14 @@ def insert_data(data,field_name,conn,cursor,mode):
 
                         """.format(table_ex,field_name)
                 #print('here')
-                print_inserts(insert,(id_search,results['cut_off'],results['best_hit_aro'],results['model_type'],))
+                best_hit_aro= results['best_hit_aro']
+                if "''" in results['best_hit_aro']:
+                    best_hit_aro = results['best_hit_aro'].replace("''","''''")
+                elif "'" in results['best_hit_aro']:
+                    best_hit_aro = results['best_hit_aro'].replace("'","''")
+                print_inserts(insert,(id_search,results['cut_off'],best_hit_aro,results['model_type'],))
                 #print('here')
-                cursor.execute(insert, (id_search,results['cut_off'],results['best_hit_aro'],results['model_type'],))
+                cursor.execute(insert, (id_search,results['cut_off'],best_hit_aro,results['model_type'],))
                 
                 amr_profiles_id = cursor.fetchone()[0]
                 conn.commit()
@@ -227,6 +342,7 @@ def insert_data(data,field_name,conn,cursor,mode):
                 if results['mob_suite_results']:
                 
                     mob_suite_results = results.get('mob_suite_results', {})
+                    
                     
                     insert_amr_mob_suite_query = """
                                             INSERT INTO bioinf.amr_mob_suite (amr_genes_id, molecule_type,primary_cluster_id,secondary_cluster_id )
@@ -274,38 +390,55 @@ def insert_data(data,field_name,conn,cursor,mode):
                                                 """
                                 print_inserts(insert_mpf_query, (amr_profiles_id, mpf,))
                                 cursor.execute(insert_mpf_query, (amr_profiles_id, mpf,))
+                    
                     if mob_suite_results['amr_orit_type'][0] != '-':
                         for orit in mob_suite_results['amr_orit_type']:
-                            insert_orit_query = """
-                                            INSERT INTO bioinf.mr_orit_types  (amr_genes_id, orit_type )
-                                            VALUES (%s, %s);
-                                            """
-                            print_inserts(insert_orit_query, (amr_profiles_id, orit,))
-                            cursor.execute(insert_orit_query, (amr_profiles_id, orit,))
-                    if mob_suite_results['amr_orit_type'][0] != '-':
-                        for orit in mob_suite_results['amr_orit_type']:
-                            insert_orit_query = """
-                                            INSERT INTO bioinf.mr_orit_types  (amr_genes_id, orit_type )
-                                            VALUES (%s, %s);
-                                            """
-                            print_inserts(insert_orit_query, (amr_profiles_id, orit,))
-                            cursor.execute(insert_orit_query, (amr_profiles_id, orit,))
+                            query = """
+                                    SELECT 1 FROM bioinf.amr_orit_types 
+                                    WHERE amr_genes_id = %s AND orit_type = %s;
+                                    """
+                            cursor.execute(query, (amr_profiles_id, relaxase))
+                            exists = cursor.fetchone()
+
+                            if not exists:
+                                insert_orit_query = """
+                                                INSERT INTO bioinf.amr_orit_types  (amr_genes_id, orit_type )
+                                                VALUES (%s, %s);
+                                                """
+                                print_inserts(insert_orit_query, (amr_profiles_id, orit,))
+                                cursor.execute(insert_orit_query, (amr_profiles_id, orit,))
                     if mob_suite_results['amr_predicted_mobility'][0] != '-':
                         for mobility in mob_suite_results['amr_predicted_mobility']:
-                            insert_mobility_query = """
-                                            INSERT INTO bioinf.amr_predicted_mobility  (amr_genes_id, predicted_mobility )
-                                            VALUES (%s, %s);
-                                            """
-                            print_inserts(insert_mobility_query, (amr_profiles_id, mobility,))
-                            cursor.execute(insert_mobility_query, (amr_profiles_id, mobility,))
+                            query = """
+                                    SELECT 1 FROM bioinf.amr_predicted_mobility 
+                                    WHERE amr_genes_id = %s AND predicted_mobility = %s;
+                                    """
+                            cursor.execute(query, (amr_profiles_id, relaxase))
+                            exists = cursor.fetchone()
+
+                            if not exists:
+                                insert_mobility_query = """
+                                                INSERT INTO bioinf.amr_predicted_mobility  (amr_genes_id, predicted_mobility )
+                                                VALUES (%s, %s);
+                                                """
+                                print_inserts(insert_mobility_query, (amr_profiles_id, mobility,))
+                                cursor.execute(insert_mobility_query, (amr_profiles_id, mobility,))
                     if mob_suite_results['amr_ref_type'][0] != '-':
                         for ref in mob_suite_results['amr_ref_type']:
-                            insert_ref_query = """
-                                            INSERT INTO bioinf.amr_ref_type  (amr_genes_id, rep_type )
-                                            VALUES (%s, %s);
-                                            """
-                            print_inserts(insert_ref_query, (amr_profiles_id, ref,))
-                            cursor.execute(insert_ref_query, (amr_profiles_id, ref,))
+                            uery = """
+                                    SELECT 1 FROM bioinf.amr_ref_type
+                                    WHERE amr_genes_id = %s AND rep_type = %s;
+                                    """
+                            cursor.execute(query, (amr_profiles_id, relaxase))
+                            exists = cursor.fetchone()
+
+                            if not exists:
+                                insert_ref_query = """
+                                                INSERT INTO bioinf.amr_ref_type  (amr_genes_id, rep_type )
+                                                VALUES (%s, %s);
+                                                """
+                                print_inserts(insert_ref_query, (amr_profiles_id, ref,))
+                                cursor.execute(insert_ref_query, (amr_profiles_id, ref,))
                     
 
 
