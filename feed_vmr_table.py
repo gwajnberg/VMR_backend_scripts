@@ -272,7 +272,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         print (values)
         #sys.exit()
         last_created_id = ""
-        tables_multi = ["alternative_sample_ids","alternative_isolate_ids","sample_purposes","sample_activities","food_data_product","food_data_product_property","food_data_source", "food_data_packaging","anatomical_data_body","anatomical_data_part","anatomical_data_material","environmental_data_material","environmental_data_site","environmental_data_weather_type","environment_data_available_data_type","environmental_data_animal_plant","risk_activity","metagenomic_extractions","wgs_extractions","sequencing_purposes"]
+        tables_multi = ["alternative_sample_ids","alternative_isolate_ids","sample_purposes","sample_activities","food_data_product","food_data_product_property","food_data_source", "food_data_packaging","anatomical_data_body","anatomical_data_part","anatomical_data_material","environmental_data_material","environmental_data_site","environmental_data_weather_type","environmental_data_presampling_weather_conditions","environment_data_available_data_type","environmental_data_animal_plant","risk_activity","metagenomic_extractions","wgs_extractions","sequencing_purposes"]
         if table_name in tables_multi:
             print (table_name,"here multi")
             insert = "INSERT INTO "+table_name.upper()+column_ins+" VALUES "+values
@@ -608,6 +608,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         
         environmental_data_id= environmental_data_id[0]
         multi(dict_of_samples['sample'][index],"weather_type","environmental_data",environmental_data_id,"environmental_data_weather_type")
+        multi(dict_of_samples['sample'][index],"presampling_weather_conditions","environmental_data",environmental_data_id,"environmental_data_presampling_weather_conditions")
         
         multi(dict_of_samples['sample'][index],"envrionmental_material","environmental_data",environmental_data_id,"environmental_data_material")
         multi(dict_of_samples['sample'][index],"environmental_site","environmental_data",environmental_data_id,"environmental_data_site")

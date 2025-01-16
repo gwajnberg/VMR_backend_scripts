@@ -397,7 +397,7 @@ def insert_data(data,field_name,conn,cursor,mode):
                                     SELECT 1 FROM bioinf.amr_orit_types 
                                     WHERE amr_genes_id = %s AND orit_type = %s;
                                     """
-                            cursor.execute(query, (amr_profiles_id, relaxase))
+                            cursor.execute(query, (amr_profiles_id, orit))
                             exists = cursor.fetchone()
 
                             if not exists:
@@ -413,7 +413,7 @@ def insert_data(data,field_name,conn,cursor,mode):
                                     SELECT 1 FROM bioinf.amr_predicted_mobility 
                                     WHERE amr_genes_id = %s AND predicted_mobility = %s;
                                     """
-                            cursor.execute(query, (amr_profiles_id, relaxase))
+                            cursor.execute(query, (amr_profiles_id, mobility))
                             exists = cursor.fetchone()
 
                             if not exists:
@@ -425,11 +425,11 @@ def insert_data(data,field_name,conn,cursor,mode):
                                 cursor.execute(insert_mobility_query, (amr_profiles_id, mobility,))
                     if mob_suite_results['amr_ref_type'][0] != '-':
                         for ref in mob_suite_results['amr_ref_type']:
-                            uery = """
+                            query = """
                                     SELECT 1 FROM bioinf.amr_ref_type
                                     WHERE amr_genes_id = %s AND rep_type = %s;
                                     """
-                            cursor.execute(query, (amr_profiles_id, relaxase))
+                            cursor.execute(query, (amr_profiles_id, ref))
                             exists = cursor.fetchone()
 
                             if not exists:

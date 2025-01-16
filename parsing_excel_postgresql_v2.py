@@ -61,8 +61,8 @@ def main():
         sys.exit()    
     
     #sys.exit()
-    xls_file = "GRDI_Harmonization-Template_v13.3.3.xlsm"
-    reference_file ="GRDI_Master-Reference-Guide_v13.3.3.xlsx"
+    xls_file = "GRDI_Harmonization-Template_v13.4.4.xlsm"
+    reference_file ="GRDI_Master-Reference-Guide_v13.4.4.xlsx"
     #valid_ontology_terms_and_values,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms = create_ontology_as_dict(xls_file)
     if args.drop_off_table_add_sql == "T":
         drop_all_tables_query = sql.SQL("""
