@@ -31,7 +31,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
     terms_accepting_multiple_values =["environmental_site","weather_type","available_data_types","animal_or_plant_population",
                                      "environmental_material","anatomical_material","body_product","anatomical_part","food_product",
                                      "food_product_properties","animal_source_of_food","food_packaging","purpose_of_sequencing","experimental_intervention",
-                                     "pre_sampling_activity","purpose_of_sampling"]
+                                     "presampling_activity","purpose_of_sampling"]
     temp_dict={}
     terms_to_fix={}
     new_ont_terms = copy.deepcopy(ontology_terms_and_values)
@@ -206,9 +206,7 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                                 
                         else:
                             print(cell, "caiu no else hein")
-                            if (cell == 'sliced [FOODON:03430137]'):
-                                        #print (result_match)
-                                        sys.exit()
+                            
                             flag = 0;
                             pseudoid=""
                             realid=""
@@ -356,7 +354,9 @@ def create_dict_of_samples_one(xls, ontology_terms_and_values,antimicrobian_agen
                     #checking duplications
         flag_dup =0
         #sys.exit()
-        print(temp_dict)
+        #if ('presampling_activity' in temp_dict.keys()):
+        #    print(temp_dict)
+        #    sys.exit()
 
        # print ("Starting checking each category......")
         sample_temp = {}

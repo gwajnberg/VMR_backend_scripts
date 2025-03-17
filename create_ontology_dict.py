@@ -86,19 +86,26 @@ def create_ontology_dict(xls):
             
     
     vocab_sheet = pd.read_excel(xls,keep_default_na=False,converters={column: lambda x: x.strip() for column in list(range(20))}, sheet_name="Vocabulary", header=1)
-    
+    vocab_sheet = vocab_sheet.dropna(how='all')
     ontology_dict = vocab_sheet.to_dict(orient='list')
-    ontology_dict = {key.strip(): value for key, value in ontology_dict.items()}
+    #ontology_dict = {key.strip(): value for key, value in ontology_dict.items()}
+    ontology_dict = {
+    key.strip(): [value for value in values if value != '']
+    for key, values in ontology_dict.items()
+    }
+    #print (ontology_dict)
     fields_sheet = pd.read_excel(xls,keep_default_na=False, sheet_name="Reference Guide", header=4)
+    
     #fields_sheet_filtered = fields_sheet[fields_sheet["Ontology ID"].str.contains("GENEPIO")==True]
     fields_sheet_filtered = fields_sheet[(fields_sheet["Ontology Identifier"].str.contains("GENEPIO") | fields_sheet.iloc[:, 1].str.startswith("antimicrobial")) & (fields_sheet["Field"])]
-    
+    #print (fields_sheet_filtered)
     dict_fields={}
     for index, row in fields_sheet_filtered.iterrows():
         
         sample_key = row["Field"]
         dict_fields[sample_key] = {}
     new_merged_ontology_dict = {}
+    #print (dict_fields)
     
     for key in dict_fields:
         
@@ -110,7 +117,8 @@ def create_ontology_dict(xls):
         else:
             keypr = key
         if keypr in ontology_dict.keys():
-           # print(keypr)
+           # print (keypr)
+            #print(ontology_dict[keypr])
             str_list = list(filter(None, ontology_dict[keypr]))
             #print (str_list)
             
@@ -136,7 +144,7 @@ def create_ontology_dict(xls):
                     
         else:
                          
-        
+            print(key)
             new_merged_ontology_dict [key] = {"field_id":key}
     antimicrobian_agent_names_ids = {}
     for elements in new_merged_ontology_dict["antimicrobial_agent_name"]["terms"]:
@@ -154,7 +162,7 @@ def create_ontology_dict(xls):
     #sys.exit()
     #sys.exit()
     #taxonomic_identification_process
-    #print(new_merged_ontology_dict['antimicrobial_measurement_sign'])
+    print(new_merged_ontology_dict['antimicrobial_measurement_sign'])
     #sys.exit()
     
     return (new_merged_ontology_dict,antimicrobian_agent_names_ids,sampleT_terms,isolateT_terms,hostT_terms,sequenceT_terms,repositoryT_terms,riskT_terms,amrT_terms,antiT_terms,environmental_conditions_terms,bioinformatics_terms,taxonomic_information_terms,extractionT_terms)   

@@ -68,6 +68,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         return(value)
     def check_exists_id(term,field,table):
         result=""
+        
         if (isinstance(term, list)):
             print ("here before LIST",term)
             if (table == "alternative_sample_ids") | (table == "alternative_isolate_ids"):
@@ -82,6 +83,7 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
                 print(result,"come on")
             
             else:
+                
                 term1 = term[0]
                 
                 print(term)
@@ -108,7 +110,8 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
 
         else:
             print ("here WRONGbefore")
-
+            ##psampling_activity_id = check_exists_id([collection_id,activity],["id","term_id","ontology_terms","ontology_id"],"sample_activity")
+            
             term,Oid = getTermAndId(term)
             command=""
             if (table == "metagenomic_extractions" or table == "wgs_extractions"):
@@ -527,6 +530,8 @@ def feed_vmr_table (dict_of_samples,antimicrobian_agent_names_ids,sampleT_terms,
         if "presampling_activity" in dict_of_samples['sample'][index].keys():
             print ("trying to check")
             sactivities = dict_of_samples['sample'][index]["presampling_activity"]
+            print(sactivities)
+            #sys.exit()
            # print (spurposes)
             
             for activity in sactivities:
