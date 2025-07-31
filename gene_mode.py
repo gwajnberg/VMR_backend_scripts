@@ -459,6 +459,12 @@ def insert_data(data,field_name,conn,cursor,mode):
                     values = []
                     for key in results:
                         value = results[key]
+
+                        if isinstance(value,str):
+                                if "''" in value:
+                                    value = value.replace("''","''''")
+                                elif "'" in value:
+                                    value = value.replace("'","''")
                         #if key == 'start':
                                 
                         print(key,value)
