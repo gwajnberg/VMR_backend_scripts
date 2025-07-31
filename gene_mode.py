@@ -18,7 +18,7 @@ def print_inserts(insert_string,values):
         if values:
             for term in values:
                 
-                if term is None:
+                if term is None or (isinstance(term, float) and math.isnan(term)):
                     term_str = 'NULL'
                 elif isinstance(term, str):
                     term_str = f"'{term}'"
@@ -283,6 +283,28 @@ def insert_data(data,field_name,conn,cursor,mode):
                 print_inserts(insert,(id_search,ectyper['serotype'],ectyper['htype'],ectyper['otype'],))
                 
                 cursor.execute(insert, (id_search,ectyper['serotype'],ectyper['htype'],ectyper['otype'],))
+        print ('refseq_masher')
+        if first_element['refseq_masher']:
+            result = check_exists_id(id_search,"bioinf.refseq_masher",cursor)
+            if not result:
+                refseq_species = first_element.get('refseq_masher',[])
+                for masher_result in refseq_species:
+                    insert = """
+                            WITH sequencing_info AS (
+                                SELECT s.id
+                                FROM sequencing s
+                                JOIN {} we ON s.extraction_id = we.extraction_id
+                                WHERE we.isolate_id = %s
+                            )
+                            INSERT INTO bioinf.refseq_masher (SEQUENCING_ID, sample,top_taxonomy_name,distance,pvalue,matching,full_taxonomy,taxonomic_species,taxonomic_genus,taxonomic_family,taxonomic_order,taxonomic_class, taxonomic_phylum, taxonomic_superkingdom,subspecies,serovar,plasmid,bioproject,biosample,taxid,assembly_accession,match_id)
+                            SELECT id, %s, %s,%s, %s,%s, %s,%s, %s,%s, %s,%s, %s,%s, %s,%s, %s,%s, %s,%s, %s, %s
+                            FROM sequencing_info
+                            
+
+                            """.format(table_ex)
+                    print_inserts(insert,(id_search,masher_result['sample'],masher_result['top_taxonomy_name'],masher_result['distance'],masher_result['pvalue'],masher_result['matching'],masher_result['full_taxonomy'],masher_result['taxonomic_species'],masher_result['taxonomic_genus'],masher_result['taxonomic_family'],masher_result['taxonomic_order'],masher_result['taxonomic_class'],masher_result['taxonomic_phylum'],masher_result['taxonomic_superkingdom'],masher_result['subspecies'],masher_result['serovar'],masher_result['plasmid'],masher_result['bioproject'],masher_result['biosample'],masher_result['taxid'],masher_result['assembly_accession'],masher_result['match_id'],))
+                    
+                    cursor.execute(insert,(id_search,masher_result['sample'],masher_result['top_taxonomy_name'],masher_result['distance'],masher_result['pvalue'],masher_result['matching'],masher_result['full_taxonomy'],masher_result['taxonomic_species'],masher_result['taxonomic_genus'],masher_result['taxonomic_family'],masher_result['taxonomic_order'],masher_result['taxonomic_class'],masher_result['taxonomic_phylum'],masher_result['taxonomic_superkingdom'],masher_result['subspecies'],masher_result['serovar'],masher_result['plasmid'],masher_result['bioproject'],masher_result['biosample'],masher_result['taxid'],masher_result['assembly_accession'],masher_result['match_id'],)) 
         print ('virulence_vf')
         if first_element['virulence_vf']:
             result = check_exists_id(id_search,"bioinf.virulence_vf",cursor)
@@ -290,12 +312,11 @@ def insert_data(data,field_name,conn,cursor,mode):
                 virulence_genes = first_element.get('virulence_vf', [])
                 for vfgene in virulence_genes:
                     insert = """
-                            WITH sequencing_info AS (
+                             WITH sequencing_info AS (
                                 SELECT s.id
                                 FROM sequencing s
                                 JOIN {} we ON s.extraction_id = we.extraction_id
-                                JOIN isolates i ON we.isolate_id = i.id
-                                WHERE i.isolate_id = %s
+                                WHERE we.isolate_id = %s
                             )
                             INSERT INTO bioinf.virulence_vf (SEQUENCING_ID, vf_gene,vf_protein_function)
                             SELECT id, %s, %s
