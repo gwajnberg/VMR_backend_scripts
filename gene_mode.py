@@ -302,6 +302,18 @@ def insert_data(data,field_name,conn,cursor,mode):
                             
 
                             """.format(table_ex)
+                    if "''"  in masher_result['full_taxonomy']:
+                        masher_result['full_taxonomy'] = masher_result['full_taxonomy'].replace("''","''''")
+                    elif "'" in  masher_result['full_taxonomy']:
+                        masher_result['full_taxonomy'] = masher_result['full_taxonomy'].replace("'","''")
+                    if "''"  in masher_result['taxonomic_species']:
+                        masher_result['taxonomic_species'] = masher_result['taxonomic_species'].replace("''","''''")
+                    elif "'" in  masher_result['taxonomic_species']:
+                        masher_result['taxonomic_species'] = masher_result['taxonomic_species'].replace("'","''")
+                    if "''"  in masher_result['top_taxonomy_name']:
+                        masher_result['top_taxonomy_name'] = masher_result['top_taxonomy_name'].replace("''","''''")
+                    elif "'" in  masher_result['top_taxonomy_name']:
+                        masher_result['top_taxonomy_name'] = masher_result['top_taxonomy_name'].replace("'","''")
                     print_inserts(insert,(id_search,masher_result['sample'],masher_result['top_taxonomy_name'],masher_result['distance'],masher_result['pvalue'],masher_result['matching'],masher_result['full_taxonomy'],masher_result['taxonomic_species'],masher_result['taxonomic_genus'],masher_result['taxonomic_family'],masher_result['taxonomic_order'],masher_result['taxonomic_class'],masher_result['taxonomic_phylum'],masher_result['taxonomic_superkingdom'],masher_result['subspecies'],masher_result['serovar'],masher_result['plasmid'],masher_result['bioproject'],masher_result['biosample'],masher_result['taxid'],masher_result['assembly_accession'],masher_result['match_id'],))
                     
                     cursor.execute(insert,(id_search,masher_result['sample'],masher_result['top_taxonomy_name'],masher_result['distance'],masher_result['pvalue'],masher_result['matching'],masher_result['full_taxonomy'],masher_result['taxonomic_species'],masher_result['taxonomic_genus'],masher_result['taxonomic_family'],masher_result['taxonomic_order'],masher_result['taxonomic_class'],masher_result['taxonomic_phylum'],masher_result['taxonomic_superkingdom'],masher_result['subspecies'],masher_result['serovar'],masher_result['plasmid'],masher_result['bioproject'],masher_result['biosample'],masher_result['taxid'],masher_result['assembly_accession'],masher_result['match_id'],)) 
