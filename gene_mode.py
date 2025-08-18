@@ -120,10 +120,7 @@ def insert_data(data,field_name,conn,cursor,mode):
                     #print(gene_resf) 
                 # print('ehre1')
                     if gene_resf:
-                        if "''" in gene_resf:
-                            gene_resf = gene_resf.replace("''","''''")
-                            print (gene_resf,gene_resfinder['gene'])
-                        elif "'" in gene_resf:
+                        if "'" in gene_resf:
                             gene_resf = gene_resf.replace("'","''")
                             print (gene_resf,gene_resfinder['gene'])
                     #print(insert,id_search,gene_resf)
@@ -386,9 +383,7 @@ def insert_data(data,field_name,conn,cursor,mode):
                                 else:
                                     value= str(value)
                             if isinstance(value,str):
-                                if "''" in value:
-                                    value = value.replace("''","''''")
-                                elif "'" in value:
+                                if "'" in value:
                                     value = value.replace("'","''")
                             if isinstance(value, float) and math.isnan(value):
                                 value = None
