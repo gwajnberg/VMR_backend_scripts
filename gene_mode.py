@@ -82,6 +82,11 @@ def insert_data(data,field_name,conn,cursor,mode):
             result = cursor.fetchone()
             #print (id_search)
             id_search = result[0]
+        if (field_name == 'isolate_id'):
+            cursor.execute ("SELECT id from isolates WHERE isolate_id= %s", (id_search,))
+            result = cursor.fetchone()
+            #print (id_search)
+            id_search = result[0]
             #print (id_search)
             
             #field_name = 'isolate_id'

@@ -1,0 +1,43 @@
+{
+  "ISO001": {
+    "isolate_id": "ISO001",
+    "staramr": {
+            "mlst_result": {
+                "mlst_sequence": "ST-",
+                "mlst_scheme": "koxytoca"
+            },
+            "plasmid_finder": [
+                NaN
+            ],
+            "resfinder_genes": [
+                {
+                    "gene": "blaOXY-6-1",
+                    "phenotypes": [
+                        "ampicillin"
+                    ]
+                },
+                {
+                    "gene": "tet(A)",
+                    "phenotypes": [
+                        "tetracycline"
+                    ]
+                }
+            ]
+        },
+      "abricate":{},
+      "refseq_masher":{},
+      "ectyper":{},
+      "sistr":{},
+      "mob_rgi_results":{},
+      "virulence_vf":{},
+      "iceberg":{},
+      "island_path":{},
+      "integron_finder":{},
+      "digis":{},
+      "kleborate":{}
+
+
+
+
+      }
+}

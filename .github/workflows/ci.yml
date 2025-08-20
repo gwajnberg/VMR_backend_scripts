@@ -1,0 +1,52 @@
+name: Python CI with PostgreSQL
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: vmr
+          POSTGRES_PASSWORD: vmr
+          POSTGRES_DB: vmrdb
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd="pg_isready -U gwajnberg -d vmrdb"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: postgres://vmr:vmr@localhost:5433/vmrdb
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Initialize DB schema
+        run: |
+          psql $DATABASE_URL -f db/schema/schema.sql
+
+      - name: Pre-fill dummy data
+        run: |
+          psql $DATABASE_URL -f db/schema/dummy_data.sql
+      - name: Run parsin_excel
+        run: |
+          python parsing_excel_postgresql_v2.py --gene_mode T --mode wgs --auto --input tests/test_gene_mode.json
+      - name: Run pytest suite
+        run: |
+          pytest -v
