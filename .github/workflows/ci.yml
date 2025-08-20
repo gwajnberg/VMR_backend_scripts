@@ -39,7 +39,7 @@ jobs:
 
       - name: Initialize DB schema
         run: |
-          psql $DATABASE_URL -f db/schema/schema.sql
+          psql $DATABASE_URL -f db/schema/vmrdb_schema.sql
 
       - name: Pre-fill dummy data
         run: |
