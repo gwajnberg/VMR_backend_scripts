@@ -12,6 +12,16 @@ def parse(json_file):
     with open(json_file, 'r') as f:
         data = json.load(f)
     return data
+def escape_quotes(value):
+    """
+    Safely escape single quotes in a string for SQL.
+    Converts None to None and escapes ' characters.
+    """
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value.replace("'", "''")
+    return value
 def print_inserts(insert_string,values):
         formatted_insert = insert_string
         formatted_insert = formatted_insert.replace(" RETURNING id", "")
@@ -246,45 +256,116 @@ def insert_data(data,field_name,conn,cursor,mode):
                     cursor.execute(insert, (id_search,abricate_gene['gene'],abricate_gene['product_resistance'],))
         print ('ectyper') 
         if first_element['ectyper']:
-            result = check_exists_id(id_search,"bioinf.ecoli_serotyping",cursor)
-            if not result:
-                ectyper = first_element.get('ectyper', [])
-                
-                insert = """
-                        WITH sequencing_info AS (
-                            SELECT s.id
-                            FROM sequencing s
-                            JOIN {} we ON s.extraction_id = we.extraction_id
-                            WHERE we.isolate_id = %s
-                        )
-                        INSERT INTO bioinf.ecoli_serotyping (SEQUENCING_ID, ecoli_serotype,htype,otype)
-                        SELECT id, %s, %s, %s
-                        FROM sequencing_info
-                        
+            result = check_exists_id(id_search, "bioinf.ecoli_serotyping", cursor)
+            ectyper = first_element.get('ectyper', {})
+            if "serotype" in ectyper:
+                ectyper["ecoli_serotype"] = ectyper.pop("serotype")
+            #print (ectyper)
+            #sys.exit()
 
-                        """.format(table_ex)
+            # --- Helper to normalize values (list → string, escape quotes) ---
+            def normalize(v):
+                if isinstance(v, list):
+                    v = ";".join(str(x) for x in v)
+
+                if v is None:
+                    return None
+
+                v = str(v)
+                v = v.replace("''", "''''")
+                v = v.replace("'", "''")
+                return v
+
+            if not result:
+
+                # -----------------------
+                # Build dynamic column list
+                # -----------------------
+
+                columns = ["sequencing_id"]
+                placeholders = ["sequencing_info.id"]
+                params = [id_search]
+
+                for col, value in ectyper.items():
+                    # Insert ALL ectyper fields (serotype, htype, otype, pathotype, lists, etc.)
+                    columns.append(col)
+                    placeholders.append("%s")
+                    params.append(normalize(value))
+
+                column_list = ", ".join(columns)
+                placeholder_list = ", ".join(placeholders)
+
+                insert_sql = f"""
+                    WITH sequencing_info AS (
+                        SELECT s.id
+                        FROM sequencing s
+                        JOIN {table_ex} we ON s.extraction_id = we.extraction_id
+                        WHERE we.isolate_id = %s
+                    )
+                    INSERT INTO bioinf.ecoli_serotyping ({column_list})
+                    SELECT {placeholder_list}
+                    FROM sequencing_info
+                """
+
+                print_inserts(insert_sql, params)
+                cursor.execute(insert_sql, params)
+            else:
+                #print(table_ex)
+                sql_query = """
+                    SELECT id, pathotype
+                    FROM bioinf.ecoli_serotyping
+                    WHERE sequencing_id IN (
+                        SELECT id 
+                        FROM sequencing
+                        WHERE extraction_id IN (
+                            SELECT extraction_id
+                            FROM wgs_extractions
+                            WHERE isolate_id = %s
+                        )
+                    )
+                """
+                cursor.execute(sql_query, (id_search,))
+                row = cursor.fetchone()
+
+                if row:
+                    existing_id = row[0]
+
+                    set_clauses = []
+                    params = []
+
+                    for k, v in ectyper.items():
+                        # Skip main three columns
+                        if k in ['serotype', 'htype', 'otype']:
+                            continue
+
+                        # --- Handle list → "a;b;c" ---
+                        if isinstance(v, list):
+                            # Convert list items to string then join
+                            v = ";".join(str(item) for item in v)
+
+                        # Convert numbers or None to string
+                        if v is None:
+                            v = None  # allow NULL
+                        else:
+                            v = str(v)
+
+                        # Escape SQL quotes
+                        if v is not None:
+                            v = v.replace("''", "''''")     # double-escaped
+                            v = v.replace("'", "''")        # escape single quotes
+
+                        set_clauses.append(f"{k} = %s")
+                        params.append(v)
+
+                    if set_clauses:
+                        set_str = ", ".join(set_clauses)
+                        update_sql = f"UPDATE bioinf.ecoli_serotyping SET {set_str} WHERE id = %s"
+                        params.append(existing_id)
+
+                        cursor.execute(update_sql, params)
+                        print_inserts(update_sql, params)
                 
-                if (ectyper['serotype']):
-                    if "''" in ectyper['serotype']:
-                        ectyper['serotype'] = ectyper['serotype'].replace("''","''''")
-                            
-                    elif "'" in ectyper['serotype']:
-                        ectyper['serotype'] = ectyper['serotype'].replace("'","''")
-                if (ectyper['htype']):
-                    if "''" in ectyper['htype']:
-                        ectyper['htype'] = ectyper['htype'].replace("''","''''")
-                            
-                    elif "'" in ectyper['htype']:
-                        ectyper['htype'] = ectyper['htype'].replace("'","''")
-                if (ectyper['otype']):
-                    if "''" in ectyper['otype']:
-                        ectyper['otype'] = ectyper['otype'].replace("''","''''")
-                            
-                    elif "'" in ectyper['otype']:
-                        ectyper['otype'] = ectyper['otype'].replace("'","''")
-                print_inserts(insert,(id_search,ectyper['serotype'],ectyper['htype'],ectyper['otype'],))
-                
-                cursor.execute(insert, (id_search,ectyper['serotype'],ectyper['htype'],ectyper['otype'],))
+                #sys.exit()
         print ('refseq_masher')
         if first_element['refseq_masher']:
             result = check_exists_id(id_search,"bioinf.refseq_masher",cursor)
