@@ -45,6 +45,7 @@ def main():
     parser.add_argument("-F", "--field_name",help= "field name used for irida naming.Default='Isolate_ID'", default="isolate_id")
     parser.add_argument("--auto",help="Run without prompts, assuming 'yes' for all questions (for CI use)", action="store_true"
 )
+    parser.add_argument("--replace", help="Delete existing data for each sample before inserting (use when re-uploading reanalyzed samples)", action="store_true")
     args = parser.parse_args()
 
     
@@ -55,7 +56,7 @@ def main():
         print("uploading file ", json_file)
         data = parse(json_file)
         print ('done')
-        insert_data(data,args.field_name,conn,cursor,args.mode )
+        insert_data(data, args.field_name, conn, cursor, args.mode, replace_mode=args.replace)
 
         sys.exit()    
     
