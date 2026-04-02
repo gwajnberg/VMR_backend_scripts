@@ -171,7 +171,8 @@ def insert_data(data, field_name, conn, cursor, mode, replace_mode=False):
                     for phenotype in gene_resfinder['phenotypes']:
                         insert_phenotype_query = """
                                                 INSERT INTO bioinf.resfinder_predicted_phenotypes (resfinder_id, predicted_phenotype)
-                                                VALUES (%s, %s);
+                                                VALUES (%s, %s)
+                                                ON CONFLICT DO NOTHING;
                                                 """
                         if phenotype:
                             if "''" in phenotype:
@@ -191,6 +192,7 @@ def insert_data(data, field_name, conn, cursor, mode, replace_mode=False):
                                                     JOIN {table_ex} we ON s.extraction_id = we.extraction_id
                                                     WHERE we.isolate_id = %s
                                                 )
+                                                ON CONFLICT DO NOTHING
                                                 """
                         print_inserts(insert_phenotype_file_sql, (phenotype, gene_resf, id_search))
                         cursor.execute(insert_phenotype_query, (resfinder_id, phenotype,))
@@ -259,30 +261,36 @@ def insert_data(data, field_name, conn, cursor, mode, replace_mode=False):
             if not result:
                 abricate_genes = first_element.get('abricate', [])
                 for abricate_gene in abricate_genes:
-                    insert = """
+                    columns = []
+                    placeholders = []
+                    values = []
+                    for key, value in abricate_gene.items():
+                        if isinstance(value, float) and math.isnan(value):
+                            value = None
+                        if isinstance(value, str):
+                            if "''" in value:
+                                value = value.replace("''", "''''")
+                            elif "'" in value:
+                                value = value.replace("'", "''")
+                        columns.append(key)
+                        placeholders.append("%s")
+                        values.append(value)
+                    column_str = ", ".join(columns)
+                    placeholder_str = ", ".join(placeholders)
+                    insert = f"""
                             WITH sequencing_info AS (
                                 SELECT s.id
                                 FROM sequencing s
-                                JOIN {} we ON s.extraction_id = we.extraction_id
+                                JOIN {table_ex} we ON s.extraction_id = we.extraction_id
                                 WHERE we.isolate_id = %s
                             )
-                            INSERT INTO bioinf.virulence_VFDB (SEQUENCING_ID, gene_accession,product_resistance)
-                            SELECT id, %s, %s
+                            INSERT INTO bioinf.virulence_VFDB (SEQUENCING_ID, {column_str})
+                            SELECT id, {placeholder_str}
                             FROM sequencing_info
-
-                            """.format(table_ex)
-                    if abricate_gene['gene']:
-                        if "''" in abricate_gene['gene']:
-                            abricate_gene['gene'] = abricate_gene['gene'].replace("''", "''''")
-                        elif "'" in abricate_gene['gene']:
-                            abricate_gene['gene'] = abricate_gene['gene'].replace("'", "''")
-                    if abricate_gene['product_resistance']:
-                        if "''" in abricate_gene['product_resistance']:
-                            abricate_gene['product_resistance'] = abricate_gene['product_resistance'].replace("''", "''''")
-                        elif "'" in abricate_gene['product_resistance']:
-                            abricate_gene['product_resistance'] = abricate_gene['product_resistance'].replace("'", "''")
-                    print_inserts(insert, (id_search, abricate_gene['gene'], abricate_gene['product_resistance'],))
-                    cursor.execute(insert, (id_search, abricate_gene['gene'], abricate_gene['product_resistance'],))
+                            """
+                    all_values = [id_search] + values
+                    print_inserts(insert, all_values)
+                    cursor.execute(insert, all_values)
                 conn.commit()
 
         # ------------------------------------------------------------------ #
@@ -826,4 +834,46 @@ def insert_data(data, field_name, conn, cursor, mode, replace_mode=False):
                 all_values = [id_search] + values
                 print_inserts(insert, all_values)
                 cursor.execute(insert, all_values,)
+                conn.commit()
+
+        # ------------------------------------------------------------------ #
+        print('phaster')
+        if first_element.get('phaster'):
+            result = check_exists_id(id_search, "bioinf.phaster_blastp_hits", table_ex, cursor)
+            if result and replace_mode:
+                delete_existing(id_search, "bioinf.phaster_blastp_hits", table_ex, cursor)
+                result = ""
+            if not result:
+                phaster_results = first_element.get('phaster', [])
+                for phaster_hit in phaster_results:
+                    columns = []
+                    placeholders = []
+                    values = []
+                    for key, value in phaster_hit.items():
+                        if isinstance(value, float) and math.isnan(value):
+                            value = None
+                        if isinstance(value, str):
+                            if "''" in value:
+                                value = value.replace("''", "''''")
+                            elif "'" in value:
+                                value = value.replace("'", "''")
+                        columns.append(key)
+                        placeholders.append("%s")
+                        values.append(value)
+                    column_str = ", ".join(columns)
+                    placeholder_str = ", ".join(placeholders)
+                    insert = f"""
+                            WITH sequencing_info AS (
+                                SELECT s.id
+                                FROM sequencing s
+                                JOIN {table_ex} we ON s.extraction_id = we.extraction_id
+                                WHERE we.isolate_id = %s
+                            )
+                            INSERT INTO bioinf.phaster_blastp_hits (SEQUENCING_ID, {column_str})
+                            SELECT id, {placeholder_str}
+                            FROM sequencing_info
+                            """
+                    all_values = [id_search] + values
+                    print_inserts(insert, all_values)
+                    cursor.execute(insert, all_values)
                 conn.commit()
